@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Autodrome;
 use App\Models\Driving;
 use App\Models\Group;
 use App\Models\Student;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -14,12 +17,19 @@ class DrivingController extends Controller
 {
     public function index(Request $request): Response
     {
-        $query = Driving::with(['instructor', 'student', 'group', 'review'])
+        $user = $request->user();
+        $isInstructor = $user->role === 'instructor';
+
+        $query = Driving::with(['instructor', 'student', 'group', 'review', 'autodrome'])
             ->orderBy('start_time', 'desc');
+
+        if ($isInstructor) {
+            $query->where('instructor_id', $user->id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('student', function($q) use ($search) {
+            $query->whereHas('student', function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%");
             });
         }
@@ -28,12 +38,36 @@ class DrivingController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('instructor_id')) {
+        $from = $request->input('from', now()->startOfMonth()->format('d-m-Y'));
+        $to = $request->input('to', now()->format('d-m-Y'));
+
+        if ($request->filled('instructor_id') && ! $isInstructor) {
             $query->where('instructor_id', $request->instructor_id);
         }
 
-        $drivings = $query->paginate(15)->withQueryString();
-        $instructors = \App\Models\User::where('role', 'instructor')->get();
+        try {
+            $fromDate = Carbon::createFromFormat('d-m-Y', $from)->startOfDay();
+            $query->where('start_time', '>=', $fromDate);
+        } catch (\Exception $e) {
+        }
+
+        try {
+            $toDate = Carbon::createFromFormat('d-m-Y', $to)->endOfDay();
+            $query->where('start_time', '<=', $toDate);
+        } catch (\Exception $e) {
+        }
+
+        $perPage = $request->get('per_page', 10);
+        if ($perPage === 'all') {
+            $perPage = max($query->count(), 1); // Avoid 0 per page
+        }
+
+        $drivings = $query->paginate($perPage)->withQueryString();
+        $instructors = User::where('role', 'instructor')
+            ->when($isInstructor, function ($q) use ($user) {
+                $q->where('id', $user->id);
+            })
+            ->get();
 
         $studentsQuery = Student::orderBy('full_name');
         $groupsQuery = Group::orderBy('name');
@@ -47,13 +81,22 @@ class DrivingController extends Controller
 
         $students = $studentsQuery->get();
         $groups = $groupsQuery->get();
+        $autodromes = Autodrome::orderBy('name')->get();
 
         return Inertia::render('Admin/Drivings/Index', [
             'drivings' => $drivings,
             'instructors' => $instructors,
             'students' => $students,
             'groups' => $groups,
-            'filters' => $request->only('search', 'status', 'instructor_id'),
+            'autodromes' => $autodromes,
+            'filters' => [
+                'search' => $request->search,
+                'status' => $request->status,
+                'instructor_id' => $request->instructor_id,
+                'from' => $from,
+                'to' => $to,
+                'per_page' => $request->per_page,
+            ],
         ]);
     }
 
@@ -64,6 +107,7 @@ class DrivingController extends Controller
             'student_ids' => 'required|array',
             'student_ids.*' => 'exists:students,id',
             'group_id' => 'nullable|exists:groups,id',
+            'autodrome_id' => 'required|exists:autodromes,id',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
         ]);
@@ -73,6 +117,7 @@ class DrivingController extends Controller
                 'instructor_id' => $validated['instructor_id'],
                 'student_id' => $studentId,
                 'group_id' => $validated['group_id'] ?? null,
+                'autodrome_id' => $validated['autodrome_id'] ?? null,
                 'start_time' => $validated['start_time'],
                 'end_time' => $validated['end_time'],
                 'status' => 'scheduled',
@@ -85,9 +130,6 @@ class DrivingController extends Controller
     public function update(Request $request, Driving $driving)
     {
         $validated = $request->validate([
-            'instructor_id' => 'required|exists:users,id',
-            'student_id' => 'required|exists:students,id',
-            'group_id' => 'nullable|exists:groups,id',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
             'status' => 'required|in:scheduled,in_progress,completed,cancelled',
@@ -100,7 +142,14 @@ class DrivingController extends Controller
 
     public function destroy(Driving $driving)
     {
+        if ($driving->review()->exists()) {
+            return redirect()->back()->withErrors([
+                'delete' => 'Baholangan mashg\'ulotni o\'chirish mumkin emas.',
+            ]);
+        }
+
         $driving->delete();
+
         return redirect()->back();
     }
 }

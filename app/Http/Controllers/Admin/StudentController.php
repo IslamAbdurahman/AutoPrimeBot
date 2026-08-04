@@ -13,13 +13,26 @@ class StudentController extends Controller
 {
     public function index(Request $request): Response
     {
-        $query = Student::with('group')->orderBy('id', 'desc');
+        $user = $request->user();
+        $isInstructor = $user->role === 'instructor';
+
+        $query = Student::with('group')
+            ->withCount(['drivings as completed_drivings_count' => function ($q) {
+                $q->where('status', 'completed');
+            }])
+            ->orderBy('id', 'desc');
+
+        if ($isInstructor) {
+            $query->whereHas('group', function ($q) use ($user) {
+                $q->where('instructor_id', $user->id);
+            });
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -27,13 +40,24 @@ class StudentController extends Controller
             $query->where('group_id', $request->group_id);
         }
 
-        $students = $query->paginate(15)->withQueryString();
-        $groups = Group::all();
+        $perPage = $request->get('per_page', 15);
+        if ($perPage === 'all') {
+            $perPage = max($query->count(), 1);
+        }
+
+        $students = $query->paginate($perPage)->withQueryString();
+        $groups = Group::when($isInstructor, function ($q) use ($user) {
+            $q->where('instructor_id', $user->id);
+        })->get();
 
         return Inertia::render('Admin/Students/Index', [
             'students' => $students,
             'groups' => $groups,
-            'filters' => $request->only('search', 'group_id'),
+            'filters' => [
+                'search' => $request->search,
+                'group_id' => $request->group_id,
+                'per_page' => $request->per_page,
+            ],
         ]);
     }
 
@@ -55,8 +79,8 @@ class StudentController extends Controller
     {
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20|unique:students,phone,' . $student->id,
-            'telegram_id' => 'nullable|string|unique:students,telegram_id,' . $student->id,
+            'phone' => 'required|string|max:20|unique:students,phone,'.$student->id,
+            'telegram_id' => 'nullable|string|unique:students,telegram_id,'.$student->id,
             'group_id' => 'nullable|exists:groups,id',
         ]);
 
@@ -68,6 +92,7 @@ class StudentController extends Controller
     public function destroy(Student $student)
     {
         $student->delete();
+
         return redirect()->back();
     }
 }

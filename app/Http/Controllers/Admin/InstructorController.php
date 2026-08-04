@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,17 +17,76 @@ class InstructorController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
-        $instructors = $query->paginate(15)->withQueryString();
+        $from = $request->input('from', Carbon::now()->startOfMonth()->format('d-m-Y'));
+        $to = $request->input('to', Carbon::now()->format('d-m-Y'));
+
+        $drivingsQuery = function ($query) use ($from, $to) {
+            $query->with('review');
+            try {
+                $fromDate = Carbon::createFromFormat('d-m-Y', $from)->startOfDay();
+                $query->where('start_time', '>=', $fromDate);
+            } catch (\Exception $e) {
+            }
+            try {
+                $toDate = Carbon::createFromFormat('d-m-Y', $to)->endOfDay();
+                $query->where('start_time', '<=', $toDate);
+            } catch (\Exception $e) {
+            }
+        };
+
+        $perPage = $request->get('per_page', 15);
+        if ($perPage === 'all') {
+            $perPage = max($query->count(), 1);
+        }
+
+        $instructors = $query->withCount('groups')
+            ->with(['drivings' => $drivingsQuery])
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $instructors->getCollection()->transform(function ($instructor) {
+            $totalDrivings = $instructor->drivings->count();
+
+            $reviews = $instructor->drivings->pluck('review')->filter();
+            $totalReviews = $reviews->count();
+
+            $averageRating = $totalReviews > 0 ? $reviews->avg('rating') : 0;
+            $kpiPercentage = ($averageRating / 5) * 100;
+
+            $allTags = $reviews->pluck('reason_tags')->flatten()->filter();
+
+            $negativeTagsCount = $allTags->filter(function ($tag) {
+                return in_array($tag, ['⏰ Kechikdi', '🗣 Muomala yomon', '🚗 Mashina nosoz', '⏳ Vaqtidan kam o\'tildi']);
+            })->count();
+
+            return [
+                'id' => $instructor->id,
+                'name' => $instructor->name,
+                'phone' => $instructor->phone,
+                'telegram_id' => $instructor->telegram_id,
+                'groups_count' => $instructor->groups_count,
+                'total_drivings' => $totalDrivings,
+                'average_rating' => round($averageRating, 2),
+                'kpi_percentage' => round($kpiPercentage, 1),
+                'negative_tags_count' => $negativeTagsCount,
+                'needs_attention' => $negativeTagsCount >= 3,
+            ];
+        });
 
         return Inertia::render('Admin/Instructors/Index', [
             'instructors' => $instructors,
-            'filters' => $request->only('search'),
+            'filters' => [
+                'search' => $request->search,
+                'from' => $from,
+                'to' => $to,
+                'per_page' => $request->per_page,
+            ],
         ]);
     }
 
@@ -52,8 +112,8 @@ class InstructorController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20|unique:users,phone,' . $instructor->id,
-            'telegram_id' => 'nullable|string|unique:users,telegram_id,' . $instructor->id,
+            'phone' => 'required|string|max:20|unique:users,phone,'.$instructor->id,
+            'telegram_id' => 'nullable|string|unique:users,telegram_id,'.$instructor->id,
         ]);
 
         $instructor->update($validated);
@@ -64,6 +124,7 @@ class InstructorController extends Controller
     public function destroy(User $instructor)
     {
         $instructor->delete();
+
         return redirect()->back();
     }
 }

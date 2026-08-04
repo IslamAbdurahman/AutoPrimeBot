@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Driving;
 use App\Models\Group;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,16 +17,16 @@ class InstructorController extends Controller
     public function dashboard(Request $request): Response
     {
         $user = $request->user();
-        
+
         // Load groups assigned to this instructor
         $groups = Group::withCount('students')
             ->where('instructor_id', $user->id)
             ->get();
 
         // Load upcoming drivings
-        $upcomingDrivings = Driving::with(['student', 'group'])
+        $upcomingDrivings = Driving::with(['student', 'group', 'autodrome'])
             ->where('instructor_id', $user->id)
-            ->where('status', 'scheduled')
+            ->whereIn('status', ['scheduled', 'in_progress'])
             ->orderBy('start_time', 'asc')
             ->take(10)
             ->get();
@@ -42,7 +43,7 @@ class InstructorController extends Controller
     public function createDriving(Request $request): Response
     {
         $user = $request->user();
-        
+
         // Load groups with students for the select dropdowns
         $groups = Group::with('students')
             ->where('instructor_id', $user->id)
@@ -77,5 +78,70 @@ class InstructorController extends Controller
         ]);
 
         return redirect()->route('instructor.dashboard');
+    }
+
+    /**
+     * Finish a driving session with geolocation check.
+     */
+    public function finishDriving(Request $request, Driving $driving)
+    {
+        $user = $request->user();
+
+        if ($driving->instructor_id !== $user->id) {
+            throw ValidationException::withMessages(['general' => 'Sizga tegishli bo\'lmagan dars']);
+        }
+
+        $request->validate([
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
+
+        $autodrome = $driving->autodrome;
+
+        if (! $autodrome) {
+            // If no autodrome is assigned, just finish it
+            $driving->update(['status' => 'completed']);
+
+            return redirect()->back();
+        }
+
+        $distance = $this->haversineGreatCircleDistance(
+            $request->latitude,
+            $request->longitude,
+            $autodrome->latitude,
+            $autodrome->longitude
+        );
+
+        if ($distance > $autodrome->radius_meters) {
+            throw ValidationException::withMessages([
+                'location' => 'Siz avtodrom hududida emassiz. Masofangiz: '.round($distance)." metr (Ruxsat etilgan: {$autodrome->radius_meters} metr).",
+            ]);
+        }
+
+        $driving->update(['status' => 'completed']);
+
+        return redirect()->back()->with('success', 'Dars muvaffaqiyatli yakunlandi');
+    }
+
+    /**
+     * Calculates the great-circle distance between two points, with
+     * the Haversine formula. Returns distance in meters.
+     */
+    private function haversineGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo)
+    {
+        $earthRadius = 6371000; // Earth radius in meters
+
+        $latFrom = deg2rad($latitudeFrom);
+        $lonFrom = deg2rad($longitudeFrom);
+        $latTo = deg2rad($latitudeTo);
+        $lonTo = deg2rad($longitudeTo);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+
+        return $angle * $earthRadius;
     }
 }

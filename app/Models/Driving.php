@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\DrivingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,16 +20,16 @@ use Illuminate\Support\Carbon;
  * @property string $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * 
  * @property-read User $instructor
  * @property-read Group|null $group
  * @property-read Student $student
  * @property-read Review|null $review
+ * @property-read Autodrome|null $autodrome
  */
-#[Fillable(['instructor_id', 'group_id', 'student_id', 'start_time', 'end_time', 'status'])]
+#[Fillable(['instructor_id', 'group_id', 'student_id', 'autodrome_id', 'start_time', 'end_time', 'status'])]
 class Driving extends Model
 {
-    /** @use HasFactory<\Database\Factories\DrivingFactory> */
+    /** @use HasFactory<DrivingFactory> */
     use HasFactory;
 
     protected function casts(): array
@@ -69,5 +70,13 @@ class Driving extends Model
     public function review(): HasOne
     {
         return $this->hasOne(Review::class);
+    }
+
+    /**
+     * @return BelongsTo<Autodrome, $this>
+     */
+    public function autodrome(): BelongsTo
+    {
+        return $this->belongsTo(Autodrome::class);
     }
 }

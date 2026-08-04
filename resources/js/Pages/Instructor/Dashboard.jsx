@@ -1,7 +1,53 @@
-import { Link } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import TMALayout from '@/Layouts/TMALayout';
 
 export default function Dashboard({ groups, upcomingDrivings }) {
+    const { errors } = usePage().props;
+    const [finishingId, setFinishingId] = useState(null);
+    const [locationError, setLocationError] = useState('');
+
+    const handleFinish = (driving) => {
+        if (!confirm("Haqiqatdan ham bu mashg'ulotni yakunlamoqchimisiz?")) return;
+        
+        setFinishingId(driving.id);
+        setLocationError('');
+
+        if (driving.autodrome) {
+            if (!navigator.geolocation) {
+                setLocationError("Qurilmangizda geolokatsiya qo'llab-quvvatlanmaydi.");
+                setFinishingId(null);
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    router.post(route('instructor.driving.finish', driving.id), {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                    }, {
+                        preserveScroll: true,
+                        onFinish: () => setFinishingId(null)
+                    });
+                },
+                (error) => {
+                    setLocationError("Joylashuvni aniqlash imkonsiz: " + error.message);
+                    setFinishingId(null);
+                },
+                { enableHighAccuracy: true }
+            );
+        } else {
+            // No autodrome, finish immediately with dummy coords (or backend won't need them if autodrome is null, but we send 0)
+            router.post(route('instructor.driving.finish', driving.id), {
+                latitude: 0,
+                longitude: 0,
+            }, {
+                preserveScroll: true,
+                onFinish: () => setFinishingId(null)
+            });
+        }
+    };
+
     return (
         <TMALayout title="Instruktor Paneli">
             <div className="space-y-6">
@@ -37,11 +83,26 @@ export default function Dashboard({ groups, upcomingDrivings }) {
                         </div>
                     ) : (
                         <div className="space-y-3">
+                            {locationError && (
+                                <div className="p-3 mb-2 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-900/30 dark:text-red-400">
+                                    {locationError}
+                                </div>
+                            )}
+                            {errors && errors.location && (
+                                <div className="p-3 mb-2 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-900/30 dark:text-red-400">
+                                    {errors.location}
+                                </div>
+                            )}
+                            {errors && errors.general && (
+                                <div className="p-3 mb-2 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-900/30 dark:text-red-400">
+                                    {errors.general}
+                                </div>
+                            )}
                             {upcomingDrivings.map((driving) => (
                                 <div key={driving.id} className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col gap-2">
                                     <div className="flex justify-between items-start">
                                         <h3 className="font-medium text-gray-900 dark:text-white">
-                                            {driving.student?.full_name || 'Noma\'lum o\'quvchi'}
+                                            {driving.student?.full_name || 'Noma\'lum o\'quvchi'} {driving.student?.phone ? `(${driving.student.phone})` : ''}
                                         </h3>
                                         <span className="px-2.5 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-medium rounded-lg">
                                             {driving.group?.name || 'Guruhsiz'}
@@ -54,6 +115,28 @@ export default function Dashboard({ groups, upcomingDrivings }) {
                                                 {new Date(driving.start_time).toLocaleString('uz-UZ', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} - {new Date(driving.end_time).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
+                                        {driving.autodrome && (
+                                            <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                <span>Avtodrom: {driving.autodrome.name}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+                                        <button 
+                                            onClick={() => handleFinish(driving)}
+                                            disabled={finishingId === driving.id}
+                                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
+                                        >
+                                            {finishingId === driving.id ? (
+                                                <>
+                                                    <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+                                                    Joylashuv tekshirilmoqda...
+                                                </>
+                                            ) : (
+                                                "Yakunlash"
+                                            )}
+                                        </button>
                                     </div>
                                 </div>
                             ))}

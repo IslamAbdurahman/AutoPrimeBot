@@ -1,5 +1,5 @@
-import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { BookOpen, FolderGit2, LayoutGrid, MapPin } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -15,16 +15,23 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import type { NavItem, SharedData } from '@/types';
 
 export function AppSidebar() {
     const { t } = useTranslation();
+    const { auth } = usePage<SharedData>().props;
+    const isInstructor = auth.user.role === 'instructor';
 
     const mainNavItems: NavItem[] = [
         {
-            title: t('sidebar.dashboard', 'KPI Paneli'),
-            href: '/admin/kpi',
+            title: t('sidebar.dashboard', 'Bosh sahifa'),
+            href: '/admin/dashboard',
             icon: LayoutGrid,
+        },
+        {
+            title: 'Avtodromlar',
+            href: '/admin/autodromes',
+            icon: MapPin,
         },
         {
             title: t('sidebar.instructors', 'Instruktorlar'),
@@ -46,7 +53,12 @@ export function AppSidebar() {
             href: '/admin/drivings',
             icon: FolderGit2,
         },
-    ];
+    ].filter(item => {
+        if (isInstructor) {
+            return ['/admin/dashboard', '/admin/groups', '/admin/students', '/admin/drivings'].includes(item.href);
+        }
+        return true;
+    });
 
     return (
         <Sidebar collapsible="icon" variant="inset">

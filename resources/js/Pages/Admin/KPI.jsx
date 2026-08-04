@@ -1,6 +1,47 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
+import Flatpickr from 'react-flatpickr';
+import 'flatpickr/dist/themes/light.css';
 
-export default function KPI({ instructors }) {
+export default function KPI({ instructors, filters }) {
+    const [fromDate, setFromDate] = useState(filters?.from || '');
+    const [toDate, setToDate] = useState(filters?.to || '');
+
+    const formatAsDate = (val) => {
+        let clean = val.replace(/[^\d]/g, '');
+        if (clean.length > 8) clean = clean.substring(0, 8);
+        if (clean.length > 0 && parseInt(clean[0]) > 3) clean = '0' + clean[0];
+        if (clean.length > 1) {
+            if (clean[0] === '3' && parseInt(clean[1]) > 1) clean = '31';
+            if (clean[0] === '0' && clean[1] === '0') clean = '01';
+        }
+        if (clean.length > 2 && parseInt(clean[2]) > 1) clean = clean.substring(0,2) + '0' + clean[2];
+        if (clean.length > 3) {
+            if (clean[2] === '1' && parseInt(clean[3]) > 2) clean = clean.substring(0,3) + '2';
+            if (clean[2] === '0' && clean[3] === '0') clean = clean.substring(0,3) + '1';
+        }
+        let formatted = clean;
+        if (clean.length >= 5) formatted = `${clean.substring(0, 2)}-${clean.substring(2, 4)}-${clean.substring(4)}`;
+        else if (clean.length >= 3) formatted = `${clean.substring(0, 2)}-${clean.substring(2)}`;
+        return formatted;
+    };
+
+    const applyFilters = (newFrom, newTo) => {
+        router.get('/admin/kpi', { 
+            from: newFrom,
+            to: newTo
+        }, { preserveState: true, replace: true });
+    };
+
+    const handleFilterDateChange = (field, dates, dateStr) => {
+        if (field === 'from') setFromDate(dateStr);
+        else setToDate(dateStr);
+        
+        if (dateStr.length === 10 || dateStr.length === 0) {
+            if (field === 'from') applyFilters(dateStr, toDate);
+            else applyFilters(fromDate, dateStr);
+        }
+    };
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
             <Head title="Admin KPI Paneli" />
@@ -12,6 +53,26 @@ export default function KPI({ instructors }) {
                         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             Instruktorlar reytingi va mashg'ulotlar statistikasi
                         </p>
+                    </div>
+                    
+                    <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto mt-4 md:mt-0">
+                        <Flatpickr 
+                            options={{ dateFormat: 'd-m-Y', allowInput: true }}
+                            placeholder="Dan DD-MM-YYYY"
+                            value={fromDate}
+                            onChange={(dates, dateStr) => handleFilterDateChange('from', dates, dateStr)}
+                            className="flex h-10 w-full md:w-32 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            title="Dan"
+                        />
+                        
+                        <Flatpickr 
+                            options={{ dateFormat: 'd-m-Y', allowInput: true }}
+                            placeholder="Gacha DD-MM-YYYY"
+                            value={toDate}
+                            onChange={(dates, dateStr) => handleFilterDateChange('to', dates, dateStr)}
+                            className="flex h-10 w-full md:w-32 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            title="Gacha"
+                        />
                     </div>
                 </div>
 

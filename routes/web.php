@@ -1,10 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\AutodromeController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\InstructorController as AdminInstructorController;
-use App\Http\Controllers\Admin\GroupController;
-use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\DrivingController;
+use App\Http\Controllers\Admin\GroupController;
+use App\Http\Controllers\Admin\InstructorController as AdminInstructorController;
+use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\InstructorController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,11 +28,15 @@ Route::middleware(['auth.telegram'])->group(function () {
     Route::get('/instructor/dashboard', [InstructorController::class, 'dashboard'])->name('instructor.dashboard');
     Route::get('/instructor/driving/create', [InstructorController::class, 'createDriving'])->name('instructor.driving.create');
     Route::post('/instructor/driving', [InstructorController::class, 'storeDriving'])->name('instructor.driving.store');
-    
+    Route::post('/instructor/driving/{driving}/finish', [InstructorController::class, 'finishDriving'])->name('instructor.driving.finish');
+
     // Admin Routes
-    Route::get('/admin/kpi', [DashboardController::class, 'kpiDashboard'])->name('admin.kpi');
+    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('admin/instructors', AdminInstructorController::class)->except(['create', 'show', 'edit']);
-    Route::resource('admin/groups', GroupController::class)->except(['create', 'show', 'edit']);
+    Route::get('admin/groups/download-template', [GroupController::class, 'downloadTemplate'])->name('groups.download-template');
+    Route::post('admin/groups/{group}/import-students', [GroupController::class, 'importStudents'])->name('groups.import-students');
+    Route::resource('admin/groups', GroupController::class)->except(['create', 'edit']);
     Route::resource('admin/students', StudentController::class)->except(['create', 'show', 'edit']);
     Route::resource('admin/drivings', DrivingController::class)->except(['create', 'show', 'edit']);
+    Route::resource('admin/autodromes', AutodromeController::class)->except(['create', 'show', 'edit']);
 });

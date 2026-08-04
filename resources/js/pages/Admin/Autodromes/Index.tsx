@@ -1,0 +1,238 @@
+import { useState, useRef, useMemo, useEffect } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import { Trash2, Edit2, Plus, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from '@/components/ui/dialog';
+
+// Fix leaflet default icon
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+interface Autodrome {
+    id: number;
+    name: string;
+    latitude: number;
+    longitude: number;
+    radius_meters: number;
+    completed_drivings_count?: number;
+}
+
+interface PageProps {
+    autodromes: Autodrome[];
+}
+
+function LocationMarker({ position, setPosition, radius }: { position: L.LatLng | null, setPosition: (p: L.LatLng) => void, radius: number }) {
+    useMapEvents({
+        click(e) {
+            setPosition(e.latlng);
+        },
+    });
+
+    return position === null ? null : (
+        <>
+            <Marker position={position}></Marker>
+            <Circle center={position} pathOptions={{ fillColor: 'blue' }} radius={radius} />
+        </>
+    );
+}
+
+export default function AutodromesIndex({ autodromes }: PageProps) {
+    const [editing, setEditing] = useState<Autodrome | null>(null);
+    const [showForm, setShowForm] = useState(false);
+    
+    // Default to Tashkent coordinates if no position is selected
+    const defaultCenter = useMemo(() => new L.LatLng(41.2995, 69.2401), []);
+    const [position, setPosition] = useState<L.LatLng | null>(null);
+
+    const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
+        name: '',
+        latitude: '',
+        longitude: '',
+        radius_meters: '100',
+    });
+
+    useEffect(() => {
+        if (position) {
+            setData((prev) => ({
+                ...prev,
+                latitude: String(position.lat),
+                longitude: String(position.lng)
+            }));
+        }
+    }, [position]);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editing) {
+            put('/admin/autodromes/' + editing.id, {
+                onSuccess: () => closeForm(),
+            });
+        } else {
+            post('/admin/autodromes', {
+                onSuccess: () => closeForm(),
+            });
+        }
+    };
+
+    const handleEdit = (autodrome: Autodrome) => {
+        setEditing(autodrome);
+        setData({
+            name: autodrome.name,
+            latitude: String(autodrome.latitude),
+            longitude: String(autodrome.longitude),
+            radius_meters: String(autodrome.radius_meters),
+        });
+        setPosition(new L.LatLng(autodrome.latitude, autodrome.longitude));
+        setShowForm(true);
+    };
+
+    const handleDelete = (id: number) => {
+        if (confirm("Rostdan ham o'chirmoqchimisiz?")) {
+            destroy('/admin/autodromes/' + id);
+        }
+    };
+
+    const closeForm = () => {
+        setShowForm(false);
+        setTimeout(() => {
+            setEditing(null);
+            setPosition(null);
+            reset();
+        }, 300);
+    };
+
+    return (
+        <div className="p-6">
+            <Head title="Avtodromlar" />
+            
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold">Avtodromlar</h1>
+                    <p className="text-muted-foreground">Mashg'ulotlar o'tkaziladigan maxsus maydonlar va ularning radiuslari</p>
+                </div>
+                <Button onClick={() => setShowForm(true)}><Plus className="w-4 h-4 mr-2" /> Qo'shish</Button>
+            </div>
+
+            <Dialog open={showForm} onOpenChange={(open) => !open && closeForm()}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>{editing ? 'Avtodromni tahrirlash' : 'Yangi Avtodrom'}</DialogTitle>
+                        <DialogDescription className="sr-only">
+                            {editing ? 'Tahrirlash' : 'Qo\'shish'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="name">Nomi</Label>
+                                <Input id="name" value={data.name} onChange={e => setData('name', e.target.value)} placeholder="Masalan: Asosiy avtodrom" required />
+                                {errors.name && <div className="text-destructive text-sm mt-1">{errors.name}</div>}
+                            </div>
+                            <div>
+                                <Label htmlFor="radius_meters">Radius (metrda)</Label>
+                                <Input type="number" id="radius_meters" value={data.radius_meters} onChange={e => setData('radius_meters', e.target.value)} placeholder="Masalan: 100" required min="10" />
+                                {errors.radius_meters && <div className="text-destructive text-sm mt-1">{errors.radius_meters}</div>}
+                            </div>
+                        </div>
+
+                        <div className="border rounded-xl p-2 bg-gray-50 h-[400px]">
+                            <p className="text-sm text-gray-500 mb-2 font-medium px-2 flex items-center gap-2">
+                                <MapPin className="w-4 h-4" /> 
+                                Xaritadan joyni tanlang (ustiga bosing)
+                            </p>
+                            <MapContainer 
+                                center={position || defaultCenter} 
+                                zoom={position ? 15 : 12} 
+                                style={{ height: 'calc(100% - 30px)', width: '100%', borderRadius: '0.5rem' }}
+                            >
+                                <TileLayer
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                />
+                                <LocationMarker 
+                                    position={position} 
+                                    setPosition={setPosition} 
+                                    radius={Number(data.radius_meters) || 100} 
+                                />
+                            </MapContainer>
+                        </div>
+                        
+                        {(errors.latitude || errors.longitude) && (
+                            <div className="text-destructive text-sm">Xaritadan manzilni belgilash majburiy.</div>
+                        )}
+
+                        <div className="flex justify-end gap-2 pt-4 border-t">
+                            <Button type="button" variant="outline" onClick={closeForm}>Bekor qilish</Button>
+                            <Button type="submit" disabled={processing || !position}>Saqlash</Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                            <tr>
+                                <th className="px-4 py-3 font-medium">№</th>
+                                <th className="px-4 py-3 font-medium">Nomi</th>
+                                <th className="px-4 py-3 font-medium">Kordinatalar</th>
+                                <th className="px-4 py-3 font-medium">Radius (metr)</th>
+                                <th className="px-4 py-3 font-medium text-center">Tugagan darslar</th>
+                                <th className="px-4 py-3 text-right font-medium">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                            {autodromes.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Ma'lumot topilmadi</td>
+                                </tr>
+                            ) : (
+                                autodromes.map((item, index) => (
+                                    <tr key={item.id} className="hover:bg-muted/30">
+                                        <td className="px-4 py-3">{index + 1}</td>
+                                        <td className="px-4 py-3 font-medium">{item.name}</td>
+                                        <td className="px-4 py-3 text-muted-foreground">
+                                            {item.latitude}, {item.longitude}
+                                        </td>
+                                        <td className="px-4 py-3 font-medium text-blue-600">{item.radius_meters}m</td>
+                                        <td className="px-4 py-3 text-center">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                                {item.completed_drivings_count || 0}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                                                    <Edit2 className="w-4 h-4 text-blue-500" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)}>
+                                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+}

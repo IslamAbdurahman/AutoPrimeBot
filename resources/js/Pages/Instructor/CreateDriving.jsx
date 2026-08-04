@@ -55,7 +55,7 @@ export default function CreateDriving({ groups }) {
                         >
                             <option value="">-- Tanlang --</option>
                             {selectedGroup?.students.map(student => (
-                                <option key={student.id} value={student.id}>{student.full_name}</option>
+                                <option key={student.id} value={student.id}>{student.full_name} ({student.phone || '-'})</option>
                             ))}
                         </select>
                         {errors.student_id && <div className="text-red-500 text-xs mt-1">{errors.student_id}</div>}
