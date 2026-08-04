@@ -4,7 +4,8 @@
     "groups": "Guruhlar",
     "students": "O'quvchilar",
     "instructors": "Instruktorlar",
-    "drivings": "Mashg'ulotlar"
+    "drivings": "Mashg'ulotlar",
+    "autodromes": "Avtodromlar"
   },
   "common": {
     "search": "Qidirish...",
@@ -19,7 +20,13 @@
     "confirm_delete": "Rostdan ham o'chirmoqchimisiz?",
     "no_data": "Ma'lumot topilmadi",
     "select": "-- Tanlang --",
-    "number": "№"
+    "number": "№",
+    "filter": "Filtrlash",
+    "from": "Dan",
+    "to": "Gacha",
+    "pagination": "Sahifalash",
+    "per_page": "Har sahifada",
+    "all": "Barchasi"
   },
   "status": {
     "scheduled": "Rejada",
@@ -27,6 +34,29 @@
     "completed": "Tugagan",
     "cancelled": "Bekor qilingan",
     "all": "Barcha holatlar"
+  },
+  "dashboard": {
+    "title": "Bosh sahifa",
+    "description": "Maktabning umumiy holati va ko'rsatkichlari",
+    "total_students": "Umumiy Talabalar",
+    "avg_kpi": "O'rtacha KPI (%)",
+    "avg_kpi_desc": "Tanlangan davr uchun o'rtacha ko'rsatkich",
+    "monthly_drivings": "Oylik Mashg'ulotlar",
+    "completion_rate": "Oylik Tugatish Darajasi",
+    "daily_chart_title": "Shu oydagi kunlik mashg'ulotlar"
+  },
+  "autodromes": {
+    "title": "Avtodromlar",
+    "description": "Mashg'ulotlar o'tkaziladigan maxsus maydonlar va ularning radiuslari",
+    "new": "Yangi Avtodrom",
+    "edit": "Avtodromni tahrirlash",
+    "name": "Nomi",
+    "coordinates": "Kordinatalar",
+    "radius": "Radius (metr)",
+    "radius_label": "Radius (metrda)",
+    "completed_drivings": "Tugagan darslar",
+    "map_hint": "Xaritadan joyni tanlang (ustiga bosing)",
+    "location_required": "Xaritadan manzilni belgilash majburiy."
   },
   "groups": {
     "title": "Guruhlar",
@@ -64,17 +94,25 @@
     "title": "Mashg'ulotlar Tarixi",
     "description": "O'tkazilgan va rejalashtirilgan barcha darslar tarixi",
     "new": "Yangi Mashg'ulot",
+    "edit": "Mashg'ulotni tahrirlash",
     "date_time": "Sana/Vaqt",
+    "date": "Sana",
     "student_group": "O'quvchi / Guruh",
     "student": "O'quvchi",
     "group": "Guruh",
     "group_optional": "Guruh (Ixtiyoriy)",
     "instructor": "Instruktor",
+    "autodrome": "Avtodrom",
     "review": "Baho va Fikr",
     "start_time": "Boshlanish vaqti",
     "end_time": "Tugash vaqti",
     "all_instructors": "Barcha instruktorlar",
-    "no_students": "O'quvchilar topilmadi"
+    "no_students": "O'quvchilar topilmadi",
+    "created_success": "Mashg'ulot muvaffaqiyatli yaratildi",
+    "updated_success": "Mashg'ulot muvaffaqiyatli yangilandi",
+    "deleted_success": "Mashg'ulot o'chirildi",
+    "delete_reviewed_error": "Baholangan mashg'ulotni o'chirish mumkin emas",
+    "error": "Xatolik yuz berdi"
   },
   "pagination": {
     "previous": "Oldingisi",

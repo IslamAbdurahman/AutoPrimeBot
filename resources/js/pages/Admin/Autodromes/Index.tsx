@@ -1,5 +1,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -52,6 +54,7 @@ function LocationMarker({ position, setPosition, radius }: { position: L.LatLng 
 }
 
 export default function AutodromesIndex({ autodromes }: PageProps) {
+    const { t } = useTranslation();
     const [editing, setEditing] = useState<Autodrome | null>(null);
     const [showForm, setShowForm] = useState(false);
     
@@ -80,11 +83,19 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
         e.preventDefault();
         if (editing) {
             put('/admin/autodromes/' + editing.id, {
-                onSuccess: () => closeForm(),
+                onSuccess: () => {
+                    closeForm();
+                    toast.success(t('autodromes.edit', 'Avtodrom yangilandi'));
+                },
+                onError: (err) => toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi')),
             });
         } else {
             post('/admin/autodromes', {
-                onSuccess: () => closeForm(),
+                onSuccess: () => {
+                    closeForm();
+                    toast.success(t('autodromes.new', 'Avtodrom yaratildi'));
+                },
+                onError: (err) => toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi')),
             });
         }
     };
@@ -102,8 +113,11 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
     };
 
     const handleDelete = (id: number) => {
-        if (confirm("Rostdan ham o'chirmoqchimisiz?")) {
-            destroy('/admin/autodromes/' + id);
+        if (confirm(t('common.confirm_delete', "Rostdan ham o'chirmoqchimisiz?"))) {
+            destroy('/admin/autodromes/' + id, {
+                onSuccess: () => toast.success(t('common.delete', "O'chirildi")),
+                onError: (err) => toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi')),
+            });
         }
     };
 
@@ -118,33 +132,33 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
 
     return (
         <div className="p-6">
-            <Head title="Avtodromlar" />
+            <Head title={t('autodromes.title', 'Avtodromlar')} />
             
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Avtodromlar</h1>
-                    <p className="text-muted-foreground">Mashg'ulotlar o'tkaziladigan maxsus maydonlar va ularning radiuslari</p>
+                    <h1 className="text-2xl font-bold">{t('autodromes.title', 'Avtodromlar')}</h1>
+                    <p className="text-muted-foreground">{t('autodromes.description', "Mashg'ulotlar o'tkaziladigan maxsus maydonlar va ularning radiuslari")}</p>
                 </div>
-                <Button onClick={() => setShowForm(true)}><Plus className="w-4 h-4 mr-2" /> Qo'shish</Button>
+                <Button onClick={() => setShowForm(true)}><Plus className="w-4 h-4 mr-2" /> {t('common.add', "Qo'shish")}</Button>
             </div>
 
             <Dialog open={showForm} onOpenChange={(open) => !open && closeForm()}>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>{editing ? 'Avtodromni tahrirlash' : 'Yangi Avtodrom'}</DialogTitle>
+                        <DialogTitle>{editing ? t('autodromes.edit', 'Avtodromni tahrirlash') : t('autodromes.new', 'Yangi Avtodrom')}</DialogTitle>
                         <DialogDescription className="sr-only">
-                            {editing ? 'Tahrirlash' : 'Qo\'shish'}
+                            {editing ? t('common.edit', 'Tahrirlash') : t('common.add', "Qo'shish")}
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <Label htmlFor="name">Nomi</Label>
+                                <Label htmlFor="name">{t('autodromes.name', 'Nomi')}</Label>
                                 <Input id="name" value={data.name} onChange={e => setData('name', e.target.value)} placeholder="Masalan: Asosiy avtodrom" required />
                                 {errors.name && <div className="text-destructive text-sm mt-1">{errors.name}</div>}
                             </div>
                             <div>
-                                <Label htmlFor="radius_meters">Radius (metrda)</Label>
+                                <Label htmlFor="radius_meters">{t('autodromes.radius_label', 'Radius (metrda)')}</Label>
                                 <Input type="number" id="radius_meters" value={data.radius_meters} onChange={e => setData('radius_meters', e.target.value)} placeholder="Masalan: 100" required min="10" />
                                 {errors.radius_meters && <div className="text-destructive text-sm mt-1">{errors.radius_meters}</div>}
                             </div>
@@ -153,7 +167,7 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                         <div className="border rounded-xl p-2 bg-gray-50 h-[400px]">
                             <p className="text-sm text-gray-500 mb-2 font-medium px-2 flex items-center gap-2">
                                 <MapPin className="w-4 h-4" /> 
-                                Xaritadan joyni tanlang (ustiga bosing)
+                                {t('autodromes.map_hint', 'Xaritadan joyni tanlang (ustiga bosing)')}
                             </p>
                             <MapContainer 
                                 center={position || defaultCenter} 
@@ -173,12 +187,12 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                         </div>
                         
                         {(errors.latitude || errors.longitude) && (
-                            <div className="text-destructive text-sm">Xaritadan manzilni belgilash majburiy.</div>
+                            <div className="text-destructive text-sm">{t('autodromes.location_required', 'Xaritadan manzilni belgilash majburiy.')}</div>
                         )}
 
                         <div className="flex justify-end gap-2 pt-4 border-t">
-                            <Button type="button" variant="outline" onClick={closeForm}>Bekor qilish</Button>
-                            <Button type="submit" disabled={processing || !position}>Saqlash</Button>
+                            <Button type="button" variant="outline" onClick={closeForm}>{t('common.cancel', 'Bekor qilish')}</Button>
+                            <Button type="submit" disabled={processing || !position}>{t('common.save', 'Saqlash')}</Button>
                         </div>
                     </form>
                 </DialogContent>
@@ -189,18 +203,18 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                     <table className="w-full text-sm text-left">
                         <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
                             <tr>
-                                <th className="px-4 py-3 font-medium">№</th>
-                                <th className="px-4 py-3 font-medium">Nomi</th>
-                                <th className="px-4 py-3 font-medium">Kordinatalar</th>
-                                <th className="px-4 py-3 font-medium">Radius (metr)</th>
-                                <th className="px-4 py-3 font-medium text-center">Tugagan darslar</th>
-                                <th className="px-4 py-3 text-right font-medium">Amallar</th>
+                                <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
+                                <th className="px-4 py-3 font-medium">{t('autodromes.name', 'Nomi')}</th>
+                                <th className="px-4 py-3 font-medium">{t('autodromes.coordinates', 'Kordinatalar')}</th>
+                                <th className="px-4 py-3 font-medium">{t('autodromes.radius', 'Radius (metr)')}</th>
+                                <th className="px-4 py-3 font-medium text-center">{t('autodromes.completed_drivings', 'Tugagan darslar')}</th>
+                                <th className="px-4 py-3 text-right font-medium">{t('common.actions', 'Amallar')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y">
                             {autodromes.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Ma'lumot topilmadi</td>
+                                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">{t('common.no_data', "Ma'lumot topilmadi")}</td>
                                 </tr>
                             ) : (
                                 autodromes.map((item, index) => (

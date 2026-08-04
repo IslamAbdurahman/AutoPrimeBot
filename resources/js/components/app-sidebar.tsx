@@ -29,7 +29,7 @@ export function AppSidebar() {
             icon: LayoutGrid,
         },
         {
-            title: 'Avtodromlar',
+            title: t('sidebar.autodromes', 'Avtodromlar'),
             href: '/admin/autodromes',
             icon: MapPin,
         },

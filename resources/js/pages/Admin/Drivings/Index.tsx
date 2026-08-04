@@ -39,6 +39,7 @@ interface Group {
 interface Student {
     id: number;
     full_name: string;
+    phone?: string;
     group_id?: number;
 }
 
@@ -50,6 +51,7 @@ interface Driving {
     instructor_id?: number;
     student_id?: number;
     group_id?: number;
+    autodrome_id?: number;
     student?: Student;
     group?: Group;
     instructor?: Instructor;
@@ -134,20 +136,20 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
             put('/admin/drivings/' + editing.id, {
                 onSuccess: () => {
                     closeForm();
-                    toast.success('Mashg\'ulot muvaffaqiyatli yangilandi');
+                    toast.success(t('drivings.updated_success', 'Mashg\'ulot muvaffaqiyatli yangilandi'));
                 },
                 onError: (err) => {
-                    toast.error(Object.values(err)[0] || 'Xatolik yuz berdi');
+                    toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi'));
                 }
             });
         } else {
             post('/admin/drivings', {
                 onSuccess: () => {
                     closeForm();
-                    toast.success('Mashg\'ulot muvaffaqiyatli yaratildi');
+                    toast.success(t('drivings.created_success', 'Mashg\'ulot muvaffaqiyatli yaratildi'));
                 },
                 onError: (err) => {
-                    toast.error(Object.values(err)[0] || 'Xatolik yuz berdi');
+                    toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi'));
                 }
             });
         }
@@ -186,13 +188,13 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
 
     const handleDelete = (driving: Driving) => {
         if (driving.review) {
-            toast.error('Baholangan mashg\'ulotni o\'chirish mumkin emas');
+            toast.error(t('drivings.delete_reviewed_error', 'Baholangan mashg\'ulotni o\'chirish mumkin emas'));
             return;
         }
         if (confirm(t('common.confirm_delete', 'Rostdan ham o\'chirmoqchimisiz?'))) {
             destroy('/admin/drivings/' + driving.id, {
-                onSuccess: () => toast.success('Mashg\'ulot o\'chirildi'),
-                onError: (err) => toast.error(Object.values(err)[0] || 'Xatolik yuz berdi'),
+                onSuccess: () => toast.success(t('drivings.deleted_success', 'Mashg\'ulot o\'chirildi')),
+                onError: (err) => toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi')),
             });
         }
     };

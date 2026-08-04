@@ -14,6 +14,11 @@ export type Auth = {
     user: User;
 };
 
+export type SharedData = {
+    auth: Auth;
+    [key: string]: unknown;
+};
+
 /* @chisel-passkeys */
 export type Passkey = {
     id: number;

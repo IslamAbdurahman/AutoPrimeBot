@@ -4,7 +4,8 @@
     "groups": "Groups",
     "students": "Students",
     "instructors": "Instructors",
-    "drivings": "Drivings"
+    "drivings": "Drivings",
+    "autodromes": "Autodromes"
   },
   "common": {
     "search": "Search...",
@@ -19,7 +20,13 @@
     "confirm_delete": "Are you sure you want to delete?",
     "no_data": "No data found",
     "select": "-- Select --",
-    "number": "#"
+    "number": "#",
+    "filter": "Filter",
+    "from": "From",
+    "to": "To",
+    "pagination": "Pagination",
+    "per_page": "Per page",
+    "all": "All"
   },
   "status": {
     "scheduled": "Scheduled",
@@ -27,6 +34,29 @@
     "completed": "Completed",
     "cancelled": "Cancelled",
     "all": "All statuses"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "Overall school status and metrics",
+    "total_students": "Total Students",
+    "avg_kpi": "Average KPI (%)",
+    "avg_kpi_desc": "Average metric for the selected period",
+    "monthly_drivings": "Monthly Drivings",
+    "completion_rate": "Monthly Completion Rate",
+    "daily_chart_title": "Daily drivings this month"
+  },
+  "autodromes": {
+    "title": "Autodromes",
+    "description": "Special areas where drivings take place and their radii",
+    "new": "New Autodrome",
+    "edit": "Edit Autodrome",
+    "name": "Name",
+    "coordinates": "Coordinates",
+    "radius": "Radius (m)",
+    "radius_label": "Radius (meters)",
+    "completed_drivings": "Completed drivings",
+    "map_hint": "Select a location on the map (click)",
+    "location_required": "Marking a location on the map is required."
   },
   "groups": {
     "title": "Groups",
@@ -64,17 +94,25 @@
     "title": "Driving History",
     "description": "History of all conducted and scheduled classes",
     "new": "New Class",
+    "edit": "Edit Class",
     "date_time": "Date/Time",
+    "date": "Date",
     "student_group": "Student / Group",
     "student": "Student",
     "group": "Group",
     "group_optional": "Group (Optional)",
     "instructor": "Instructor",
+    "autodrome": "Autodrome",
     "review": "Review and Rating",
     "start_time": "Start Time",
     "end_time": "End Time",
     "all_instructors": "All Instructors",
-    "no_students": "No students found"
+    "no_students": "No students found",
+    "created_success": "Driving created successfully",
+    "updated_success": "Driving updated successfully",
+    "deleted_success": "Driving deleted",
+    "delete_reviewed_error": "Cannot delete a reviewed driving",
+    "error": "An error occurred"
   },
   "pagination": {
     "previous": "Previous",
