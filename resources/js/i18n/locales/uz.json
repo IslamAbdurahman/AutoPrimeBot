@@ -1,0 +1,89 @@
+{
+  "sidebar": {
+    "dashboard": "Bosh sahifa",
+    "groups": "Guruhlar",
+    "students": "O'quvchilar",
+    "instructors": "Instruktorlar",
+    "drivings": "Mashg'ulotlar"
+  },
+  "common": {
+    "search": "Qidirish...",
+    "add": "Qo'shish",
+    "edit": "Tahrirlash",
+    "delete": "O'chirish",
+    "save": "Saqlash",
+    "saving": "Saqlanmoqda...",
+    "cancel": "Bekor qilish",
+    "status": "Holati",
+    "actions": "Amallar",
+    "confirm_delete": "Rostdan ham o'chirmoqchimisiz?",
+    "no_data": "Ma'lumot topilmadi",
+    "select": "-- Tanlang --",
+    "number": "№"
+  },
+  "status": {
+    "scheduled": "Rejada",
+    "in_progress": "Jarayonda",
+    "completed": "Tugagan",
+    "cancelled": "Bekor qilingan",
+    "all": "Barcha holatlar"
+  },
+  "groups": {
+    "title": "Guruhlar",
+    "description": "Barcha o'quv guruhlari ro'yxati va ularni boshqarish",
+    "new": "Yangi Guruh",
+    "name": "Guruh nomi",
+    "course_type": "Kurs turi",
+    "status": "Holati",
+    "active": "Faol",
+    "completed": "Tugallangan"
+  },
+  "students": {
+    "title": "O'quvchilar",
+    "description": "Barcha o'quvchilar ro'yxati va ularni boshqarish",
+    "new": "Yangi O'quvchi",
+    "full_name": "F.I.Sh",
+    "phone": "Telefon raqami",
+    "passport": "Pasport/JSHSHIR",
+    "group": "Guruh",
+    "no_group": "Guruhsiz",
+    "all_groups": "Barcha guruhlar",
+    "search_placeholder": "O'quvchi orqali qidirish..."
+  },
+  "instructors": {
+    "title": "Instruktorlar",
+    "description": "Barcha instruktorlar ro'yxati va ularni boshqarish",
+    "new": "Yangi Instruktor",
+    "name": "F.I.Sh",
+    "phone": "Telefon",
+    "car": "Mashina",
+    "active": "Faol",
+    "inactive": "Nofaol"
+  },
+  "drivings": {
+    "title": "Mashg'ulotlar Tarixi",
+    "description": "O'tkazilgan va rejalashtirilgan barcha darslar tarixi",
+    "new": "Yangi Mashg'ulot",
+    "date_time": "Sana/Vaqt",
+    "student_group": "O'quvchi / Guruh",
+    "student": "O'quvchi",
+    "group": "Guruh",
+    "group_optional": "Guruh (Ixtiyoriy)",
+    "instructor": "Instruktor",
+    "review": "Baho va Fikr",
+    "start_time": "Boshlanish vaqti",
+    "end_time": "Tugash vaqti",
+    "all_instructors": "Barcha instruktorlar",
+    "no_students": "O'quvchilar topilmadi"
+  },
+  "pagination": {
+    "previous": "Oldingisi",
+    "next": "Keyingisi",
+    "showing": "Ko'rsatilmoqda"
+  },
+  "user_menu": {
+    "profile": "Profil",
+    "settings": "Sozlamalar",
+    "logout": "Chiqish"
+  }
+}

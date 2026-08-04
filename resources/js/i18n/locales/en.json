@@ -1,0 +1,89 @@
+{
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "groups": "Groups",
+    "students": "Students",
+    "instructors": "Instructors",
+    "drivings": "Drivings"
+  },
+  "common": {
+    "search": "Search...",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "status": "Status",
+    "actions": "Actions",
+    "confirm_delete": "Are you sure you want to delete?",
+    "no_data": "No data found",
+    "select": "-- Select --",
+    "number": "#"
+  },
+  "status": {
+    "scheduled": "Scheduled",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "all": "All statuses"
+  },
+  "groups": {
+    "title": "Groups",
+    "description": "List of all study groups and their management",
+    "new": "New Group",
+    "name": "Group Name",
+    "course_type": "Course Type",
+    "status": "Status",
+    "active": "Active",
+    "completed": "Completed"
+  },
+  "students": {
+    "title": "Students",
+    "description": "List of all students and their management",
+    "new": "New Student",
+    "full_name": "Full Name",
+    "phone": "Phone Number",
+    "passport": "Passport/PINFL",
+    "group": "Group",
+    "no_group": "No Group",
+    "all_groups": "All Groups",
+    "search_placeholder": "Search by student..."
+  },
+  "instructors": {
+    "title": "Instructors",
+    "description": "List of all instructors and their management",
+    "new": "New Instructor",
+    "name": "Full Name",
+    "phone": "Phone",
+    "car": "Car",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "drivings": {
+    "title": "Driving History",
+    "description": "History of all conducted and scheduled classes",
+    "new": "New Class",
+    "date_time": "Date/Time",
+    "student_group": "Student / Group",
+    "student": "Student",
+    "group": "Group",
+    "group_optional": "Group (Optional)",
+    "instructor": "Instructor",
+    "review": "Review and Rating",
+    "start_time": "Start Time",
+    "end_time": "End Time",
+    "all_instructors": "All Instructors",
+    "no_students": "No students found"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "showing": "Showing"
+  },
+  "user_menu": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
+  }
+}
