@@ -179,12 +179,12 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                             </SheetTrigger>
                             <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-xl">
                                 <SheetHeader>
-                                    <SheetTitle>Filtrlar</SheetTitle>
-                                    <SheetDescription>O'quvchilarni filtrlash</SheetDescription>
+                                    <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
+                                    <SheetDescription>{t('students.filter_desc', "O'quvchilarni filtrlash")}</SheetDescription>
                                 </SheetHeader>
                                 <div className="grid gap-4 py-4 mt-2">
                                     <div className="space-y-2">
-                                        <Label>Guruh</Label>
+                                        <Label>{t('students.group', 'Guruh')}</Label>
                                         <select
                                             className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                                             value={groupId}
@@ -200,7 +200,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Sahifalash</Label>
+                                        <Label>{t('common.pagination', 'Sahifalash')}</Label>
                                         <select
                                             className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                                             value={perPage}
@@ -232,7 +232,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                     <DialogHeader>
                         <DialogTitle>{editing ? t('common.edit', 'Tahrirlash') : t('students.new', 'Yangi O\'quvchi')}</DialogTitle>
                         <DialogDescription className="sr-only">
-                            {editing ? 'O\'quvchi ma\'lumotlarini tahrirlash' : 'Yangi o\'quvchi qo\'shish'}
+                            {editing ? t('common.edit', 'Tahrirlash') : t('common.add', 'Qo\'shish')}
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -247,7 +247,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                             {errors.phone && <div className="text-destructive text-sm mt-1">{errors.phone}</div>}
                         </div>
                         <div>
-                            <Label htmlFor="telegram_id">Telegram ID (Ixtiyoriy)</Label>
+                            <Label htmlFor="telegram_id">{t('common.telegram_id_optional', 'Telegram ID (Ixtiyoriy)')}</Label>
                             <Input id="telegram_id" value={data.telegram_id} onChange={e => setData('telegram_id', e.target.value)} />
                             {errors.telegram_id && <div className="text-destructive text-sm mt-1">{errors.telegram_id}</div>}
                         </div>
@@ -284,7 +284,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                             <th className="px-4 py-3 font-medium">{t('students.phone', 'Telefon')}</th>
                             <th className="px-4 py-3 font-medium">{t('students.group', 'Guruh')}</th>
                             <th className="px-4 py-3 font-medium">Telegram ID</th>
-                            <th className="px-4 py-3 font-medium text-center">Tugagan darslar</th>
+                            <th className="px-4 py-3 font-medium text-center">{t('students.completed_drivings', 'Tugagan darslar')}</th>
                             <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>
                         </tr>
                     </thead>
@@ -329,7 +329,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                             
                             <div className="grid grid-cols-2 gap-2 text-sm mt-2">
                                 <div>
-                                    <span className="text-muted-foreground text-xs block">Guruh:</span>
+                                    <span className="text-muted-foreground text-xs block">{t('students.group', 'Guruh')}:</span>
                                     <div className="font-medium">
                                         <div className="text-xs px-1.5 py-0.5 mt-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded inline-block">
                                             {item.group?.name || t('students.no_group', 'Biriktirilmagan')}
@@ -342,7 +342,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                                 </div>
                                 <div className="col-span-2 pt-1 mt-1 border-t">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-muted-foreground text-xs block">Tugagan darslar:</span>
+                                        <span className="text-muted-foreground text-xs block">{t('students.completed_drivings', 'Tugagan darslar')}:</span>
                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
                                             {item.completed_drivings_count || 0}
                                         </span>
@@ -352,7 +352,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                             
                             <div className="flex gap-2 justify-end pt-1">
                                 <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
-                                    <Edit2 className="w-4 h-4 mr-1.5" /> Tahrirlash
+                                    <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
                                 </Button>
                                 <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)}>
                                     <Trash2 className="w-4 h-4" />

@@ -22,11 +22,18 @@
     "select": "-- Select --",
     "number": "#",
     "filter": "Filter",
+    "filters": "Filters",
     "from": "From",
     "to": "To",
+    "date_from": "Date from",
+    "date_to": "Date to",
     "pagination": "Pagination",
     "per_page": "Per page",
-    "all": "All"
+    "all": "All",
+    "not_assigned": "Not assigned",
+    "telegram_id": "Telegram ID",
+    "telegram_id_optional": "Telegram ID (Optional)",
+    "example": "Example"
   },
   "status": {
     "scheduled": "Scheduled",
@@ -66,7 +73,8 @@
     "course_type": "Course Type",
     "status": "Status",
     "active": "Active",
-    "completed": "Completed"
+    "completed": "Completed",
+    "filter_desc": "Filter groups"
   },
   "students": {
     "title": "Students",
@@ -78,7 +86,9 @@
     "group": "Group",
     "no_group": "No Group",
     "all_groups": "All Groups",
-    "search_placeholder": "Search by student..."
+    "search_placeholder": "Search by student...",
+    "completed_drivings": "Completed drivings",
+    "filter_desc": "Filter students"
   },
   "instructors": {
     "title": "Instructors",
@@ -88,7 +98,15 @@
     "phone": "Phone",
     "car": "Car",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "groups_count": "Groups",
+    "drivings_count": "Drivings",
+    "rating": "Rating",
+    "kpi": "KPI (%)",
+    "excellent": "Excellent",
+    "good": "Good",
+    "poor": "Poor",
+    "filter_desc": "Filter instructors"
   },
   "drivings": {
     "title": "Driving History",
@@ -112,7 +130,8 @@
     "updated_success": "Driving updated successfully",
     "deleted_success": "Driving deleted",
     "delete_reviewed_error": "Cannot delete a reviewed driving",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "filter_desc": "Filter drivings"
   },
   "pagination": {
     "previous": "Previous",

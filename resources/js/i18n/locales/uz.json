@@ -22,11 +22,18 @@
     "select": "-- Tanlang --",
     "number": "№",
     "filter": "Filtrlash",
+    "filters": "Filtrlar",
     "from": "Dan",
     "to": "Gacha",
+    "date_from": "Sana dan",
+    "date_to": "Sana gacha",
     "pagination": "Sahifalash",
     "per_page": "Har sahifada",
-    "all": "Barchasi"
+    "all": "Barchasi",
+    "not_assigned": "Biriktirilmagan",
+    "telegram_id": "Telegram ID",
+    "telegram_id_optional": "Telegram ID (Ixtiyoriy)",
+    "example": "Masalan"
   },
   "status": {
     "scheduled": "Rejada",
@@ -66,7 +73,8 @@
     "course_type": "Kurs turi",
     "status": "Holati",
     "active": "Faol",
-    "completed": "Tugallangan"
+    "completed": "Tugallangan",
+    "filter_desc": "Guruhlarni filtrlash"
   },
   "students": {
     "title": "O'quvchilar",
@@ -78,7 +86,9 @@
     "group": "Guruh",
     "no_group": "Guruhsiz",
     "all_groups": "Barcha guruhlar",
-    "search_placeholder": "O'quvchi orqali qidirish..."
+    "search_placeholder": "O'quvchi orqali qidirish...",
+    "completed_drivings": "Tugagan darslar",
+    "filter_desc": "O'quvchilarni filtrlash"
   },
   "instructors": {
     "title": "Instruktorlar",
@@ -88,7 +98,15 @@
     "phone": "Telefon",
     "car": "Mashina",
     "active": "Faol",
-    "inactive": "Nofaol"
+    "inactive": "Nofaol",
+    "groups_count": "Guruhlar",
+    "drivings_count": "Darslar",
+    "rating": "Reyting",
+    "kpi": "KPI (%)",
+    "excellent": "A'lo",
+    "good": "Yaxshi",
+    "poor": "Qoniqarsiz",
+    "filter_desc": "Instruktorlarni filtrlash"
   },
   "drivings": {
     "title": "Mashg'ulotlar Tarixi",
@@ -112,7 +130,8 @@
     "updated_success": "Mashg'ulot muvaffaqiyatli yangilandi",
     "deleted_success": "Mashg'ulot o'chirildi",
     "delete_reviewed_error": "Baholangan mashg'ulotni o'chirish mumkin emas",
-    "error": "Xatolik yuz berdi"
+    "error": "Xatolik yuz berdi",
+    "filter_desc": "Mashg'ulotlarni filtrlash"
   },
   "pagination": {
     "previous": "Oldingisi",

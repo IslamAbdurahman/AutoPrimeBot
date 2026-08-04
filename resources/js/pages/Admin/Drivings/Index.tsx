@@ -368,12 +368,12 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                             </SheetTrigger>
                             <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-xl">
                                 <SheetHeader>
-                                    <SheetTitle>Filtrlar</SheetTitle>
-                                    <SheetDescription>Mashg'ulotlarni filtrlash uchun parametrlarni tanlang</SheetDescription>
+                                    <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
+                                    <SheetDescription>{t('drivings.filter_desc', "Mashg'ulotlarni filtrlash")}</SheetDescription>
                                 </SheetHeader>
                                 <div className="grid gap-4 py-4 mt-2">
                                     <div className="space-y-2">
-                                        <Label>Holati</Label>
+                                        <Label>{t('common.status', 'Holati')}</Label>
                                         <select
                                             className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                                             value={status}
@@ -407,7 +407,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-2">
-                                            <Label>Dan</Label>
+                                            <Label>{t('common.from', 'Dan')}</Label>
                                             <Flatpickr
                                                 options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
                                                 placeholder="DD-MM-YYYY"
@@ -417,7 +417,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Gacha</Label>
+                                            <Label>{t('common.to', 'Gacha')}</Label>
                                             <Flatpickr
                                                 options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
                                                 placeholder="DD-MM-YYYY"
@@ -428,7 +428,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Sahifalash</Label>
+                                        <Label>{t('common.pagination', 'Sahifalash')}</Label>
                                         <select
                                             className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                                             value={perPage}
@@ -440,7 +440,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                             <option value="10">10 ta</option>
                                             <option value="30">30 ta</option>
                                             <option value="50">50 ta</option>
-                                            <option value="all">Barchasi</option>
+                                            <option value="all">{t('common.all', 'Barchasi')}</option>
                                         </select>
                                     </div>
                                 </div>

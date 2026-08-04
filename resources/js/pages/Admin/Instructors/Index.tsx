@@ -115,7 +115,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold">{t('instructors.title', 'Instruktorlar')}</h1>
-                    <p className="text-muted-foreground">Maktabdagi barcha instruktorlarni boshqarish</p>
+                    <p className="text-muted-foreground">{t('instructors.description', 'Barcha instruktorlar ro\'yxati va ularni boshqarish')}</p>
                 </div>
                 <div className="flex flex-wrap gap-2 w-full md:w-auto">
                     {/* Desktop Filters */}
@@ -137,19 +137,19 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                         </select>
                         <Flatpickr
                             options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                            placeholder="Dan DD-MM-YYYY"
+                            placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
                             value={from}
                             onChange={(dates, dateStr) => setFrom(dateStr)}
                             className="flex h-10 w-full md:w-32 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            title="Dan"
+                            title={t('common.from', 'Dan')}
                         />
                         <Flatpickr
                             options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                            placeholder="Gacha DD-MM-YYYY"
+                            placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
                             value={to}
                             onChange={(dates, dateStr) => setTo(dateStr)}
                             className="flex h-10 w-full md:w-32 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            title="Gacha"
+                            title={t('common.to', 'Gacha')}
                         />
                     </div>
 
@@ -175,12 +175,12 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             </SheetTrigger>
                             <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-xl">
                                 <SheetHeader>
-                                    <SheetTitle>Filtrlar</SheetTitle>
-                                    <SheetDescription>Instruktorlarni filtrlash</SheetDescription>
+                                    <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
+                                    <SheetDescription>{t('instructors.filter_desc', 'Instruktorlarni filtrlash')}</SheetDescription>
                                 </SheetHeader>
                                 <div className="grid gap-4 py-4 mt-2">
                                     <div className="space-y-2">
-                                        <Label>Sana dan</Label>
+                                        <Label>{t('common.date_from', 'Sana dan')}</Label>
                                         <Flatpickr
                                             options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
                                             placeholder="Dan DD-MM-YYYY"
@@ -193,7 +193,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Sana gacha</Label>
+                                        <Label>{t('common.date_to', 'Sana gacha')}</Label>
                                         <Flatpickr
                                             options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
                                             placeholder="Gacha DD-MM-YYYY"
@@ -206,7 +206,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Sahifalash</Label>
+                                        <Label>{t('common.pagination', 'Sahifalash')}</Label>
                                         <select
                                             className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                                             value={perPage}
@@ -239,7 +239,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                     <DialogHeader>
                         <DialogTitle>{editing ? t('common.edit', 'Tahrirlash') : t('instructors.new', 'Yangi Instruktor')}</DialogTitle>
                         <DialogDescription className="sr-only">
-                            {editing ? 'Instruktor ma\'lumotlarini tahrirlash' : 'Yangi instruktor qo\'shish'}
+                            {editing ? t('common.edit', 'Tahrirlash') : t('common.add', 'Qo\'shish')}
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -254,7 +254,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             {errors.phone && <div className="text-destructive text-sm mt-1">{errors.phone}</div>}
                         </div>
                         <div>
-                            <Label htmlFor="telegram_id">Telegram ID (Ixtiyoriy)</Label>
+                            <Label htmlFor="telegram_id">{t('common.telegram_id_optional', 'Telegram ID (Ixtiyoriy)')}</Label>
                             <Input id="telegram_id" value={data.telegram_id} onChange={e => setData('telegram_id', e.target.value)} />
                             {errors.telegram_id && <div className="text-destructive text-sm mt-1">{errors.telegram_id}</div>}
                         </div>
@@ -274,11 +274,11 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.name', 'Ismi')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.phone', 'Telefon')}</th>
-                            <th className="px-4 py-3 font-medium">Guruhlar</th>
-                            <th className="px-4 py-3 font-medium">Darslar</th>
-                            <th className="px-4 py-3 font-medium">Reyting</th>
-                            <th className="px-4 py-3 font-medium">KPI (%)</th>
-                            <th className="px-4 py-3 font-medium">Holat</th>
+                            <th className="px-4 py-3 font-medium">{t('instructors.groups_count', 'Guruhlar')}</th>
+                            <th className="px-4 py-3 font-medium">{t('instructors.drivings_count', 'Darslar')}</th>
+                            <th className="px-4 py-3 font-medium">{t('instructors.rating', 'Reyting')}</th>
+                            <th className="px-4 py-3 font-medium">{t('instructors.kpi', 'KPI (%)')}</th>
+                            <th className="px-4 py-3 font-medium">{t('common.status', 'Holat')}</th>
                             <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>
                         </tr>
                     </thead>
@@ -310,11 +310,11 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                 </td>
                                 <td className="px-4 py-3">
                                     {item.kpi_percentage >= 80 ? (
-                                        <span className="text-green-600 dark:text-green-400 font-medium">A'lo</span>
+                                        <span className="text-green-600 dark:text-green-400 font-medium">{t('instructors.excellent', 'A\'lo')}</span>
                                     ) : item.kpi_percentage >= 50 ? (
-                                        <span className="text-yellow-600 dark:text-yellow-400 font-medium">Yaxshi</span>
+                                        <span className="text-yellow-600 dark:text-yellow-400 font-medium">{t('instructors.good', 'Yaxshi')}</span>
                                     ) : (
-                                        <span className="text-red-600 dark:text-red-400 font-medium">Qoniqarsiz</span>
+                                        <span className="text-red-600 dark:text-red-400 font-medium">{t('instructors.poor', 'Qoniqarsiz')}</span>
                                     )}
                                 </td>
                                 <td className="px-4 py-3 text-right">
@@ -351,11 +351,11 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             
                             <div className="grid grid-cols-2 gap-2 text-sm border-y py-2">
                                 <div>
-                                    <span className="text-muted-foreground block text-xs">Guruhlar:</span>
+                                    <span className="text-muted-foreground block text-xs">{t('instructors.groups_count', 'Guruhlar')}:</span>
                                     <span className="font-medium">{item.groups_count}</span>
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground block text-xs">Darslar:</span>
+                                    <span className="text-muted-foreground block text-xs">{t('instructors.drivings_count', 'Darslar')}:</span>
                                     <span className="font-medium">{item.total_drivings}</span>
                                 </div>
                                 <div className="col-span-2 pt-1 mt-1 border-t">
@@ -374,7 +374,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             
                             <div className="flex gap-2 justify-end pt-1">
                                 <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
-                                    <Edit2 className="w-4 h-4 mr-1.5" /> Tahrirlash
+                                    <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
                                 </Button>
                                 <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)}>
                                     <Trash2 className="w-4 h-4" />

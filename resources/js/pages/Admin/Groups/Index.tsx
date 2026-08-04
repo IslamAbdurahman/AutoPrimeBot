@@ -173,12 +173,12 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                             </SheetTrigger>
                             <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-xl">
                                 <SheetHeader>
-                                    <SheetTitle>Filtrlar</SheetTitle>
-                                    <SheetDescription>Guruhlarni filtrlash</SheetDescription>
+                                    <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
+                                    <SheetDescription>{t('groups.filter_desc', 'Guruhlarni filtrlash')}</SheetDescription>
                                 </SheetHeader>
                                 <div className="grid gap-4 py-4 mt-2">
                                     <div className="space-y-2">
-                                        <Label>Instruktor</Label>
+                                        <Label>{t('drivings.instructor', 'Instruktor')}</Label>
                                         <select
                                             className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                                             value={instructorId}
@@ -194,7 +194,7 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Sahifalash</Label>
+                                        <Label>{t('common.pagination', 'Sahifalash')}</Label>
                                         <select
                                             className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                                             value={perPage}
@@ -226,7 +226,7 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                     <DialogHeader>
                         <DialogTitle>{editing ? t('common.edit', 'Tahrirlash') : t('groups.new', 'Yangi Guruh')}</DialogTitle>
                         <DialogDescription className="sr-only">
-                            {editing ? 'Guruh ma\'lumotlarini tahrirlash' : 'Yangi guruh qo\'shish'}
+                            {editing ? t('common.edit', 'Tahrirlash') : t('common.add', 'Qo\'shish')}
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -279,7 +279,7 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                                         {item.name}
                                     </Link>
                                 </td>
-                                <td className="px-4 py-3 text-muted-foreground">{item.instructor?.name || 'Biriktirilmagan'}</td>
+                                <td className="px-4 py-3 text-muted-foreground">{item.instructor?.name || t('common.not_assigned', 'Biriktirilmagan')}</td>
                                 <td className="px-4 py-3 text-right">
                                     <div className="flex justify-end gap-2">
                                         <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
@@ -308,13 +308,13 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                             </div>
                             
                             <div className="text-sm mt-2">
-                                <span className="text-muted-foreground text-xs block">Instruktor:</span>
-                                <div className="font-medium">{item.instructor?.name || 'Biriktirilmagan'}</div>
+                                <span className="text-muted-foreground text-xs block">{t('drivings.instructor', 'Instruktor')}:</span>
+                                <div className="font-medium">{item.instructor?.name || t('common.not_assigned', 'Biriktirilmagan')}</div>
                             </div>
                             
                             <div className="flex gap-2 justify-end pt-1">
                                 <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
-                                    <Edit2 className="w-4 h-4 mr-1.5" /> Tahrirlash
+                                    <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
                                 </Button>
                                 <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)}>
                                     <Trash2 className="w-4 h-4" />

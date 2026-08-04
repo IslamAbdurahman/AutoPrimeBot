@@ -22,11 +22,18 @@
     "select": "-- Выберите --",
     "number": "№",
     "filter": "Фильтр",
+    "filters": "Фильтры",
     "from": "От",
     "to": "До",
+    "date_from": "Дата от",
+    "date_to": "Дата до",
     "pagination": "Пагинация",
     "per_page": "На странице",
-    "all": "Все"
+    "all": "Все",
+    "not_assigned": "Не назначен",
+    "telegram_id": "Telegram ID",
+    "telegram_id_optional": "Telegram ID (Необязательно)",
+    "example": "Пример"
   },
   "status": {
     "scheduled": "Запланировано",
@@ -66,7 +73,8 @@
     "course_type": "Тип курса",
     "status": "Статус",
     "active": "Активен",
-    "completed": "Завершен"
+    "completed": "Завершен",
+    "filter_desc": "Фильтр групп"
   },
   "students": {
     "title": "Ученики",
@@ -78,7 +86,9 @@
     "group": "Группа",
     "no_group": "Без группы",
     "all_groups": "Все группы",
-    "search_placeholder": "Поиск по ученикам..."
+    "search_placeholder": "Поиск по ученикам...",
+    "completed_drivings": "Завершённые занятия",
+    "filter_desc": "Фильтр учеников"
   },
   "instructors": {
     "title": "Инструкторы",
@@ -88,7 +98,15 @@
     "phone": "Телефон",
     "car": "Автомобиль",
     "active": "Активен",
-    "inactive": "Неактивен"
+    "inactive": "Неактивен",
+    "groups_count": "Группы",
+    "drivings_count": "Занятия",
+    "rating": "Рейтинг",
+    "kpi": "KPI (%)",
+    "excellent": "Отлично",
+    "good": "Хорошо",
+    "poor": "Неудовлетворительно",
+    "filter_desc": "Фильтр инструкторов"
   },
   "drivings": {
     "title": "История занятий",
@@ -112,7 +130,8 @@
     "updated_success": "Занятие успешно обновлено",
     "deleted_success": "Занятие удалено",
     "delete_reviewed_error": "Невозможно удалить оценённое занятие",
-    "error": "Произошла ошибка"
+    "error": "Произошла ошибка",
+    "filter_desc": "Фильтр занятий"
   },
   "pagination": {
     "previous": "Назад",
