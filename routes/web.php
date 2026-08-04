@@ -20,10 +20,16 @@ Route::get('/', function () {
 Route::get('/settings/profile', function () {})->name('profile.edit');
 Route::get('/settings/security', function () {})->name('security.edit');
 Route::get('/settings/appearance', function () {})->name('appearance.edit');
-Route::get('/dashboard', function () {})->name('dashboard');
 Route::get('/home', function () {})->name('home');
 
 Route::middleware(['auth.telegram'])->group(function () {
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+        if ($user && $user->role === 'instructor') {
+            return redirect()->route('instructor.dashboard');
+        }
+        return redirect()->route('admin.dashboard');
+    })->name('dashboard');
     // Instructor Routes
     Route::get('/instructor/dashboard', [InstructorController::class, 'dashboard'])->name('instructor.dashboard');
     Route::get('/instructor/driving/create', [InstructorController::class, 'createDriving'])->name('instructor.driving.create');
