@@ -146,10 +146,10 @@ export default function DashboardIndex({ metrics, chartData, filters = {} }: Pag
                                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                             />
                             <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                            <Bar dataKey="Tugagan" stackId="a" fill="#10b981" radius={[0, 0, 4, 4]} />
-                            <Bar dataKey="Jarayonda" stackId="a" fill="#3b82f6" />
-                            <Bar dataKey="Rejada" stackId="a" fill="#f59e0b" />
-                            <Bar dataKey="Bekor_qilingan" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} name="Bekor qilingan" />
+                            <Bar dataKey="Tugagan" stackId="a" fill="#10b981" radius={[0, 0, 4, 4]} name={t('status.completed', 'Tugagan')} />
+                            <Bar dataKey="Jarayonda" stackId="a" fill="#3b82f6" name={t('status.in_progress', 'Jarayonda')} />
+                            <Bar dataKey="Rejada" stackId="a" fill="#f59e0b" name={t('status.scheduled', 'Rejada')} />
+                            <Bar dataKey="Bekor_qilingan" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} name={t('status.cancelled', 'Bekor qilingan')} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>

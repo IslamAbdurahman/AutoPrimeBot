@@ -57,7 +57,7 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
     
     const [search, setSearch] = useState(filters.search || '');
     const [instructorId, setInstructorId] = useState(filters.instructor_id || '');
-    const [perPage, setPerPage] = useState(filters.per_page || '15');
+    const [perPage, setPerPage] = useState(filters.per_page || '10');
 
     const applyFilters = (newSearch: string, newInst: string, newPerPage: string) => {
         router.get('/admin/groups', { search: newSearch, instructor_id: newInst, per_page: newPerPage }, { preserveState: true, replace: true });
@@ -130,10 +130,9 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                             }}
                             title={t('common.per_page', 'Sahifada ko\'rsatish')}
                         >
-                            <option value="15">15</option>
-                            <option value="25">25</option>
+                            <option value="10">10</option>
+                            <option value="30">30</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
                             <option value="all">{t('common.all', 'Barchasi')}</option>
                         </select>
                         <select
@@ -203,10 +202,9 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                                                 applyFilters(search, instructorId, e.target.value);
                                             }}
                                         >
-                                            <option value="15">15</option>
-                                            <option value="25">25</option>
+                                            <option value="10">10</option>
+                                            <option value="30">30</option>
                                             <option value="50">50</option>
-                                            <option value="100">100</option>
                                             <option value="all">{t('common.all', 'Barchasi')}</option>
                                         </select>
                                     </div>

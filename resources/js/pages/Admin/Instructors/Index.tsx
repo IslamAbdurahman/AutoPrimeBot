@@ -58,7 +58,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
     const [search, setSearch] = useState(filters.search || '');
     const [from, setFrom] = useState(filters.from || '');
     const [to, setTo] = useState(filters.to || '');
-    const [perPage, setPerPage] = useState(filters.per_page || '15');
+    const [perPage, setPerPage] = useState(filters.per_page || '10');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -129,10 +129,9 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             }}
                             title={t('common.per_page', 'Sahifada ko\'rsatish')}
                         >
-                            <option value="15">15</option>
-                            <option value="25">25</option>
+                            <option value="10">10</option>
+                            <option value="30">30</option>
                             <option value="50">50</option>
-                            <option value="100">100</option>
                             <option value="all">{t('common.all', 'Barchasi')}</option>
                         </select>
                         <Flatpickr
@@ -215,10 +214,9 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                                 router.get('/admin/instructors', { search, from, to, per_page: e.target.value }, { preserveState: true, replace: true });
                                             }}
                                         >
-                                            <option value="15">15</option>
-                                            <option value="25">25</option>
+                                            <option value="10">10</option>
+                                            <option value="30">30</option>
                                             <option value="50">50</option>
-                                            <option value="100">100</option>
                                             <option value="all">{t('common.all', 'Barchasi')}</option>
                                         </select>
                                     </div>
