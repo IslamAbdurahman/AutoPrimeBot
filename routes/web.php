@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\InstructorController as AdminInstructorController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\InstructorController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -32,6 +33,9 @@ Route::get('/settings/appearance', function () {})->name('appearance.edit');
 Route::get('/home', function () {})->name('home');
 
 Route::middleware(['auth.telegram'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
     Route::get('/dashboard', function () {
         $user = auth()->user();
         if ($user && $user->role === 'instructor') {
