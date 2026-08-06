@@ -37,7 +37,11 @@ class ValidateTelegramMiniApp
                 }
             }
 
-            return response()->json(['error' => 'Unauthorized. Missing Init Data.'], 401);
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'Unauthorized. Missing Init Data.'], 401);
+            }
+
+            return redirect()->route('login');
         }
 
         if (!$this->validateInitData($initData, config('services.telegram.bot_token', env('TELEGRAM_TOKEN')))) {
