@@ -5,7 +5,8 @@
     "students": "O'quvchilar",
     "instructors": "Instruktorlar",
     "drivings": "Mashg'ulotlar",
-    "autodromes": "Avtodromlar"
+    "autodromes": "Avtodromlar",
+    "admins": "Adminlar"
   },
   "common": {
     "search": "Qidirish...",
@@ -145,5 +146,16 @@
     "profile": "Profil",
     "settings": "Sozlamalar",
     "logout": "Chiqish"
+  },
+  "admins": {
+    "title": "Adminlar",
+    "description": "Barcha adminlar ro'yxati va ularni boshqarish",
+    "new": "Yangi Admin",
+    "edit": "Adminni tahrirlash",
+    "name": "F.I.SH",
+    "phone": "Telefon raqami",
+    "password": "Parol",
+    "password_hint": "bo'sh qolsa o'zgarmaydi",
+    "cannot_delete_self": "O'z hisobingizni o'chira olmaysiz"
   }
 }

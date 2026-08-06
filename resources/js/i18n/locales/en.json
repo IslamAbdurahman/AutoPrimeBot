@@ -4,8 +4,9 @@
     "groups": "Groups",
     "students": "Students",
     "instructors": "Instructors",
-    "drivings": "Drivings",
-    "autodromes": "Autodromes"
+    "drivings": "Driving Sessions",
+    "autodromes": "Autodromes",
+    "admins": "Admins"
   },
   "common": {
     "search": "Search...",
@@ -145,5 +146,16 @@
     "profile": "Profile",
     "settings": "Settings",
     "logout": "Logout"
+  },
+  "admins": {
+    "title": "Admins",
+    "description": "List and management of all admin accounts",
+    "new": "New Admin",
+    "edit": "Edit Admin",
+    "name": "Full Name",
+    "phone": "Phone Number",
+    "password": "Password",
+    "password_hint": "leave blank to keep unchanged",
+    "cannot_delete_self": "You cannot delete your own account"
   }
 }

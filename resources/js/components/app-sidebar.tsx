@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, MapPin } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, MapPin, ShieldCheck } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -29,6 +29,11 @@ export function AppSidebar() {
             icon: LayoutGrid,
         },
         {
+            title: t('sidebar.admins', 'Adminlar'),
+            href: '/admin/admins',
+            icon: ShieldCheck,
+        },
+        {
             title: t('sidebar.autodromes', 'Avtodromlar'),
             href: '/admin/autodromes',
             icon: MapPin,
@@ -54,6 +59,9 @@ export function AppSidebar() {
             icon: FolderGit2,
         },
     ].filter(item => {
+        if (item.href === '/admin/admins') {
+            return auth.user.id === 1;
+        }
         if (isInstructor) {
             return ['/admin/dashboard', '/admin/groups', '/admin/students', '/admin/drivings'].includes(item.href);
         }
