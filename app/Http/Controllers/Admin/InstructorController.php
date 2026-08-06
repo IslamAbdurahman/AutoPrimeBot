@@ -79,6 +79,7 @@ class InstructorController extends Controller
                 'groups_count' => $instructor->groups_count,
                 'students_count' => $studentsCount,
                 'total_drivings' => $totalDrivings,
+                'reviewed_drivings' => $totalReviews,
                 'total_score' => $totalScore,
                 'max_score' => $maxScore,
                 'score_formatted' => "{$totalScore}/{$maxScore}",

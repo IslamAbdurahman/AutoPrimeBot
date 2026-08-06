@@ -34,6 +34,7 @@ interface Instructor {
     groups_count: number;
     students_count: number;
     total_drivings: number;
+    reviewed_drivings: number;
     total_score: number;
     max_score: number;
     score_formatted: string;
@@ -278,7 +279,8 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             <th className="px-4 py-3 font-medium">{t('instructors.phone', 'Telefon')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.groups_count', 'Guruhlar')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.students_count', 'O\'quvchilar')}</th>
-                            <th className="px-4 py-3 font-medium">{t('instructors.drivings_count', 'Darslar')}</th>
+                            <th className="px-4 py-3 font-medium">{t('instructors.reviewed_drivings', 'Baholangan darslar')}</th>
+                            <th className="px-4 py-3 font-medium">{t('instructors.drivings_count', 'Jami darslar')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.total_points', 'Umumiy ballar')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.rating', 'Reyting')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.kpi', 'KPI (%)')}</th>
@@ -297,6 +299,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                 <td className="px-4 py-3">{item.phone}</td>
                                 <td className="px-4 py-3">{item.groups_count}</td>
                                 <td className="px-4 py-3">{item.students_count}</td>
+                                <td className="px-4 py-3 font-medium text-green-600 dark:text-green-400">{item.reviewed_drivings}</td>
                                 <td className="px-4 py-3">{item.total_drivings}</td>
                                 <td className="px-4 py-3 font-semibold">{item.score_formatted}</td>
                                 <td className="px-4 py-3">
@@ -365,14 +368,20 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                     <span className="font-medium">{item.students_count}</span>
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground block text-xs">{t('instructors.drivings_count', 'Darslar')}:</span>
-                                    <span className="font-medium">{item.total_drivings}</span>
+                                    <span className="text-muted-foreground block text-xs">{t('instructors.reviewed_drivings', 'Baholangan darslar')}:</span>
+                                    <span className="font-medium text-green-600 dark:text-green-400">{item.reviewed_drivings}</span>
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground block text-xs">{t('instructors.total_points', 'Umumiy ballar')}:</span>
-                                    <span className="font-semibold">{item.score_formatted}</span>
+                                    <span className="text-muted-foreground block text-xs">{t('instructors.drivings_count', 'Jami darslar')}:</span>
+                                    <span className="font-medium">{item.total_drivings}</span>
                                 </div>
                                 <div className="col-span-2 pt-1 mt-1 border-t">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-muted-foreground text-xs">{t('instructors.total_points', 'Umumiy ballar')}:</span>
+                                        <span className="font-semibold">{item.score_formatted}</span>
+                                    </div>
+                                </div>
+                                <div className="col-span-2 pt-1">
                                     <div className="flex justify-between items-center">
                                         <span className="text-muted-foreground text-xs">{t('instructors.kpi', 'KPI (%)')}:</span>
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
