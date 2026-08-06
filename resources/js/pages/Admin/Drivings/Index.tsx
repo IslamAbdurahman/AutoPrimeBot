@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import Flatpickr from 'react-flatpickr';
@@ -91,6 +91,8 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     const { auth } = usePage().props as unknown as { auth: { user: { id: number; role: string } } };
     const [editing, setEditing] = useState<Driving | null>(null);
     const [showForm, setShowForm] = useState(false);
+    const [statusModalDriving, setStatusModalDriving] = useState<Driving | null>(null);
+    const [targetStatus, setTargetStatus] = useState<'completed' | 'cancelled' | null>(null);
 
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || '');
@@ -156,6 +158,10 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     };
 
     const handleEdit = (driving: Driving) => {
+        if (driving.status === 'completed') {
+            toast.error(t('drivings.edit_completed_error', 'Yakunlangan mashg\'ulotni o\'zgartirish mumkin emas'));
+            return;
+        }
         setEditing(driving);
         
         const formatTime = (dateString: string) => {
@@ -187,8 +193,8 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     };
 
     const handleDelete = (driving: Driving) => {
-        if (driving.review) {
-            toast.error(t('drivings.delete_reviewed_error', 'Baholangan mashg\'ulotni o\'chirish mumkin emas'));
+        if (driving.status === 'completed' || driving.review) {
+            toast.error(t('drivings.delete_reviewed_error', 'Yakunlangan yoki baholangan mashg\'ulotni o\'chirish mumkin emas'));
             return;
         }
         if (confirm(t('common.confirm_delete', 'Rostdan ham o\'chirmoqchimisiz?'))) {
@@ -197,6 +203,28 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                 onError: (err) => toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi')),
             });
         }
+    };
+
+    const handleStatusChangeConfirm = () => {
+        if (!statusModalDriving || !targetStatus) return;
+
+        router.put('/admin/drivings/' + statusModalDriving.id, {
+            start_time: statusModalDriving.start_time,
+            end_time: statusModalDriving.end_time,
+            status: targetStatus,
+        }, {
+            onSuccess: () => {
+                setStatusModalDriving(null);
+                setTargetStatus(null);
+                toast.success(targetStatus === 'completed'
+                    ? t('drivings.status_completed_success', 'Mashg\'ulot yakunlandi')
+                    : t('drivings.status_cancelled_success', 'Mashg\'ulot bekor qilindi')
+                );
+            },
+            onError: (err) => {
+                toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi'));
+            }
+        });
     };
 
     const closeForm = () => {
@@ -599,28 +627,41 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                             </div>
                         </div>
 
-                        {editing && (
-                            <div>
-                                <Label htmlFor="status">{t('common.status', 'Holati')}</Label>
-                                <select
-                                    id="status"
-                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                    value={data.status}
-                                    onChange={e => setData('status', e.target.value)}
-                                >
-                                    <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
-                                    <option value="completed">{t('status.completed', 'Tugagan')}</option>
-                                    <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
-                                </select>
-                                {errors.status && <div className="text-destructive text-sm mt-1">{errors.status}</div>}
-                            </div>
-                        )}
-
                         <div className="flex gap-2 pt-2 justify-end">
                             <Button type="button" variant="outline" onClick={closeForm}>{t('common.cancel', 'Bekor qilish')}</Button>
                             <Button type="submit" disabled={processing}>{processing ? t('common.saving', 'Saqlanmoqda...') : t('common.save', 'Saqlash')}</Button>
                         </div>
                     </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Status Confirmation Modal */}
+            <Dialog open={!!statusModalDriving} onOpenChange={(open) => { if (!open) { setStatusModalDriving(null); setTargetStatus(null); } }}>
+                <DialogContent className="sm:max-w-[400px]">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {targetStatus === 'completed' ? t('drivings.finish_title', 'Mashg\'ulotni yakunlash') : t('drivings.cancel_title', 'Mashg\'ulotni bekor qilish')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {targetStatus === 'completed'
+                                ? t('drivings.confirm_finish', 'Rostdan ham ushbu mashg\'ulotni tugallamoqchimisiz?')
+                                : t('drivings.confirm_cancel', 'Rostdan ham ushbu mashg\'ulotni bekor qilmoqchimisiz?')}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="flex gap-2 pt-4 justify-end">
+                        <Button type="button" variant="outline" onClick={() => { setStatusModalDriving(null); setTargetStatus(null); }}>
+                            {t('common.cancel', 'Bekor qilish')}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant={targetStatus === 'completed' ? 'default' : 'destructive'}
+                            className={targetStatus === 'completed' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                            onClick={handleStatusChangeConfirm}
+                        >
+                            {targetStatus === 'completed' ? t('drivings.yes_finish', 'Ha, tugatish') : t('drivings.yes_cancel', 'Ha, bekor qilish')}
+                        </Button>
+                    </div>
                 </DialogContent>
             </Dialog>
 
@@ -691,13 +732,39 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                     )}
                                 </td>
                                 <td className="px-4 py-3 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(driving)}>
-                                            <Edit2 className="w-4 h-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(driving)}>
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
+                                    <div className="flex justify-end gap-1.5 items-center">
+                                        {driving.status === 'scheduled' && (
+                                            <>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30"
+                                                    onClick={() => { setStatusModalDriving(driving); setTargetStatus('completed'); }}
+                                                    title={t('status.completed', 'Tugatish')}
+                                                >
+                                                    <CheckCircle2 className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                                    onClick={() => { setStatusModalDriving(driving); setTargetStatus('cancelled'); }}
+                                                    title={t('status.cancelled', 'Bekor qilish')}
+                                                >
+                                                    <XCircle className="w-4 h-4" />
+                                                </Button>
+                                            </>
+                                        )}
+                                        {driving.status !== 'completed' && (
+                                            <>
+                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(driving)} title={t('common.edit', 'Tahrirlash')}>
+                                                    <Edit2 className="w-4 h-4" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(driving)} title={t('common.delete', 'O\'chirish')}>
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -761,12 +828,36 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                             )}
                             
                             <div className="flex gap-2 justify-end pt-1">
-                                <Button variant="outline" size="sm" onClick={() => handleEdit(driving)}>
-                                    <Edit2 className="w-4 h-4 mr-1.5" /> Tahrirlash
-                                </Button>
-                                <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(driving)}>
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
+                                {driving.status === 'scheduled' && (
+                                    <>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-green-600 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950/30"
+                                            onClick={() => { setStatusModalDriving(driving); setTargetStatus('completed'); }}
+                                        >
+                                            <CheckCircle2 className="w-4 h-4 mr-1" /> {t('status.completed', 'Tugatish')}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/30"
+                                            onClick={() => { setStatusModalDriving(driving); setTargetStatus('cancelled'); }}
+                                        >
+                                            <XCircle className="w-4 h-4 mr-1" /> {t('status.cancelled', 'Bekor qilish')}
+                                        </Button>
+                                    </>
+                                )}
+                                {driving.status !== 'completed' && (
+                                    <>
+                                        <Button variant="outline" size="sm" onClick={() => handleEdit(driving)}>
+                                            <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(driving)}>
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     ))}

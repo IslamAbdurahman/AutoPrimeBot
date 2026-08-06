@@ -129,10 +129,16 @@ class DrivingController extends Controller
 
     public function update(Request $request, Driving $driving)
     {
+        if ($driving->status === 'completed') {
+            return redirect()->back()->withErrors([
+                'update' => 'Yakunlangan mashg\'ulotni o\'zgartirish mumkin emas.',
+            ]);
+        }
+
         $validated = $request->validate([
-            'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
-            'status' => 'required|in:scheduled,completed,cancelled',
+            'start_time' => 'sometimes|required|date',
+            'end_time' => 'sometimes|required|date|after:start_time',
+            'status' => 'sometimes|required|in:scheduled,completed,cancelled',
         ]);
 
         $driving->update($validated);
@@ -142,9 +148,9 @@ class DrivingController extends Controller
 
     public function destroy(Driving $driving)
     {
-        if ($driving->review()->exists()) {
+        if ($driving->status === 'completed' || $driving->review()->exists()) {
             return redirect()->back()->withErrors([
-                'delete' => 'Baholangan mashg\'ulotni o\'chirish mumkin emas.',
+                'delete' => 'Yakunlangan yoki baholangan mashg\'ulotni o\'chirish mumkin emas.',
             ]);
         }
 
