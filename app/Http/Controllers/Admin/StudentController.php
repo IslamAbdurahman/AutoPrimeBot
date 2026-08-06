@@ -89,6 +89,47 @@ class StudentController extends Controller
         return redirect()->back();
     }
 
+    public function show(Student $student, Request $request): Response
+    {
+        $student->load('group.instructor');
+
+        $drivingsQuery = $student->drivings()
+            ->with(['instructor', 'group', 'review'])
+            ->orderBy('start_time', 'desc');
+
+        if ($request->filled('status')) {
+            $drivingsQuery->where('status', $request->status);
+        }
+
+        $perPage = $request->get('per_page', 10);
+        if ($perPage === 'all') {
+            $perPage = max($drivingsQuery->count(), 1);
+        }
+
+        $drivings = $drivingsQuery->paginate($perPage)->withQueryString();
+
+        $reviews = $student->drivings()->has('review')->with('review')->get()->pluck('review');
+        $avgRating = $reviews->count() > 0 ? round($reviews->avg('rating'), 1) : 0;
+
+        $stats = [
+            'total_drivings' => $student->drivings()->count(),
+            'completed_drivings' => $student->drivings()->where('status', 'completed')->count(),
+            'scheduled_drivings' => $student->drivings()->where('status', 'scheduled')->count(),
+            'cancelled_drivings' => $student->drivings()->where('status', 'cancelled')->count(),
+            'average_rating' => $avgRating,
+        ];
+
+        return Inertia::render('Admin/Students/Show', [
+            'student' => $student,
+            'drivings' => $drivings,
+            'stats' => $stats,
+            'filters' => [
+                'status' => $request->status,
+                'per_page' => $request->per_page,
+            ],
+        ]);
+    }
+
     public function destroy(Student $student)
     {
         $student->delete();

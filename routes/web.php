@@ -42,7 +42,7 @@ Route::middleware(['auth.telegram'])->group(function () {
     Route::get('admin/groups/download-template', [GroupController::class, 'downloadTemplate'])->name('groups.download-template');
     Route::post('admin/groups/{group}/import-students', [GroupController::class, 'importStudents'])->name('groups.import-students');
     Route::resource('admin/groups', GroupController::class)->except(['create', 'edit']);
-    Route::resource('admin/students', StudentController::class)->except(['create', 'show', 'edit']);
+    Route::resource('admin/students', StudentController::class)->except(['create', 'edit']);
     Route::resource('admin/drivings', DrivingController::class)->except(['create', 'show', 'edit']);
     Route::resource('admin/autodromes', AutodromeController::class)->except(['create', 'show', 'edit']);
 });

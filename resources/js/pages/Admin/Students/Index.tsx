@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Edit2, Plus, Search } from 'lucide-react';
+import { Trash2, Edit2, Plus, Search, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -290,7 +290,11 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                         {students.data.map((item, index) => (
                             <tr key={item.id} className="hover:bg-muted/30">
                                 <td className="px-4 py-3">{(students.from || 1) + index}</td>
-                                <td className="px-4 py-3 font-medium">{item.full_name}</td>
+                                <td className="px-4 py-3 font-medium">
+                                    <Link href={`/admin/students/${item.id}`} className="text-primary hover:underline font-semibold">
+                                        {item.full_name}
+                                    </Link>
+                                </td>
                                 <td className="px-4 py-3">{item.phone}</td>
                                 <td className="px-4 py-3 text-muted-foreground">{item.group?.name || t('students.no_group', 'Biriktirilmagan')}</td>
                                 <td className="px-4 py-3 text-muted-foreground">{item.telegram_id || '-'}</td>
@@ -301,6 +305,11 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                                 </td>
                                 <td className="px-4 py-3 text-right">
                                     <div className="flex justify-end gap-2">
+                                        <Button variant="ghost" size="icon" asChild>
+                                            <Link href={`/admin/students/${item.id}`}>
+                                                <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                            </Link>
+                                        </Button>
                                         <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
                                             <Edit2 className="w-4 h-4" />
                                         </Button>
@@ -320,7 +329,9 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                         <div key={item.id} className="p-4 space-y-2">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <div className="font-semibold">{item.full_name}</div>
+                                    <Link href={`/admin/students/${item.id}`} className="font-semibold text-lg text-primary hover:underline">
+                                        {item.full_name}
+                                    </Link>
                                     <div className="text-sm text-muted-foreground">{item.phone}</div>
                                 </div>
                             </div>
@@ -349,6 +360,11 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                             </div>
                             
                             <div className="flex gap-2 justify-end pt-1">
+                                <Button variant="outline" size="sm" asChild>
+                                    <Link href={`/admin/students/${item.id}`}>
+                                        <Eye className="w-4 h-4 mr-1.5" /> {t('common.view', 'Ko\'rish')}
+                                    </Link>
+                                </Button>
                                 <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
                                     <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
                                 </Button>
