@@ -46,18 +46,24 @@ class InstructorController extends Controller
         }
 
         $instructors = $query->withCount('groups')
-            ->with(['drivings' => $drivingsQuery])
+            ->with([
+                'groups' => fn ($gQuery) => $gQuery->withCount('students'),
+                'drivings' => $drivingsQuery,
+            ])
             ->paginate($perPage)
             ->withQueryString();
 
         $instructors->getCollection()->transform(function ($instructor) {
+            $studentsCount = $instructor->groups->sum('students_count');
             $totalDrivings = $instructor->drivings->count();
 
             $reviews = $instructor->drivings->pluck('review')->filter();
             $totalReviews = $reviews->count();
+            $totalScore = (int) $reviews->sum('rating');
+            $maxScore = $totalReviews * 5;
 
             $averageRating = $totalReviews > 0 ? $reviews->avg('rating') : 0;
-            $kpiPercentage = ($averageRating / 5) * 100;
+            $kpiPercentage = $maxScore > 0 ? ($totalScore / $maxScore) * 100 : 0;
 
             $allTags = $reviews->pluck('reason_tags')->flatten()->filter();
 
@@ -71,7 +77,11 @@ class InstructorController extends Controller
                 'phone' => $instructor->phone,
                 'telegram_id' => $instructor->telegram_id,
                 'groups_count' => $instructor->groups_count,
+                'students_count' => $studentsCount,
                 'total_drivings' => $totalDrivings,
+                'total_score' => $totalScore,
+                'max_score' => $maxScore,
+                'score_formatted' => "{$totalScore}/{$maxScore}",
                 'average_rating' => round($averageRating, 2),
                 'kpi_percentage' => round($kpiPercentage, 1),
                 'negative_tags_count' => $negativeTagsCount,

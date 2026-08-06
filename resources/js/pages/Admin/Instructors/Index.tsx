@@ -32,7 +32,11 @@ interface Instructor {
     telegram_id?: string;
     kpi_percentage: number;
     groups_count: number;
+    students_count: number;
     total_drivings: number;
+    total_score: number;
+    max_score: number;
+    score_formatted: string;
     average_rating: number;
     needs_attention: boolean;
 }
@@ -273,7 +277,9 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             <th className="px-4 py-3 font-medium">{t('instructors.name', 'Ismi')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.phone', 'Telefon')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.groups_count', 'Guruhlar')}</th>
+                            <th className="px-4 py-3 font-medium">{t('instructors.students_count', 'O\'quvchilar')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.drivings_count', 'Darslar')}</th>
+                            <th className="px-4 py-3 font-medium">{t('instructors.total_points', 'Umumiy ballar')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.rating', 'Reyting')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.kpi', 'KPI (%)')}</th>
                             <th className="px-4 py-3 font-medium">{t('common.status', 'Holat')}</th>
@@ -290,7 +296,9 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                 </td>
                                 <td className="px-4 py-3">{item.phone}</td>
                                 <td className="px-4 py-3">{item.groups_count}</td>
+                                <td className="px-4 py-3">{item.students_count}</td>
                                 <td className="px-4 py-3">{item.total_drivings}</td>
+                                <td className="px-4 py-3 font-semibold">{item.score_formatted}</td>
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-1">
                                         <Star className="w-4 h-4 text-yellow-500 fill-current" />
@@ -353,12 +361,20 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                     <span className="font-medium">{item.groups_count}</span>
                                 </div>
                                 <div>
+                                    <span className="text-muted-foreground block text-xs">{t('instructors.students_count', 'O\'quvchilar')}:</span>
+                                    <span className="font-medium">{item.students_count}</span>
+                                </div>
+                                <div>
                                     <span className="text-muted-foreground block text-xs">{t('instructors.drivings_count', 'Darslar')}:</span>
                                     <span className="font-medium">{item.total_drivings}</span>
                                 </div>
+                                <div>
+                                    <span className="text-muted-foreground block text-xs">{t('instructors.total_points', 'Umumiy ballar')}:</span>
+                                    <span className="font-semibold">{item.score_formatted}</span>
+                                </div>
                                 <div className="col-span-2 pt-1 mt-1 border-t">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-muted-foreground text-xs">KPI:</span>
+                                        <span className="text-muted-foreground text-xs">{t('instructors.kpi', 'KPI (%)')}:</span>
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                                             item.kpi_percentage >= 80 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
                                             item.kpi_percentage >= 50 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
