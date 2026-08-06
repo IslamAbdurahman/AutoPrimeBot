@@ -158,8 +158,8 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     };
 
     const handleEdit = (driving: Driving) => {
-        if (driving.status === 'completed') {
-            toast.error(t('drivings.edit_completed_error', 'Yakunlangan mashg\'ulotni o\'zgartirish mumkin emas'));
+        if (driving.status === 'completed' || driving.status === 'cancelled') {
+            toast.error(t('drivings.edit_completed_error', 'Tugallangan yoki bekor qilingan mashg\'ulotni o\'zgartirish mumkin emas'));
             return;
         }
         setEditing(driving);
@@ -193,8 +193,8 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     };
 
     const handleDelete = (driving: Driving) => {
-        if (driving.status === 'completed' || driving.review) {
-            toast.error(t('drivings.delete_reviewed_error', 'Yakunlangan yoki baholangan mashg\'ulotni o\'chirish mumkin emas'));
+        if (driving.status === 'completed' || driving.status === 'cancelled' || driving.review) {
+            toast.error(t('drivings.delete_reviewed_error', 'Tugallangan yoki bekor qilingan mashg\'ulotni o\'chirish mumkin emas'));
             return;
         }
         if (confirm(t('common.confirm_delete', 'Rostdan ham o\'chirmoqchimisiz?'))) {
@@ -751,10 +751,6 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                 >
                                                     <XCircle className="w-4 h-4" />
                                                 </Button>
-                                            </>
-                                        )}
-                                        {driving.status !== 'completed' && (
-                                            <>
                                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(driving)} title={t('common.edit', 'Tahrirlash')}>
                                                     <Edit2 className="w-4 h-4" />
                                                 </Button>
@@ -762,6 +758,9 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
                                             </>
+                                        )}
+                                        {driving.status !== 'scheduled' && (
+                                            <span className="text-xs text-muted-foreground">-</span>
                                         )}
                                     </div>
                                 </td>
@@ -844,10 +843,6 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                         >
                                             <XCircle className="w-4 h-4 mr-1" /> {t('status.cancelled', 'Bekor qilish')}
                                         </Button>
-                                    </>
-                                )}
-                                {driving.status !== 'completed' && (
-                                    <>
                                         <Button variant="outline" size="sm" onClick={() => handleEdit(driving)}>
                                             <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
                                         </Button>

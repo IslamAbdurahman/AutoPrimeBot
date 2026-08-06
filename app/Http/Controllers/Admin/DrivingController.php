@@ -129,9 +129,9 @@ class DrivingController extends Controller
 
     public function update(Request $request, Driving $driving)
     {
-        if ($driving->status === 'completed') {
+        if (in_array($driving->status, ['completed', 'cancelled'])) {
             return redirect()->back()->withErrors([
-                'update' => 'Yakunlangan mashg\'ulotni o\'zgartirish mumkin emas.',
+                'update' => 'Tugallangan yoki bekor qilingan mashg\'ulotni o\'zgartirish mumkin emas.',
             ]);
         }
 
@@ -149,9 +149,9 @@ class DrivingController extends Controller
 
     public function destroy(Driving $driving)
     {
-        if ($driving->status === 'completed' || $driving->review()->exists()) {
+        if (in_array($driving->status, ['completed', 'cancelled']) || $driving->review()->exists()) {
             return redirect()->back()->withErrors([
-                'delete' => 'Yakunlangan yoki baholangan mashg\'ulotni o\'chirish mumkin emas.',
+                'delete' => 'Tugallangan yoki bekor qilingan mashg\'ulotni o\'chirish mumkin emas.',
             ]);
         }
 
