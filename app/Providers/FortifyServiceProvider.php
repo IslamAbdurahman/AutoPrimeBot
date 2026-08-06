@@ -41,6 +41,22 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+
+        Fortify::authenticateUsing(function (Request $request) {
+            $phoneInput = $request->phone;
+            $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
+
+            $user = \App\Models\User::where(function ($query) use ($phoneInput, $cleanPhone) {
+                $query->where('phone', $phoneInput)
+                    ->orWhereRaw("REPLACE(phone, '+', '') = ?", [$cleanPhone]);
+            })->first();
+
+            if ($user && \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+                return $user;
+            }
+
+            return null;
+        });
     }
 
     /**
