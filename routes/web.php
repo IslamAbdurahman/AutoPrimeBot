@@ -8,9 +8,10 @@ use App\Http\Controllers\Admin\InstructorController as AdminInstructorController
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\InstructorController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
-    return view('welcome');
+    return Inertia::render('welcome');
 });
 
 // For testing outside Telegram locally, we can bypass auth by adding `?test_telegram_id=111111111` for Admin
