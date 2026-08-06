@@ -30,7 +30,7 @@ i18n
     });
 
 i18n.on('languageChanged', (lng) => {
-    if (lng) {
+    if (lng && typeof document !== 'undefined') {
         const langCode = lng.split('-')[0];
         if (['uz', 'krill', 'ru', 'en'].includes(langCode)) {
             document.cookie = `locale=${langCode}; path=/; max-age=31536000; SameSite=Lax`;
@@ -38,9 +38,11 @@ i18n.on('languageChanged', (lng) => {
     }
 });
 
-const initialLng = i18n.language?.split('-')[0];
-if (initialLng && ['uz', 'krill', 'ru', 'en'].includes(initialLng)) {
-    document.cookie = `locale=${initialLng}; path=/; max-age=31536000; SameSite=Lax`;
+if (typeof document !== 'undefined') {
+    const initialLng = i18n.language?.split('-')[0];
+    if (initialLng && ['uz', 'krill', 'ru', 'en'].includes(initialLng)) {
+        document.cookie = `locale=${initialLng}; path=/; max-age=31536000; SameSite=Lax`;
+    }
 }
 
 export default i18n;
