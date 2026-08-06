@@ -14,6 +14,10 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 });
 
+Route::any('/register', function () {
+    return redirect('/login');
+});
+
 // For testing outside Telegram locally, we can bypass auth by adding `?test_telegram_id=111111111` for Admin
 // or `?test_telegram_id=222222222` for Instructor if local environment logic is enabled in middleware.
 
