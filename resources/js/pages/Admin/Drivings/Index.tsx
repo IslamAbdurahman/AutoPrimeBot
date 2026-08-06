@@ -565,23 +565,21 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                             </div>
                         )}
 
-                        {!editing && (
-                            <div>
-                                <Label htmlFor="autodrome_id">Avtodrom</Label>
-                                <select
-                                    id="autodrome_id"
-                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                    value={data.autodrome_id}
-                                    onChange={e => setData('autodrome_id', e.target.value)}
-                                >
-                                    <option value="">{t('common.select', '-- Tanlang --')}</option>
-                                    {autodromes.map(a => (
-                                        <option key={a.id} value={a.id}>{a.name}</option>
-                                    ))}
-                                </select>
-                                {errors.autodrome_id && <div className="text-destructive text-sm mt-1">{errors.autodrome_id}</div>}
-                            </div>
-                        )}
+                        <div>
+                            <Label htmlFor="autodrome_id">{t('drivings.autodrome', 'Avtodrom')}</Label>
+                            <select
+                                id="autodrome_id"
+                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                value={data.autodrome_id}
+                                onChange={e => setData('autodrome_id', e.target.value)}
+                            >
+                                <option value="">{t('drivings.autodrome_optional', 'Avtodrom (Ixtiyoriy)')}</option>
+                                {autodromes.map(a => (
+                                    <option key={a.id} value={a.id}>{a.name}</option>
+                                ))}
+                            </select>
+                            {errors.autodrome_id && <div className="text-destructive text-sm mt-1">{errors.autodrome_id}</div>}
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>

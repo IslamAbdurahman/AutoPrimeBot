@@ -91,19 +91,19 @@ class InstructorController extends Controller
             throw ValidationException::withMessages(['general' => 'Sizga tegishli bo\'lmagan dars']);
         }
 
-        $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-        ]);
-
         $autodrome = $driving->autodrome;
 
         if (! $autodrome) {
-            // If no autodrome is assigned, just finish it
+            // If no autodrome is assigned, just finish it without requiring location
             $driving->update(['status' => 'completed']);
 
             return redirect()->back();
         }
+
+        $request->validate([
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
 
         $distance = $this->haversineGreatCircleDistance(
             $request->latitude,

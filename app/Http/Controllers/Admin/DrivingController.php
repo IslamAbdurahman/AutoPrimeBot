@@ -107,7 +107,7 @@ class DrivingController extends Controller
             'student_ids' => 'required|array',
             'student_ids.*' => 'exists:students,id',
             'group_id' => 'nullable|exists:groups,id',
-            'autodrome_id' => 'required|exists:autodromes,id',
+            'autodrome_id' => 'nullable|exists:autodromes,id',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
         ]);
@@ -136,6 +136,7 @@ class DrivingController extends Controller
         }
 
         $validated = $request->validate([
+            'autodrome_id' => 'nullable|exists:autodromes,id',
             'start_time' => 'sometimes|required|date',
             'end_time' => 'sometimes|required|date|after:start_time',
             'status' => 'sometimes|required|in:scheduled,completed,cancelled',
