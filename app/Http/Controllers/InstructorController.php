@@ -26,7 +26,7 @@ class InstructorController extends Controller
         // Load upcoming drivings
         $upcomingDrivings = Driving::with(['student', 'group', 'autodrome'])
             ->where('instructor_id', $user->id)
-            ->whereIn('status', ['scheduled', 'in_progress'])
+            ->where('status', 'scheduled')
             ->orderBy('start_time', 'asc')
             ->take(10)
             ->get();

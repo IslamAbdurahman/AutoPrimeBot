@@ -294,7 +294,6 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                         >
                             <option value="">{t('status.all', 'Barcha holatlar')}</option>
                             <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
-                            <option value="in_progress">{t('status.in_progress', 'Jarayonda')}</option>
                             <option value="completed">{t('status.completed', 'Tugagan')}</option>
                             <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
                         </select>
@@ -384,7 +383,6 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                         >
                                             <option value="">{t('status.all', 'Barcha holatlar')}</option>
                                             <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
-                                            <option value="in_progress">{t('status.in_progress', 'Jarayonda')}</option>
                                             <option value="completed">{t('status.completed', 'Tugagan')}</option>
                                             <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
                                         </select>
@@ -611,7 +609,6 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                     onChange={e => setData('status', e.target.value)}
                                 >
                                     <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
-                                    <option value="in_progress">{t('status.in_progress', 'Jarayonda')}</option>
                                     <option value="completed">{t('status.completed', 'Tugagan')}</option>
                                     <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
                                 </select>
@@ -670,7 +667,6 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                 <td className="px-4 py-3">{driving.instructor?.name || '-'}</td>
                                 <td className="px-4 py-3">
                                     {driving.status === 'scheduled' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">{t('status.scheduled', 'Rejada')}</span>}
-                                    {driving.status === 'in_progress' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">{t('status.in_progress', 'Jarayonda')}</span>}
                                     {driving.status === 'completed' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">{t('status.completed', 'Tugagan')}</span>}
                                     {driving.status === 'cancelled' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">{t('status.cancelled', 'Bekor qilingan')}</span>}
                                 </td>
@@ -720,7 +716,6 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                 </div>
                                 <div>
                                     {driving.status === 'scheduled' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">{t('status.scheduled', 'Rejada')}</span>}
-                                    {driving.status === 'in_progress' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">{t('status.in_progress', 'Jarayonda')}</span>}
                                     {driving.status === 'completed' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">{t('status.completed', 'Tugagan')}</span>}
                                     {driving.status === 'cancelled' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">{t('status.cancelled', 'Bekor qilingan')}</span>}
                                 </div>

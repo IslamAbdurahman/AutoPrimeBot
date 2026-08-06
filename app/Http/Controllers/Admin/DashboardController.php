@@ -84,7 +84,6 @@ class DashboardController extends Controller
             $chartData[] = [
                 'date' => $dateStr,
                 'Rejada' => $dayDrivings->where('status', 'scheduled')->count(),
-                'Jarayonda' => $dayDrivings->where('status', 'in_progress')->count(),
                 'Tugagan' => $dayDrivings->where('status', 'completed')->count(),
                 'Bekor_qilingan' => $dayDrivings->where('status', 'cancelled')->count(),
             ];

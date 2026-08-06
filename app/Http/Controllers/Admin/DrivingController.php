@@ -132,7 +132,7 @@ class DrivingController extends Controller
         $validated = $request->validate([
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
-            'status' => 'required|in:scheduled,in_progress,completed,cancelled',
+            'status' => 'required|in:scheduled,completed,cancelled',
         ]);
 
         $driving->update($validated);
