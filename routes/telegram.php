@@ -57,24 +57,9 @@ $bot->onCommand('start', function (Nutgram $bot) {
 
     if ($student) {
         $roleTitle = "🎓 O'quvchi";
-        $appUrl = config('app.url');
-        if (! str_starts_with($appUrl, 'https://')) {
-            $appUrl = preg_replace('/^http:/i', 'https:', $appUrl);
-        }
-
-        $keyboard = InlineKeyboardMarkup::make()
-            ->addRow(InlineKeyboardButton::make(
-                '🚀 Mini App ni ochish',
-                web_app: new WebAppInfo($appUrl)
-            ));
-
         $msg = "📌 <b>Tizimga kirildi: {$roleTitle}</b>\n\nAssalomu alaykum, <b>{$student->full_name}</b>! AutoPrime o'quvchi botiga xush kelibsiz.";
 
-        try {
-            $bot->sendMessage($msg, parse_mode: 'HTML', reply_markup: $keyboard);
-        } catch (Exception $e) {
-            $bot->sendMessage($msg, parse_mode: 'HTML');
-        }
+        $bot->sendMessage($msg, parse_mode: 'HTML');
 
         return;
     }
@@ -313,23 +298,6 @@ $bot->onContact(function (Nutgram $bot) {
             parse_mode: 'HTML',
             reply_markup: ReplyKeyboardRemove::make(true)
         );
-
-        $appUrl = config('app.url');
-        if (! str_starts_with($appUrl, 'https://')) {
-            $appUrl = preg_replace('/^http:/i', 'https:', $appUrl);
-        }
-
-        $keyboard = InlineKeyboardMarkup::make()
-            ->addRow(InlineKeyboardButton::make(
-                '🚀 Mini App ni ochish',
-                web_app: new WebAppInfo($appUrl)
-            ));
-
-        try {
-            $bot->sendMessage('Mini ilovaga kirish uchun quyidagi tugmani bosing:', reply_markup: $keyboard);
-        } catch (Exception $e) {
-            $bot->sendMessage('⚠️ Diqqat: Telegram Mini App faqat haqiqiy (public) HTTPS domenlar bilan ishlaydi.');
-        }
     } else {
         $bot->sendMessage("Kechirasiz, tizimda ushbu raqam bilan o'quvchi yoki xodim topilmadi.");
     }
