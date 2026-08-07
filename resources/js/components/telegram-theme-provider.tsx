@@ -4,7 +4,24 @@ import React, { useEffect } from 'react';
 export function TelegramThemeProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const tg = (window as any).Telegram?.WebApp;
-        if (!tg || tg.platform === 'unknown') return;
+
+        // Auto scroll focused input into view on mobile devices / Telegram WebApp
+        const handleFocusIn = (e: FocusEvent) => {
+            const target = e.target as HTMLElement;
+            if (target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
+                setTimeout(() => {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+        };
+
+        document.addEventListener('focusin', handleFocusIn);
+
+        if (!tg || tg.platform === 'unknown') {
+            return () => {
+                document.removeEventListener('focusin', handleFocusIn);
+            };
+        }
 
         const updateTheme = () => {
             const theme = tg.themeParams;
@@ -25,10 +42,18 @@ export function TelegramThemeProvider({ children }: { children: React.ReactNode 
             }
         };
 
+        const handleViewportChange = () => {
+            if (tg.viewportHeight) {
+                document.documentElement.style.setProperty('--tg-viewport-height', `${tg.viewportHeight}px`);
+            }
+        };
+
         if (tg.onEvent) {
             tg.onEvent('themeChanged', updateTheme);
+            tg.onEvent('viewportChanged', handleViewportChange);
         }
         updateTheme();
+        handleViewportChange();
 
         tg.ready();
         tg.expand();
@@ -38,8 +63,10 @@ export function TelegramThemeProvider({ children }: { children: React.ReactNode 
         }
 
         return () => {
+            document.removeEventListener('focusin', handleFocusIn);
             if (tg.offEvent) {
                 tg.offEvent('themeChanged', updateTheme);
+                tg.offEvent('viewportChanged', handleViewportChange);
             }
         };
     }, []);

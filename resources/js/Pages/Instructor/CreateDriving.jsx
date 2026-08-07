@@ -22,7 +22,7 @@ export default function CreateDriving({ groups }) {
 
     return (
         <TMALayout title="Yangi Mashg'ulot">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 mb-10 shadow-sm border border-gray-100 dark:border-gray-700">
                 <form onSubmit={submit} className="space-y-4">
                     
                     {/* Group Selection */}
