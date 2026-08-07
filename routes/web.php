@@ -27,7 +27,7 @@ Route::any('/register', function () {
 // or `?test_telegram_id=222222222` for Instructor if local environment logic is enabled in middleware.
 
 // Starter kit dummy routes to satisfy Wayfinder / SSR build
-Route::get('/settings/profile', function () {})->name('profile.edit');
+Route::get('/settings/profile', function () {})->name('settings.profile.edit');
 Route::get('/settings/security', function () {})->name('security.edit');
 Route::get('/settings/appearance', function () {})->name('appearance.edit');
 Route::get('/home', function () {})->name('home');
