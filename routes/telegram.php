@@ -28,8 +28,10 @@ use SergiX44\Nutgram\Telegram\Types\WebApp\WebAppInfo;
 $bot->onCommand('start', function (Nutgram $bot) {
     $telegramId = $bot->userId();
     $user = User::where('telegram_id', $telegramId)->first();
+    $student = Student::where('telegram_id', $telegramId)->first();
 
     if ($user) {
+        $roleTitle = $user->role === 'instructor' ? '👨‍🏫 Instruktor' : '👑 Admin';
         $appUrl = config('app.url');
         if (! str_starts_with($appUrl, 'https://')) {
             $appUrl = preg_replace('/^http:/i', 'https:', $appUrl);
@@ -41,10 +43,36 @@ $bot->onCommand('start', function (Nutgram $bot) {
                 web_app: new WebAppInfo($appUrl)
             ));
 
+        $msg = "📌 <b>Tizimga kirildi: {$roleTitle}</b>\n\nAssalomu alaykum, <b>{$user->name}</b>! AutoPrime tizimiga xush kelibsiz.";
+
         try {
-            $bot->sendMessage("Assalomu alaykum, {$user->name}! Tizimga xush kelibsiz.", reply_markup: $keyboard);
+            $bot->sendMessage($msg, parse_mode: 'HTML', reply_markup: $keyboard);
         } catch (Exception $e) {
-            $bot->sendMessage("Assalomu alaykum, {$user->name}! Tizimga xush kelibsiz.\n\n⚠️ Diqqat: Telegram Mini App faqat haqiqiy (public) HTTPS domenlar bilan ishlaydi. Sizning tizimingiz hozirda localhost da ishlayapti, shuning uchun Mini App tugmasini yuborib bo'lmadi. APP_URL ni to'g'rilang.");
+            $bot->sendMessage("{$msg}\n\n⚠️ Diqqat: Telegram Mini App faqat haqiqiy (public) HTTPS domenlar bilan ishlaydi. APP_URL ni to'g'rilang.", parse_mode: 'HTML');
+        }
+
+        return;
+    }
+
+    if ($student) {
+        $roleTitle = "🎓 O'quvchi";
+        $appUrl = config('app.url');
+        if (! str_starts_with($appUrl, 'https://')) {
+            $appUrl = preg_replace('/^http:/i', 'https:', $appUrl);
+        }
+
+        $keyboard = InlineKeyboardMarkup::make()
+            ->addRow(InlineKeyboardButton::make(
+                '🚀 Mini App ni ochish',
+                web_app: new WebAppInfo($appUrl)
+            ));
+
+        $msg = "📌 <b>Tizimga kirildi: {$roleTitle}</b>\n\nAssalomu alaykum, <b>{$student->full_name}</b>! AutoPrime o'quvchi botiga xush kelibsiz.";
+
+        try {
+            $bot->sendMessage($msg, parse_mode: 'HTML', reply_markup: $keyboard);
+        } catch (Exception $e) {
+            $bot->sendMessage($msg, parse_mode: 'HTML');
         }
 
         return;
@@ -56,7 +84,7 @@ $bot->onCommand('start', function (Nutgram $bot) {
         );
 
     $bot->sendMessage(
-        text: 'Assalomu alaykum! Tizimga kirish uchun telefon raqamingizni yuboring:',
+        text: 'Assalomu alaykum! Tizimga kirish uchun pastdagi tugma orqali telefon raqamingizni yuboring:',
         reply_markup: $keyboard
     );
 })->description('Botni ishga tushirish');
@@ -78,10 +106,16 @@ $bot->onContact(function (Nutgram $bot) {
         $phone = '+'.$phone;
     }
 
-    $user = User::where('phone', $phone)->first();
+    $cleanPhone = str_replace('+', '', $phone);
+
+    $user = User::where('phone', $phone)->orWhere('phone', $cleanPhone)->first();
     if ($user) {
         $user->update(['telegram_id' => $telegramId]);
-        $bot->sendMessage("Muvaffaqiyatli avtorizatsiyadan o'tdingiz, {$user->name}!",
+        $roleTitle = $user->role === 'instructor' ? '👨‍🏫 Instruktor' : '👑 Admin';
+
+        $bot->sendMessage(
+            "✅ Muvaffaqiyatli avtorizatsiyadan o'tdingiz!\n\n👤 <b>Ismingiz:</b> {$user->name}\n📌 <b>Siz tizimga <u>{$roleTitle}</u> sifatida kirdingiz.</b>",
+            parse_mode: 'HTML',
             reply_markup: ReplyKeyboardRemove::make(true)
         );
 
@@ -99,19 +133,40 @@ $bot->onContact(function (Nutgram $bot) {
         try {
             $bot->sendMessage('Mini ilovaga kirish uchun quyidagi tugmani bosing:', reply_markup: $keyboard);
         } catch (Exception $e) {
-            $bot->sendMessage("⚠️ Diqqat: Telegram Mini App faqat haqiqiy (public) HTTPS domenlar bilan ishlaydi. Hozirda tizim localhost da ishlayotgani sababli Mini App tugmasi yuborilmadi. APP_URL ni to'g'rilang.");
+            $bot->sendMessage('⚠️ Diqqat: Telegram Mini App faqat haqiqiy (public) HTTPS domenlar bilan ishlaydi.');
         }
 
         return;
     }
 
-    $student = Student::where('phone', $phone)->first();
+    $student = Student::where('phone', $phone)->orWhere('phone', $cleanPhone)->first();
 
     if ($student) {
         $student->update(['telegram_id' => $telegramId]);
-        $bot->sendMessage("Muvaffaqiyatli avtorizatsiyadan o'tdingiz, {$student->full_name}!",
+        $roleTitle = "🎓 O'quvchi";
+
+        $bot->sendMessage(
+            "✅ Muvaffaqiyatli avtorizatsiyadan o'tdingiz!\n\n👤 <b>Ismingiz:</b> {$student->full_name}\n📌 <b>Siz tizimga <u>{$roleTitle}</u> sifatida kirdingiz.</b>",
+            parse_mode: 'HTML',
             reply_markup: ReplyKeyboardRemove::make(true)
         );
+
+        $appUrl = config('app.url');
+        if (! str_starts_with($appUrl, 'https://')) {
+            $appUrl = preg_replace('/^http:/i', 'https:', $appUrl);
+        }
+
+        $keyboard = InlineKeyboardMarkup::make()
+            ->addRow(InlineKeyboardButton::make(
+                '🚀 Mini App ni ochish',
+                web_app: new WebAppInfo($appUrl)
+            ));
+
+        try {
+            $bot->sendMessage('Mini ilovaga kirish uchun quyidagi tugmani bosing:', reply_markup: $keyboard);
+        } catch (Exception $e) {
+            $bot->sendMessage('⚠️ Diqqat: Telegram Mini App faqat haqiqiy (public) HTTPS domenlar bilan ishlaydi.');
+        }
     } else {
         $bot->sendMessage("Kechirasiz, tizimda ushbu raqam bilan o'quvchi yoki xodim topilmadi.");
     }
