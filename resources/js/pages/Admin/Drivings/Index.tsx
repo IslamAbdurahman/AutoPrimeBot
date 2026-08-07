@@ -491,7 +491,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {!editing && (
                             <div>
-                                <Label htmlFor="group_id">{t('drivings.group_optional', 'Guruh')}</Label>
+                                <Label htmlFor="group_id">{t('drivings.group_filter_label', 'Guruh (O\'quvchilarni filtrlash uchun)')}</Label>
                                 <select
                                     id="group_id"
                                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
@@ -502,7 +502,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                     }}
                                     disabled={!!editing}
                                 >
-                                    <option value="">{t('common.select', '-- Tanlang --')}</option>
+                                    <option value="">{t('common.all_groups', 'Barcha guruhlar')}</option>
                                     {groups.map(grp => (
                                         <option key={grp.id} value={grp.id}>{grp.name}</option>
                                     ))}

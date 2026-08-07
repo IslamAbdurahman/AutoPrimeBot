@@ -114,10 +114,13 @@ class DrivingController extends Controller
         ]);
 
         foreach ($validated['student_ids'] as $studentId) {
+            $student = Student::find($studentId);
+            $groupId = $student?->group_id ?? ($validated['group_id'] ?? null);
+
             $driving = Driving::create([
                 'instructor_id' => $validated['instructor_id'],
                 'student_id' => $studentId,
-                'group_id' => $validated['group_id'] ?? null,
+                'group_id' => $groupId,
                 'autodrome_id' => $validated['autodrome_id'] ?? null,
                 'start_time' => $validated['start_time'],
                 'end_time' => $validated['end_time'],
