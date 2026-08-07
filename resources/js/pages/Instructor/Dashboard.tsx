@@ -58,7 +58,7 @@ export default function InstructorDashboard({ groups = [], upcomingDrivings = []
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    router.post(`/instructor/drivings/${driving.id}/finish`, {
+                    router.post(`/instructor/driving/${driving.id}/finish`, {
                         latitude: position.coords.latitude,
                         longitude: position.coords.longitude,
                     }, {
@@ -73,7 +73,7 @@ export default function InstructorDashboard({ groups = [], upcomingDrivings = []
                 { enableHighAccuracy: true }
             );
         } else {
-            router.post(`/instructor/drivings/${driving.id}/finish`, {
+            router.post(`/instructor/driving/${driving.id}/finish`, {
                 latitude: 0,
                 longitude: 0,
             }, {
@@ -101,7 +101,7 @@ export default function InstructorDashboard({ groups = [], upcomingDrivings = []
 
                 <div className="flex justify-center">
                     <Link
-                        href="/instructor/drivings/create"
+                        href="/instructor/driving/create"
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl text-center transition-colors shadow-sm"
                     >
                         + Yangi mashg'ulot belgilash
