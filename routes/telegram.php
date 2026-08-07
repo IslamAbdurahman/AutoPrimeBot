@@ -78,8 +78,8 @@ $bot->onCommand('start', function (Nutgram $bot) {
 function getDrivingsKeyboard(string $activeStatus): InlineKeyboardMarkup
 {
     $keyboard = InlineKeyboardMarkup::make();
-    $scheduledLabel = $activeStatus === 'scheduled' ? '⏳ Rejadagilar (tanlangan)' : '⏳ Rejadagilar';
-    $completedLabel = $activeStatus === 'completed' ? '✅ Yakunlanganlar (tanlangan)' : '✅ Yakunlanganlar';
+    $scheduledLabel = $activeStatus === 'scheduled' ? '⏳ Rejadagi (tanlangan)' : '⏳ Rejadagi';
+    $completedLabel = $activeStatus === 'completed' ? '✅ Yakunlangan (tanlangan)' : '✅ Yakunlangan';
 
     $keyboard->addRow(
         InlineKeyboardButton::make($scheduledLabel, callback_data: 'drivings:scheduled'),
@@ -258,8 +258,8 @@ $bot->onCommand('drivings', function (Nutgram $bot) {
 
     $keyboard = InlineKeyboardMarkup::make()
         ->addRow(
-            InlineKeyboardButton::make('⏳ Rejadagilar', callback_data: 'drivings:scheduled'),
-            InlineKeyboardButton::make('✅ Yakunlanganlar', callback_data: 'drivings:completed')
+            InlineKeyboardButton::make('⏳ Rejadagi', callback_data: 'drivings:scheduled'),
+            InlineKeyboardButton::make('✅ Yakunlangan', callback_data: 'drivings:completed')
         );
 
     $bot->sendMessage("🚗 <b>Mashg'ulotlar bo'limi</b>\n\nIltimos, pastdagi tugmalar orqali ko'rmoqchi bo'lgan mashg'ulotlar ro'yxatini tanlang:", parse_mode: 'HTML', reply_markup: $keyboard);
