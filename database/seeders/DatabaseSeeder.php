@@ -15,10 +15,10 @@ class DatabaseSeeder extends Seeder
     {
         // 1 Admin
         User::create([
-            'name' => 'Admin To\'raqulov',
+            'name' => 'Admin',
             'phone' => '+998911157709',
             'password' => Hash::make('12345678'),
-            'telegram_id' => '111111111',
+            'telegram_id' => '',
             'role' => 'admin',
         ]);
     }
