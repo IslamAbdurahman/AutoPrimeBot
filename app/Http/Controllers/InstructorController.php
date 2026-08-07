@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Driving;
 use App\Models\Group;
+use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -68,7 +69,7 @@ class InstructorController extends Controller
 
         $user = $request->user();
 
-        Driving::create([
+        $driving = Driving::create([
             'instructor_id' => $user->id,
             'group_id' => $request->group_id,
             'student_id' => $request->student_id,
@@ -76,6 +77,8 @@ class InstructorController extends Controller
             'end_time' => $request->end_time,
             'status' => 'scheduled',
         ]);
+
+        app(TelegramService::class)->sendDrivingCreatedNotification($driving);
 
         return redirect()->route('instructor.dashboard');
     }
@@ -96,6 +99,7 @@ class InstructorController extends Controller
         if (! $autodrome) {
             // If no autodrome is assigned, just finish it without requiring location
             $driving->update(['status' => 'completed']);
+            app(TelegramService::class)->sendLessonRatingPrompt($driving);
 
             return redirect()->back();
         }
@@ -119,6 +123,7 @@ class InstructorController extends Controller
         }
 
         $driving->update(['status' => 'completed']);
+        app(TelegramService::class)->sendLessonRatingPrompt($driving);
 
         return redirect()->back()->with('success', 'Dars muvaffaqiyatli yakunlandi');
     }

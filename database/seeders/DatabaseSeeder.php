@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -21,7 +22,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Admin To\'raqulov',
             'phone' => '+998911157709',
-            'password' => \Illuminate\Support\Facades\Hash::make('12345678'),
+            'password' => Hash::make('12345678'),
             'telegram_id' => '111111111',
             'role' => 'admin',
         ]);
@@ -31,21 +32,21 @@ class DatabaseSeeder extends Seeder
             User::factory()->create([
                 'name' => 'Sobirjon Instruktor',
                 'phone' => '+998901112233',
-                'password' => \Illuminate\Support\Facades\Hash::make('12345678'),
+                'password' => Hash::make('12345678'),
                 'telegram_id' => '222222222',
                 'role' => 'instructor',
             ]),
             User::factory()->create([
                 'name' => 'Qodirali Instruktor',
                 'phone' => '+998902223344',
-                'password' => \Illuminate\Support\Facades\Hash::make('12345678'),
+                'password' => Hash::make('12345678'),
                 'telegram_id' => '333333333',
                 'role' => 'instructor',
             ]),
             User::factory()->create([
                 'name' => 'Dilshod Instruktor',
                 'phone' => '+998903334455',
-                'password' => \Illuminate\Support\Facades\Hash::make('12345678'),
+                'password' => Hash::make('12345678'),
                 'telegram_id' => '444444444',
                 'role' => 'instructor',
             ]),

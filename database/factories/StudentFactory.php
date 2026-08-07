@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Student;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Student>
+ * @extends Factory<Student>
  */
 class StudentFactory extends Factory
 {
@@ -13,7 +14,7 @@ class StudentFactory extends Factory
     {
         return [
             'full_name' => $this->faker->name(),
-            'phone' => '+9989' . $this->faker->unique()->numerify('########'),
+            'phone' => '+9989'.$this->faker->unique()->numerify('########'),
             'telegram_id' => $this->faker->unique()->numerify('#########'),
             'status' => 'active',
         ];

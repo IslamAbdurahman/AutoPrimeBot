@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -46,12 +48,12 @@ class FortifyServiceProvider extends ServiceProvider
             $phoneInput = $request->phone;
             $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
 
-            $user = \App\Models\User::where(function ($query) use ($phoneInput, $cleanPhone) {
+            $user = User::where(function ($query) use ($phoneInput, $cleanPhone) {
                 $query->where('phone', $phoneInput)
                     ->orWhereRaw("REPLACE(phone, '+', '') = ?", [$cleanPhone]);
             })->first();
 
-            if ($user && \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+            if ($user && Hash::check($request->password, $user->password)) {
                 return $user;
             }
 

@@ -2,17 +2,18 @@
 
 namespace Database\Factories;
 
+use App\Models\Group;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Group>
+ * @extends Factory<Group>
  */
 class GroupFactory extends Factory
 {
     public function definition(): array
     {
         return [
-            'name' => 'Group ' . $this->faker->word(),
+            'name' => 'Group '.$this->faker->word(),
         ];
     }
 }

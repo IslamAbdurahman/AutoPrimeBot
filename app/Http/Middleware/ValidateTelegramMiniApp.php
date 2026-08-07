@@ -13,7 +13,7 @@ class ValidateTelegramMiniApp
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -26,13 +26,14 @@ class ValidateTelegramMiniApp
         // Allow passing initData via header or query parameter for flexibility
         $initData = $request->header('X-Telegram-Init-Data') ?? $request->query('_auth');
 
-        if (!$initData) {
+        if (! $initData) {
             // For local development without Telegram, we might want to bypass or mock,
             // but for now, we enforce it if the middleware is applied.
             if (app()->environment('local') && $request->has('test_telegram_id')) {
                 $user = User::where('telegram_id', $request->query('test_telegram_id'))->first();
                 if ($user) {
                     Auth::login($user);
+
                     return $next($request);
                 }
             }
@@ -44,26 +45,26 @@ class ValidateTelegramMiniApp
             return redirect()->route('login');
         }
 
-        if (!$this->validateInitData($initData, config('services.telegram.bot_token', env('TELEGRAM_TOKEN')))) {
+        if (! $this->validateInitData($initData, config('services.telegram.bot_token', env('TELEGRAM_TOKEN')))) {
             return response()->json(['error' => 'Unauthorized. Invalid Signature.'], 401);
         }
 
         // Parse user data from initData
         parse_str($initData, $parsedData);
-        if (!isset($parsedData['user'])) {
+        if (! isset($parsedData['user'])) {
             return response()->json(['error' => 'Unauthorized. No user data.'], 401);
         }
 
         $tgUser = json_decode($parsedData['user'], true);
         $telegramId = $tgUser['id'] ?? null;
 
-        if (!$telegramId) {
+        if (! $telegramId) {
             return response()->json(['error' => 'Unauthorized. Invalid user data.'], 401);
         }
 
         $user = User::where('telegram_id', $telegramId)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['error' => 'Unauthorized. User not found.'], 401);
         }
 
@@ -80,8 +81,8 @@ class ValidateTelegramMiniApp
 
         // Parse the query string into an array
         parse_str($initData, $parsedData);
-        
-        if (!isset($parsedData['hash'])) {
+
+        if (! isset($parsedData['hash'])) {
             return false;
         }
 
@@ -94,7 +95,7 @@ class ValidateTelegramMiniApp
         // Build data-check-string
         $dataCheckArr = [];
         foreach ($parsedData as $key => $value) {
-            $dataCheckArr[] = $key . '=' . $value;
+            $dataCheckArr[] = $key.'='.$value;
         }
         $dataCheckString = implode("\n", $dataCheckArr);
 

@@ -8,6 +8,7 @@ use App\Models\Driving;
 use App\Models\Group;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\TelegramService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -113,7 +114,7 @@ class DrivingController extends Controller
         ]);
 
         foreach ($validated['student_ids'] as $studentId) {
-            Driving::create([
+            $driving = Driving::create([
                 'instructor_id' => $validated['instructor_id'],
                 'student_id' => $studentId,
                 'group_id' => $validated['group_id'] ?? null,
@@ -122,6 +123,8 @@ class DrivingController extends Controller
                 'end_time' => $validated['end_time'],
                 'status' => 'scheduled',
             ]);
+
+            app(TelegramService::class)->sendDrivingCreatedNotification($driving);
         }
 
         return redirect()->back();
@@ -142,7 +145,16 @@ class DrivingController extends Controller
             'status' => 'sometimes|required|in:scheduled,completed,cancelled',
         ]);
 
+        $oldStatus = $driving->status;
         $driving->update($validated);
+
+        if ($oldStatus !== $driving->status) {
+            if ($driving->status === 'completed') {
+                app(TelegramService::class)->sendLessonRatingPrompt($driving);
+            } elseif ($driving->status === 'cancelled') {
+                app(TelegramService::class)->sendDrivingCancelledNotification($driving);
+            }
+        }
 
         return redirect()->back();
     }

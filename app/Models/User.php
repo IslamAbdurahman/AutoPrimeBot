@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -52,17 +53,17 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Group, $this>
+     * @return HasMany<Group, $this>
      */
-    public function groups(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function groups(): HasMany
     {
         return $this->hasMany(Group::class, 'instructor_id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Driving, $this>
+     * @return HasMany<Driving, $this>
      */
-    public function drivings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function drivings(): HasMany
     {
         return $this->hasMany(Driving::class, 'instructor_id');
     }

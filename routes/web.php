@@ -10,12 +10,12 @@ use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');
     }
+
     return redirect()->route('login');
 });
 
@@ -41,6 +41,7 @@ Route::middleware(['auth.telegram'])->group(function () {
         if ($user && $user->role === 'instructor') {
             return redirect()->route('instructor.dashboard');
         }
+
         return redirect()->route('admin.dashboard');
     })->name('dashboard');
     // Instructor Routes

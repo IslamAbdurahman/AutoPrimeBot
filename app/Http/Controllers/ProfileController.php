@@ -28,8 +28,8 @@ class ProfileController extends Controller
             'password' => 'nullable|string|min:6|confirmed',
         ]);
 
-        if (!empty($validated['password'])) {
-            if (!Hash::check($validated['current_password'] ?? '', $user->password)) {
+        if (! empty($validated['password'])) {
+            if (! Hash::check($validated['current_password'] ?? '', $user->password)) {
                 return redirect()->back()->withErrors([
                     'current_password' => 'Joriy parol noto\'g\'ri kiritildi.',
                 ]);
