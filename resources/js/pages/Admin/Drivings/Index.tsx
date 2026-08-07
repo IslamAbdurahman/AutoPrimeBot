@@ -824,26 +824,24 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                 </div>
                             )}
                             
-                            <div className="flex gap-2 justify-end pt-1">
+                            <div className="flex flex-wrap gap-2 justify-end pt-1">
                                 {driving.status === 'scheduled' && (
                                     <>
                                         <Button
                                             variant="outline"
-                                            size="icon"
-                                            className="h-9 w-9 text-green-600 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950/30"
+                                            size="sm"
+                                            className="text-green-600 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950/30"
                                             onClick={() => { setStatusModalDriving(driving); setTargetStatus('completed'); }}
-                                            title={t('status.completed', 'Tugatish')}
                                         >
-                                            <CheckCircle2 className="w-4 h-4" />
+                                            <CheckCircle2 className="w-4 h-4 mr-1" /> Yakunlash
                                         </Button>
                                         <Button
                                             variant="outline"
-                                            size="icon"
-                                            className="h-9 w-9 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/30"
+                                            size="sm"
+                                            className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/30"
                                             onClick={() => { setStatusModalDriving(driving); setTargetStatus('cancelled'); }}
-                                            title={t('status.cancelled', 'Bekor qilish')}
                                         >
-                                            <XCircle className="w-4 h-4" />
+                                            <XCircle className="w-4 h-4 mr-1" /> Bekor qilish
                                         </Button>
                                         <Button
                                             variant="outline"
