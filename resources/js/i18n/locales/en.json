@@ -64,7 +64,9 @@
     "radius_label": "Radius (meters)",
     "completed_drivings": "Completed drivings",
     "map_hint": "Select a location on the map (click)",
-    "location_required": "Marking a location on the map is required."
+    "location_required": "Marking a location on the map is required.",
+    "locate_me": "My current location",
+    "location_found": "Current location set"
   },
   "groups": {
     "title": "Groups",
@@ -157,5 +159,15 @@
     "password": "Password",
     "password_hint": "leave blank to keep unchanged",
     "cannot_delete_self": "You cannot delete your own account"
+  },
+  "profile": {
+    "title": "Profile Settings",
+    "description": "You can update your personal details and password",
+    "updated_success": "Profile details updated successfully",
+    "change_password": "Change Password",
+    "password_hint": "If you want to change your password, fill in the fields below",
+    "current_password": "Current Password",
+    "new_password": "New Password",
+    "confirm_password": "Confirm Password"
   }
 }
