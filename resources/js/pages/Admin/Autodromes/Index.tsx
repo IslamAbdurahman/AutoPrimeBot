@@ -2,10 +2,10 @@ import { useState, useRef, useMemo, useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Circle, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Trash2, Edit2, Plus, MapPin } from 'lucide-react';
+import { Trash2, Edit2, Plus, MapPin, Navigation, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,10 +53,21 @@ function LocationMarker({ position, setPosition, radius }: { position: L.LatLng 
     );
 }
 
+function MapController({ center }: { center: L.LatLng | null }) {
+    const map = useMap();
+    useEffect(() => {
+        if (center) {
+            map.setView(center, 15, { animate: true });
+        }
+    }, [center, map]);
+    return null;
+}
+
 export default function AutodromesIndex({ autodromes }: PageProps) {
     const { t } = useTranslation();
     const [editing, setEditing] = useState<Autodrome | null>(null);
     const [showForm, setShowForm] = useState(false);
+    const [locating, setLocating] = useState(false);
     
     // Default to Tashkent coordinates if no position is selected
     const defaultCenter = useMemo(() => new L.LatLng(41.2995, 69.2401), []);
@@ -70,6 +81,27 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
     });
 
     useEffect(() => {
+        if (showForm && !editing && !position) {
+            if (navigator.geolocation) {
+                setLocating(true);
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const userLatLng = new L.LatLng(pos.coords.latitude, pos.coords.longitude);
+                        setPosition(userLatLng);
+                        setLocating(false);
+                        toast.success(t('autodromes.location_found', 'Hozirgi joylashuvingiz belgilandi'));
+                    },
+                    (err) => {
+                        setLocating(false);
+                        console.log('Location error:', err);
+                    },
+                    { enableHighAccuracy: true, timeout: 8000 }
+                );
+            }
+        }
+    }, [showForm, editing]);
+
+    useEffect(() => {
         if (position) {
             setData((prev) => ({
                 ...prev,
@@ -78,6 +110,27 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
             }));
         }
     }, [position]);
+
+    const handleLocateMe = () => {
+        if (!navigator.geolocation) {
+            toast.error("Qurilmangizda geolokatsiya qo'llab-quvvatlanmaydi");
+            return;
+        }
+        setLocating(true);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const userLatLng = new L.LatLng(pos.coords.latitude, pos.coords.longitude);
+                setPosition(userLatLng);
+                setLocating(false);
+                toast.success(t('autodromes.location_found', 'Hozirgi joylashuvingiz belgilandi'));
+            },
+            (err) => {
+                setLocating(false);
+                toast.error("Joylashuvni aniqlab bo'lmadi: " + err.message);
+            },
+            { enableHighAccuracy: true }
+        );
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -165,19 +218,33 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                         </div>
 
                         <div className="border rounded-xl p-2 bg-gray-50 h-[400px]">
-                            <p className="text-sm text-gray-500 mb-2 font-medium px-2 flex items-center gap-2">
-                                <MapPin className="w-4 h-4" /> 
-                                {t('autodromes.map_hint', 'Xaritadan joyni tanlang (ustiga bosing)')}
-                            </p>
+                            <div className="flex justify-between items-center mb-2 px-1">
+                                <p className="text-sm text-gray-500 font-medium flex items-center gap-2">
+                                    <MapPin className="w-4 h-4" /> 
+                                    {t('autodromes.map_hint', 'Xaritadan joyni tanlang (ustiga bosing)')}
+                                </p>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleLocateMe}
+                                    disabled={locating}
+                                    className="h-8 text-xs bg-white text-blue-600 border-blue-200 hover:bg-blue-50"
+                                >
+                                    {locating ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Navigation className="w-3.5 h-3.5 mr-1" />}
+                                    {t('autodromes.locate_me', 'Hozirgi joylashuvim')}
+                                </Button>
+                            </div>
                             <MapContainer 
                                 center={position || defaultCenter} 
                                 zoom={position ? 15 : 12} 
-                                style={{ height: 'calc(100% - 30px)', width: '100%', borderRadius: '0.5rem' }}
+                                style={{ height: 'calc(100% - 36px)', width: '100%', borderRadius: '0.5rem' }}
                             >
                                 <TileLayer
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                 />
+                                <MapController center={position} />
                                 <LocationMarker 
                                     position={position} 
                                     setPosition={setPosition} 

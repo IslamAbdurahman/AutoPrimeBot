@@ -64,7 +64,9 @@
     "radius_label": "Radius (metrda)",
     "completed_drivings": "Tugagan darslar",
     "map_hint": "Xaritadan joyni tanlang (ustiga bosing)",
-    "location_required": "Xaritadan manzilni belgilash majburiy."
+    "location_required": "Xaritadan manzilni belgilash majburiy.",
+    "locate_me": "Hozirgi joylashuvim",
+    "location_found": "Hozirgi joylashuvingiz belgilandi"
   },
   "groups": {
     "title": "Guruhlar",
