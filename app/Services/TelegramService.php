@@ -67,6 +67,14 @@ class TelegramService
                 chat_id: $student->telegram_id,
                 parse_mode: 'HTML'
             );
+
+            if ($autodrome && $autodrome->latitude && $autodrome->longitude) {
+                $bot->sendLocation(
+                    latitude: (float) $autodrome->latitude,
+                    longitude: (float) $autodrome->longitude,
+                    chat_id: $student->telegram_id
+                );
+            }
         } catch (\Throwable $e) {
             Log::error("Failed to send Telegram driving created notification to student {$student->id}: ".$e->getMessage());
         }

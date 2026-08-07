@@ -20,6 +20,10 @@ it('sends telegram notifications when driving is created, completed, or cancelle
         ->times(3)
         ->andReturn(null);
 
+    $mockBot->shouldReceive('sendLocation')
+        ->once()
+        ->andReturn(null);
+
     $service = new TelegramService($mockBot);
 
     $driving = Driving::create([
