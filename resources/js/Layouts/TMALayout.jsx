@@ -1,22 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Head } from '@inertiajs/react';
+import { initTelegramWebApp } from '@/hooks/use-telegram';
 
 export default function TMALayout({ children, title }) {
     const [isReady, setIsReady] = useState(false);
     
     useEffect(() => {
         if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) {
-            const webApp = window.Telegram.WebApp;
-            webApp.ready();
-            webApp.expand();
+            initTelegramWebApp();
             
-            // Set basic theme colors to match Telegram's theme
-            document.documentElement.style.setProperty('--tg-theme-bg-color', webApp.backgroundColor);
-            document.documentElement.style.setProperty('--tg-theme-text-color', webApp.textColor);
+            const webApp = window.Telegram.WebApp;
+            if (webApp.backgroundColor) {
+                document.documentElement.style.setProperty('--tg-theme-bg-color', webApp.backgroundColor);
+            }
+            if (webApp.textColor) {
+                document.documentElement.style.setProperty('--tg-theme-text-color', webApp.textColor);
+            }
             
             setIsReady(true);
         } else {
-            // For local development where TMA isn't available
             console.log("Telegram WebApp not found. Running in browser mode.");
             setIsReady(true);
         }
