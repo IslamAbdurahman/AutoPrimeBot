@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -111,12 +113,14 @@ class InstructorController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:users',
             'telegram_id' => 'nullable|string|unique:users',
+            'password' => 'nullable|string|min:6',
         ]);
 
         User::create([
             'name' => $validated['name'],
             'phone' => $validated['phone'],
             'telegram_id' => $validated['telegram_id'],
+            'password' => ! empty($validated['password']) ? Hash::make($validated['password']) : Hash::make(Str::random(16)),
             'role' => 'instructor',
         ]);
 
@@ -129,7 +133,14 @@ class InstructorController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:users,phone,'.$instructor->id,
             'telegram_id' => 'nullable|string|unique:users,telegram_id,'.$instructor->id,
+            'password' => 'nullable|string|min:6',
         ]);
+
+        if (! empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
 
         $instructor->update($validated);
 

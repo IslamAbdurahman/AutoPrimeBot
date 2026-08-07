@@ -75,6 +75,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
         name: '',
         phone: '',
         telegram_id: '',
+        password: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -96,6 +97,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
             name: instructor.name,
             phone: instructor.phone,
             telegram_id: instructor.telegram_id || '',
+            password: '',
         });
         setShowForm(true);
     };
@@ -261,6 +263,20 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             <Label htmlFor="telegram_id">{t('common.telegram_id_optional', 'Telegram ID (Ixtiyoriy)')}</Label>
                             <Input id="telegram_id" value={data.telegram_id} onChange={e => setData('telegram_id', e.target.value)} />
                             {errors.telegram_id && <div className="text-destructive text-sm mt-1">{errors.telegram_id}</div>}
+                        </div>
+                        <div>
+                            <Label htmlFor="password">
+                                {t('admins.password', 'Parol')}
+                                {editing && <span className="text-xs text-muted-foreground font-normal ml-1">({t('admins.password_hint', "bo'sh qolsa o'zgarmaydi")})</span>}
+                            </Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                value={data.password}
+                                onChange={e => setData('password', e.target.value)}
+                                placeholder="••••••••"
+                            />
+                            {errors.password && <div className="text-destructive text-sm mt-1">{errors.password}</div>}
                         </div>
                         <div className="flex gap-2 pt-2 justify-end">
                             <Button type="button" variant="outline" onClick={closeForm}>{t('common.cancel', 'Bekor qilish')}</Button>
