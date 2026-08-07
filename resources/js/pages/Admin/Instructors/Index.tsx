@@ -39,6 +39,7 @@ interface Instructor {
     max_score: number;
     score_formatted: string;
     average_rating: number;
+    is_low_rating?: boolean;
     needs_attention: boolean;
 }
 
@@ -303,9 +304,14 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                 <td className="px-4 py-3">{item.total_drivings}</td>
                                 <td className="px-4 py-3 font-semibold">{item.score_formatted}</td>
                                 <td className="px-4 py-3">
-                                    <div className="flex items-center gap-1">
-                                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                                        <span className="font-medium">{item.average_rating}</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <Star className={`w-4 h-4 ${item.reviewed_drivings > 0 && item.average_rating <= 3 ? 'text-red-500 fill-red-500' : 'text-yellow-500 fill-yellow-500'}`} />
+                                        <span className={`font-semibold ${item.reviewed_drivings > 0 && item.average_rating <= 3 ? 'text-red-600' : ''}`}>{item.average_rating}</span>
+                                        {item.reviewed_drivings > 0 && item.average_rating <= 3 && (
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300 border border-red-200" title="Past reyting (≤ 3.0)">
+                                                <AlertTriangle className="w-3 h-3 mr-0.5" /> Ogohlantirish
+                                            </span>
+                                        )}
                                     </div>
                                 </td>
                                 <td className="px-4 py-3">
@@ -350,8 +356,16 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                     {item.needs_attention && <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />}
                                     <div className="font-semibold text-lg">{item.name}</div>
                                 </div>
-                                <div className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-2 py-1 rounded-md text-xs font-medium">
-                                    <Star className="w-3.5 h-3.5 fill-current" />
+                                <div className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold ${
+                                    item.reviewed_drivings > 0 && item.average_rating <= 3
+                                        ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border border-red-200'
+                                        : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                                }`}>
+                                    {item.reviewed_drivings > 0 && item.average_rating <= 3 ? (
+                                        <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400 shrink-0" />
+                                    ) : (
+                                        <Star className="w-3.5 h-3.5 fill-current shrink-0" />
+                                    )}
                                     <span>{item.average_rating}</span>
                                 </div>
                             </div>

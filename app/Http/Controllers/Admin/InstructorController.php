@@ -71,6 +71,9 @@ class InstructorController extends Controller
                 return in_array($tag, ['⏰ Kechikdi', '🗣 Muomala yomon', '🚗 Mashina nosoz', '⏳ Vaqtidan kam o\'tildi']);
             })->count();
 
+            $isLowRating = $totalReviews > 0 && $averageRating <= 3;
+            $needsAttention = $isLowRating || $negativeTagsCount >= 3;
+
             return [
                 'id' => $instructor->id,
                 'name' => $instructor->name,
@@ -86,7 +89,8 @@ class InstructorController extends Controller
                 'average_rating' => round($averageRating, 2),
                 'kpi_percentage' => round($kpiPercentage, 1),
                 'negative_tags_count' => $negativeTagsCount,
-                'needs_attention' => $negativeTagsCount >= 3,
+                'is_low_rating' => $isLowRating,
+                'needs_attention' => $needsAttention,
             ];
         });
 
