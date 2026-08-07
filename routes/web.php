@@ -10,6 +10,11 @@ use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use SergiX44\Nutgram\Nutgram;
+
+Route::post('/api/telegram', function (Nutgram $bot) {
+    $bot->run();
+});
 
 Route::get('/', function () {
     if (auth()->check()) {

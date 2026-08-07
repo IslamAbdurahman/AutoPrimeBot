@@ -20,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.telegram' => ValidateTelegramMiniApp::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'api/telegram',
+        ]);
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
