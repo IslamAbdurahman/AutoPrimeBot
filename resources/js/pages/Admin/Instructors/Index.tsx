@@ -285,7 +285,6 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             <th className="px-4 py-3 font-medium">{t('instructors.total_points', 'Umumiy ballar')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.rating', 'Reyting')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.kpi', 'KPI (%)')}</th>
-                            <th className="px-4 py-3 font-medium">{t('common.status', 'Holat')}</th>
                             <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>
                         </tr>
                     </thead>
@@ -322,15 +321,6 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                     }`}>
                                         {item.kpi_percentage}%
                                     </span>
-                                </td>
-                                <td className="px-4 py-3">
-                                    {item.kpi_percentage >= 80 ? (
-                                        <span className="text-green-600 dark:text-green-400 font-medium">{t('instructors.excellent', 'A\'lo')}</span>
-                                    ) : item.kpi_percentage >= 50 ? (
-                                        <span className="text-yellow-600 dark:text-yellow-400 font-medium">{t('instructors.good', 'Yaxshi')}</span>
-                                    ) : (
-                                        <span className="text-red-600 dark:text-red-400 font-medium">{t('instructors.poor', 'Qoniqarsiz')}</span>
-                                    )}
                                 </td>
                                 <td className="px-4 py-3 text-right">
                                     <div className="flex justify-end gap-2">
