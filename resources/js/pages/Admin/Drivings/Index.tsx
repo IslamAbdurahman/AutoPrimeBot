@@ -849,20 +849,21 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                     <div className="flex justify-end gap-2 pt-1">
                                         <Button
                                             variant="outline"
-                                            size="sm"
+                                            size="icon"
+                                            className="h-9 w-9"
                                             onClick={() => handleEdit(driving)}
                                             title={t('common.edit', 'Tahrirlash')}
                                         >
-                                            <Edit2 className="w-4 h-4 mr-1" /> {t('common.edit', 'Tahrirlash')}
+                                            <Edit2 className="w-4 h-4" />
                                         </Button>
                                         <Button
                                             variant="outline"
-                                            size="sm"
-                                            className="text-destructive border-destructive/20 hover:bg-destructive/10"
+                                            size="icon"
+                                            className="h-9 w-9 text-destructive border-destructive/20 hover:bg-destructive/10"
                                             onClick={() => handleDelete(driving)}
                                             title={t('common.delete', 'O\'chirish')}
                                         >
-                                            <Trash2 className="w-4 h-4 mr-1" /> {t('common.delete', 'O\'chirish')}
+                                            <Trash2 className="w-4 h-4" />
                                         </Button>
                                     </div>
                                 )}
