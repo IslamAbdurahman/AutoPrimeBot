@@ -10,16 +10,32 @@ export function TelegramThemeProvider({ children }: { children: React.ReactNode 
             const target = e.target as HTMLElement;
             if (target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) {
                 setTimeout(() => {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 300);
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                }, 100);
+                setTimeout(() => {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                }, 400);
+            }
+        };
+
+        const handleViewportResize = () => {
+            const activeEl = document.activeElement as HTMLElement;
+            if (activeEl && ['INPUT', 'SELECT', 'TEXTAREA'].includes(activeEl.tagName)) {
+                activeEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
             }
         };
 
         document.addEventListener('focusin', handleFocusIn);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleViewportResize);
+        }
 
         if (!tg || tg.platform === 'unknown') {
             return () => {
                 document.removeEventListener('focusin', handleFocusIn);
+                if (window.visualViewport) {
+                    window.visualViewport.removeEventListener('resize', handleViewportResize);
+                }
             };
         }
 
@@ -46,6 +62,7 @@ export function TelegramThemeProvider({ children }: { children: React.ReactNode 
             if (tg.viewportHeight) {
                 document.documentElement.style.setProperty('--tg-viewport-height', `${tg.viewportHeight}px`);
             }
+            handleViewportResize();
         };
 
         if (tg.onEvent) {
@@ -64,6 +81,9 @@ export function TelegramThemeProvider({ children }: { children: React.ReactNode 
 
         return () => {
             document.removeEventListener('focusin', handleFocusIn);
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', handleViewportResize);
+            }
             if (tg.offEvent) {
                 tg.offEvent('themeChanged', updateTheme);
                 tg.offEvent('viewportChanged', handleViewportChange);

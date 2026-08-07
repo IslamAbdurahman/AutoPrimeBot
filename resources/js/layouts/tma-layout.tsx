@@ -44,7 +44,7 @@ export default function TMALayout({ children, title }: TMALayoutProps) {
                 </div>
             </header>
 
-            <main className="p-4 pb-36 overflow-y-auto">
+            <main className="p-4 pb-[40vh] overflow-y-auto">
                 {children}
             </main>
         </div>
