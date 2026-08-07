@@ -26,7 +26,11 @@ Route::post('/api/telegram-auth', function (Request $request) {
         return response()->json(['success' => false, 'message' => 'InitData topilmadi.'], 400);
     }
 
-    $botToken = config('services.telegram.bot_token', env('TELEGRAM_TOKEN'));
+    $botToken = config('services.telegram.bot_token') ?? config('nutgram.token') ?? env('TELEGRAM_TOKEN');
+
+    if (! $botToken) {
+        return response()->json(['success' => false, 'message' => 'Bot Token sozlanmagan.'], 500);
+    }
 
     parse_str($initData, $parsedData);
     if (! isset($parsedData['hash']) || ! isset($parsedData['user'])) {
@@ -34,19 +38,43 @@ Route::post('/api/telegram-auth', function (Request $request) {
     }
 
     $hash = $parsedData['hash'];
-    unset($parsedData['hash']);
-    ksort($parsedData);
 
+    // Build dataCheckArr by parsing initData parts
+    $parts = explode('&', $initData);
     $dataCheckArr = [];
-    foreach ($parsedData as $key => $value) {
-        $dataCheckArr[] = $key.'='.$value;
+    foreach ($parts as $part) {
+        if (str_contains($part, '=')) {
+            [$key, $val] = explode('=', $part, 2);
+            if ($key !== 'hash') {
+                $dataCheckArr[urldecode($key)] = urldecode($key).'='.urldecode($val);
+            }
+        }
     }
-    $dataCheckString = implode("\n", $dataCheckArr);
+    ksort($dataCheckArr);
+    $dataCheckString = implode("\n", array_values($dataCheckArr));
 
     $secretKey = hash_hmac('sha256', $botToken, 'WebAppData', true);
     $calculatedHash = bin2hex(hash_hmac('sha256', $dataCheckString, $secretKey, true));
 
-    if (! hash_equals($hash, $calculatedHash)) {
+    $isValid = hash_equals($hash, $calculatedHash);
+
+    if (! $isValid) {
+        // Alternative calculation without urldecode if any special char diff
+        $dataCheckArrAlt = [];
+        unset($parsedData['hash']);
+        ksort($parsedData);
+        foreach ($parsedData as $k => $v) {
+            $dataCheckArrAlt[] = $k.'='.$v;
+        }
+        $altCheckString = implode("\n", $dataCheckArrAlt);
+        $altHash = bin2hex(hash_hmac('sha256', $altCheckString, $secretKey, true));
+
+        if (hash_equals($hash, $altHash)) {
+            $isValid = true;
+        }
+    }
+
+    if (! $isValid) {
         return response()->json(['success' => false, 'message' => 'Telegram signaturasi noto\'g\'ri.'], 401);
     }
 

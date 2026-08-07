@@ -45,7 +45,9 @@ class ValidateTelegramMiniApp
             return redirect()->route('login');
         }
 
-        if (! $this->validateInitData($initData, config('services.telegram.bot_token', env('TELEGRAM_TOKEN')))) {
+        $botToken = config('services.telegram.bot_token') ?? config('nutgram.token') ?? env('TELEGRAM_TOKEN');
+
+        if (! $this->validateInitData($initData, $botToken)) {
             return response()->json(['error' => 'Unauthorized. Invalid Signature.'], 401);
         }
 
