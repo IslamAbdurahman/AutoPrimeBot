@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { useEffect, useState } from 'react';
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -14,9 +15,61 @@ type Props = {
 };
 
 export default function Login({ status }: Props) {
+    const [authenticating, setAuthenticating] = useState(false);
+    const [authError, setAuthError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const tg = (window as any).Telegram?.WebApp;
+        if (tg?.initData) {
+            tg.ready();
+            tg.expand();
+            setAuthenticating(true);
+
+            fetch('/api/telegram-auth', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ initData: tg.initData }),
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.success && data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        setAuthenticating(false);
+                        if (data.message) {
+                            setAuthError(data.message);
+                        }
+                    }
+                })
+                .catch(() => {
+                    setAuthenticating(false);
+                });
+        }
+    }, []);
+
+    if (authenticating) {
+        return (
+            <div className="flex flex-col items-center justify-center p-8 space-y-4">
+                <Spinner className="w-8 h-8 text-primary" />
+                <p className="text-sm font-medium text-muted-foreground animate-pulse">
+                    Telegram orqali avtomatik kirilmoqda...
+                </p>
+            </div>
+        );
+    }
+
     return (
         <>
             <Head title="Tizimga kirish" />
+
+            {authError && (
+                <div className="p-3 mb-4 text-sm text-destructive bg-destructive/10 rounded-lg border border-destructive/20 text-center font-medium">
+                    {authError}
+                </div>
+            )}
 
             <Form
                 {...store.form()}

@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'api/telegram',
+            'api/telegram-auth',
         ]);
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);

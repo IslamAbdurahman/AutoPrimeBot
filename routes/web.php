@@ -9,11 +9,65 @@ use App\Http\Controllers\Admin\InstructorController as AdminInstructorController
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\ProfileController;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use SergiX44\Nutgram\Nutgram;
 
 Route::post('/api/telegram', function (Nutgram $bot) {
     $bot->run();
+});
+
+Route::post('/api/telegram-auth', function (Request $request) {
+    $initData = $request->input('initData') ?? $request->header('X-Telegram-Init-Data') ?? $request->query('_auth');
+
+    if (! $initData) {
+        return response()->json(['success' => false, 'message' => 'InitData topilmadi.'], 400);
+    }
+
+    $botToken = config('services.telegram.bot_token', env('TELEGRAM_TOKEN'));
+
+    parse_str($initData, $parsedData);
+    if (! isset($parsedData['hash']) || ! isset($parsedData['user'])) {
+        return response()->json(['success' => false, 'message' => 'Yaroqsiz Telegram ma\'lumotlari.'], 400);
+    }
+
+    $hash = $parsedData['hash'];
+    unset($parsedData['hash']);
+    ksort($parsedData);
+
+    $dataCheckArr = [];
+    foreach ($parsedData as $key => $value) {
+        $dataCheckArr[] = $key.'='.$value;
+    }
+    $dataCheckString = implode("\n", $dataCheckArr);
+
+    $secretKey = hash_hmac('sha256', $botToken, 'WebAppData', true);
+    $calculatedHash = bin2hex(hash_hmac('sha256', $dataCheckString, $secretKey, true));
+
+    if (! hash_equals($hash, $calculatedHash)) {
+        return response()->json(['success' => false, 'message' => 'Telegram signaturasi noto\'g\'ri.'], 401);
+    }
+
+    $tgUser = json_decode($parsedData['user'], true);
+    $telegramId = $tgUser['id'] ?? null;
+
+    if (! $telegramId) {
+        return response()->json(['success' => false, 'message' => 'Telegram ID topilmadi.'], 400);
+    }
+
+    $user = User::where('telegram_id', $telegramId)->first();
+    if (! $user) {
+        return response()->json(['success' => false, 'message' => 'Tizimda ushbu Telegram hisobiga biriktirilgan foydalanuvchi topilmadi.'], 404);
+    }
+
+    Auth::login($user, true);
+    $request->session()->regenerate();
+
+    $redirectUrl = $user->role === 'instructor' ? route('instructor.dashboard') : route('admin.dashboard');
+
+    return response()->json(['success' => true, 'redirect' => $redirectUrl]);
 });
 
 Route::get('/', function () {
