@@ -824,13 +824,13 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                 </div>
                             )}
                             
-                            <div className="flex flex-wrap gap-2 justify-end pt-1">
+                            <div className="space-y-2 pt-1">
                                 {driving.status === 'scheduled' && (
-                                    <>
+                                    <div className="flex gap-2">
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="text-green-600 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950/30"
+                                            className="flex-1 text-green-600 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950/30"
                                             onClick={() => { setStatusModalDriving(driving); setTargetStatus('completed'); }}
                                         >
                                             <CheckCircle2 className="w-4 h-4 mr-1" /> Yakunlash
@@ -838,30 +838,33 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/30"
+                                            className="flex-1 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/30"
                                             onClick={() => { setStatusModalDriving(driving); setTargetStatus('cancelled'); }}
                                         >
                                             <XCircle className="w-4 h-4 mr-1" /> Bekor qilish
                                         </Button>
+                                    </div>
+                                )}
+                                {driving.status === 'scheduled' && (
+                                    <div className="flex justify-end gap-2 pt-1">
                                         <Button
                                             variant="outline"
-                                            size="icon"
-                                            className="h-9 w-9"
+                                            size="sm"
                                             onClick={() => handleEdit(driving)}
                                             title={t('common.edit', 'Tahrirlash')}
                                         >
-                                            <Edit2 className="w-4 h-4" />
+                                            <Edit2 className="w-4 h-4 mr-1" /> {t('common.edit', 'Tahrirlash')}
                                         </Button>
                                         <Button
                                             variant="outline"
-                                            size="icon"
-                                            className="h-9 w-9 text-destructive border-destructive/20 hover:bg-destructive/10"
+                                            size="sm"
+                                            className="text-destructive border-destructive/20 hover:bg-destructive/10"
                                             onClick={() => handleDelete(driving)}
                                             title={t('common.delete', 'O\'chirish')}
                                         >
-                                            <Trash2 className="w-4 h-4" />
+                                            <Trash2 className="w-4 h-4 mr-1" /> {t('common.delete', 'O\'chirish')}
                                         </Button>
-                                    </>
+                                    </div>
                                 )}
                             </div>
                         </div>
