@@ -75,6 +75,176 @@ $bot->onCommand('start', function (Nutgram $bot) {
     );
 })->description('Botni ishga tushirish');
 
+function getDrivingsKeyboard(string $activeStatus): InlineKeyboardMarkup
+{
+    $keyboard = InlineKeyboardMarkup::make();
+    $scheduledLabel = $activeStatus === 'scheduled' ? '⏳ Rejadagilar (tanlangan)' : '⏳ Rejadagilar';
+    $completedLabel = $activeStatus === 'completed' ? '✅ Yakunlanganlar (tanlangan)' : '✅ Yakunlanganlar';
+
+    $keyboard->addRow(
+        InlineKeyboardButton::make($scheduledLabel, callback_data: 'drivings:scheduled'),
+        InlineKeyboardButton::make($completedLabel, callback_data: 'drivings:completed')
+    );
+
+    return $keyboard;
+}
+
+function buildDrivingsMessage(int $telegramId, string $status): string
+{
+    $user = User::where('telegram_id', $telegramId)->first();
+    $student = Student::where('telegram_id', $telegramId)->first();
+
+    if (! $user && ! $student) {
+        return "⚠️ Siz avtorizatsiyadan o'tmagansiz. Iltimos, /start bosing va telefon raqamingizni yuboring.";
+    }
+
+    $text = '';
+
+    if ($user) {
+        if ($user->role === 'instructor') {
+            $text .= "👨‍🏫 <b>Instruktor: {$user->name}</b>\n\n";
+
+            if ($status === 'scheduled') {
+                $scheduled = Driving::with(['student', 'autodrome'])
+                    ->where('instructor_id', $user->id)
+                    ->where('status', 'scheduled')
+                    ->orderBy('start_time', 'asc')
+                    ->take(15)
+                    ->get();
+
+                $text .= "⏳ <b>REJALASHTIRILGAN MASHG'ULOTLAR:</b>\n\n";
+                if ($scheduled->isEmpty()) {
+                    $text .= "<i>Hozircha rejalashtirilgan mashg'ulotlar yo'q.</i>";
+                } else {
+                    foreach ($scheduled as $index => $d) {
+                        $num = $index + 1;
+                        $date = Carbon::parse($d->start_time)->format('d.m.Y');
+                        $time = Carbon::parse($d->start_time)->format('H:i').' - '.Carbon::parse($d->end_time)->format('H:i');
+                        $studentName = $d->student ? $d->student->full_name : 'O\'quvchi';
+                        $studentPhone = ($d->student && $d->student->phone) ? " ({$d->student->phone})" : '';
+                        $autodromeName = $d->autodrome ? " | 📍 {$d->autodrome->name}" : '';
+                        $text .= "{$num}. 📅 <b>{$date}</b> ({$time})\n   👤 {$studentName}{$studentPhone}{$autodromeName}\n\n";
+                    }
+                }
+            } else {
+                $completed = Driving::with(['student', 'review'])
+                    ->where('instructor_id', $user->id)
+                    ->where('status', 'completed')
+                    ->orderBy('start_time', 'desc')
+                    ->take(15)
+                    ->get();
+
+                $text .= "✅ <b>YAKUNLANGAN MASHG'ULOTLAR:</b>\n\n";
+                if ($completed->isEmpty()) {
+                    $text .= "<i>Hozircha yakunlangan mashg'ulotlar yo'q.</i>";
+                } else {
+                    foreach ($completed as $index => $d) {
+                        $num = $index + 1;
+                        $date = Carbon::parse($d->start_time)->format('d.m.Y');
+                        $time = Carbon::parse($d->start_time)->format('H:i');
+                        $studentName = $d->student ? $d->student->full_name : 'O\'quvchi';
+                        $rating = $d->review ? " ⭐ {$d->review->rating}/5" : '';
+                        $text .= "{$num}. 📅 <b>{$date}</b> {$time} — 👤 {$studentName}{$rating}\n";
+                    }
+                }
+            }
+        } else {
+            // Admin
+            $text .= "👑 <b>Admin Paneli — Mashg'ulotlar Holati</b>\n\n";
+
+            if ($status === 'scheduled') {
+                $scheduled = Driving::with(['instructor', 'student', 'autodrome'])
+                    ->where('status', 'scheduled')
+                    ->orderBy('start_time', 'asc')
+                    ->take(15)
+                    ->get();
+
+                $text .= "⏳ <b>REJALASHTIRILGAN MASHG'ULOTLAR:</b>\n\n";
+                if ($scheduled->isEmpty()) {
+                    $text .= "<i>Kutilayotgan mashg'ulotlar yo'q.</i>";
+                } else {
+                    foreach ($scheduled as $index => $d) {
+                        $num = $index + 1;
+                        $date = Carbon::parse($d->start_time)->format('d.m.Y H:i');
+                        $instructorName = $d->instructor ? $d->instructor->name : 'Instruktor';
+                        $studentName = $d->student ? $d->student->full_name : 'O\'quvchi';
+                        $text .= "{$num}. 📅 <b>{$date}</b> | 👨‍🏫 {$instructorName} ➔ 👤 {$studentName}\n";
+                    }
+                }
+            } else {
+                $completed = Driving::with(['instructor', 'student', 'review'])
+                    ->where('status', 'completed')
+                    ->orderBy('start_time', 'desc')
+                    ->take(15)
+                    ->get();
+
+                $text .= "✅ <b>YAKUNLANGAN MASHG'ULOTLAR:</b>\n\n";
+                if ($completed->isEmpty()) {
+                    $text .= "<i>Yakunlangan mashg'ulotlar yo'q.</i>";
+                } else {
+                    foreach ($completed as $index => $d) {
+                        $num = $index + 1;
+                        $date = Carbon::parse($d->start_time)->format('d.m.Y H:i');
+                        $instructorName = $d->instructor ? $d->instructor->name : 'Instruktor';
+                        $studentName = $d->student ? $d->student->full_name : 'O\'quvchi';
+                        $rating = $d->review ? " ⭐ {$d->review->rating}" : '';
+                        $text .= "{$num}. 📅 <b>{$date}</b> | 👨‍🏫 {$instructorName} ➔ 👤 {$studentName}{$rating}\n";
+                    }
+                }
+            }
+        }
+    } elseif ($student) {
+        $text .= "🎓 <b>O'quvchi: {$student->full_name}</b>\n\n";
+
+        if ($status === 'scheduled') {
+            $scheduled = Driving::with(['instructor', 'autodrome'])
+                ->where('student_id', $student->id)
+                ->where('status', 'scheduled')
+                ->orderBy('start_time', 'asc')
+                ->take(15)
+                ->get();
+
+            $text .= "⏳ <b>REJALASHTIRILGAN MASHG'ULOTLARINGIZ:</b>\n\n";
+            if ($scheduled->isEmpty()) {
+                $text .= "<i>Hozircha sizga belgilangan mashg'ulotlar yo'q.</i>";
+            } else {
+                foreach ($scheduled as $index => $d) {
+                    $num = $index + 1;
+                    $date = Carbon::parse($d->start_time)->format('d.m.Y');
+                    $time = Carbon::parse($d->start_time)->format('H:i').' - '.Carbon::parse($d->end_time)->format('H:i');
+                    $instructorName = $d->instructor ? $d->instructor->name : 'Instruktor';
+                    $instructorPhone = ($d->instructor && $d->instructor->phone) ? " (📞 {$d->instructor->phone})" : '';
+                    $autodromeName = $d->autodrome ? " | 📍 {$d->autodrome->name}" : '';
+                    $text .= "{$num}. 📅 <b>{$date}</b> ({$time})\n   👨‍🏫 {$instructorName}{$instructorPhone}{$autodromeName}\n\n";
+                }
+            }
+        } else {
+            $completed = Driving::with(['instructor', 'review'])
+                ->where('student_id', $student->id)
+                ->where('status', 'completed')
+                ->orderBy('start_time', 'desc')
+                ->take(15)
+                ->get();
+
+            $text .= "✅ <b>YAKUNLANGAN MASHG'ULOTLARINGIZ:</b>\n\n";
+            if ($completed->isEmpty()) {
+                $text .= "<i>Hozircha yakunlangan mashg'ulotlaringiz yo'q.</i>";
+            } else {
+                foreach ($completed as $index => $d) {
+                    $num = $index + 1;
+                    $date = Carbon::parse($d->start_time)->format('d.m.Y');
+                    $time = Carbon::parse($d->start_time)->format('H:i');
+                    $instructorName = $d->instructor ? $d->instructor->name : 'Instruktor';
+                    $rating = $d->review ? " ⭐ {$d->review->rating}/5" : '';
+                    $text .= "{$num}. 📅 <b>{$date}</b> {$time} — 👨‍🏫 {$instructorName}{$rating}\n";
+                }
+            }
+        }
+    }
+
+    return $text;
+}
+
 $bot->onCommand('drivings', function (Nutgram $bot) {
     $telegramId = $bot->userId();
     $user = User::where('telegram_id', $telegramId)->first();
@@ -86,156 +256,26 @@ $bot->onCommand('drivings', function (Nutgram $bot) {
         return;
     }
 
-    $text = '';
+    $keyboard = InlineKeyboardMarkup::make()
+        ->addRow(
+            InlineKeyboardButton::make('⏳ Rejadagilar', callback_data: 'drivings:scheduled'),
+            InlineKeyboardButton::make('✅ Yakunlanganlar', callback_data: 'drivings:completed')
+        );
 
-    if ($user) {
-        if ($user->role === 'instructor') {
-            $text .= "👨‍🏫 <b>Instruktor: {$user->name}</b>\n\n";
+    $bot->sendMessage("🚗 <b>Mashg'ulotlar bo'limi</b>\n\nIltimos, pastdagi tugmalar orqali ko'rmoqchi bo'lgan mashg'ulotlar ro'yxatini tanlang:", parse_mode: 'HTML', reply_markup: $keyboard);
+})->description('Mashg\'ulotlar ro\'yxati (Rejadagi va yakunlangan)');
 
-            // Scheduled Drivings
-            $scheduled = Driving::with(['student', 'autodrome'])
-                ->where('instructor_id', $user->id)
-                ->where('status', 'scheduled')
-                ->orderBy('start_time', 'asc')
-                ->take(10)
-                ->get();
+$bot->onCallbackQueryData('drivings:{status}', function (Nutgram $bot, $status) {
+    $text = buildDrivingsMessage($bot->userId(), $status);
+    $keyboard = getDrivingsKeyboard($status);
 
-            $text .= "⏳ <b>KUTILAYOTGAN MASHG'ULOTLAR:</b>\n";
-            if ($scheduled->isEmpty()) {
-                $text .= "<i>Hozircha rejalashtirilgan mashg'ulotlar yo'q.</i>\n";
-            } else {
-                foreach ($scheduled as $index => $d) {
-                    $num = $index + 1;
-                    $date = Carbon::parse($d->start_time)->format('d.m.Y');
-                    $time = Carbon::parse($d->start_time)->format('H:i').' - '.Carbon::parse($d->end_time)->format('H:i');
-                    $studentName = $d->student ? $d->student->full_name : 'O\'quvchi';
-                    $studentPhone = ($d->student && $d->student->phone) ? " ({$d->student->phone})" : '';
-                    $autodromeName = $d->autodrome ? " | 📍 {$d->autodrome->name}" : '';
-                    $text .= "{$num}. 📅 <b>{$date}</b> ({$time})\n   👤 {$studentName}{$studentPhone}{$autodromeName}\n";
-                }
-            }
-
-            $text .= "\n----------------------------\n\n";
-
-            // Completed Drivings
-            $completed = Driving::with(['student', 'review'])
-                ->where('instructor_id', $user->id)
-                ->where('status', 'completed')
-                ->orderBy('start_time', 'desc')
-                ->take(10)
-                ->get();
-
-            $text .= "✅ <b>YAKUNLANGAN MASHG'ULOTLAR:</b>\n";
-            if ($completed->isEmpty()) {
-                $text .= "<i>Hozircha yakunlangan mashg'ulotlar yo'q.</i>\n";
-            } else {
-                foreach ($completed as $index => $d) {
-                    $num = $index + 1;
-                    $date = Carbon::parse($d->start_time)->format('d.m.Y');
-                    $time = Carbon::parse($d->start_time)->format('H:i');
-                    $studentName = $d->student ? $d->student->full_name : 'O\'quvchi';
-                    $rating = $d->review ? " ⭐ {$d->review->rating}/5" : '';
-                    $text .= "{$num}. 📅 <b>{$date}</b> {$time} — 👤 {$studentName}{$rating}\n";
-                }
-            }
-        } else {
-            // Admin
-            $text .= "👑 <b>Admin Paneli — Mashg'ulotlar Umumiy Holati</b>\n\n";
-
-            $scheduled = Driving::with(['instructor', 'student', 'autodrome'])
-                ->where('status', 'scheduled')
-                ->orderBy('start_time', 'asc')
-                ->take(10)
-                ->get();
-
-            $text .= "⏳ <b>KUTILAYOTGAN MASHG'ULOTLAR (Top 10):</b>\n";
-            if ($scheduled->isEmpty()) {
-                $text .= "<i>Kutilayotgan mashg'ulotlar yo'q.</i>\n";
-            } else {
-                foreach ($scheduled as $index => $d) {
-                    $num = $index + 1;
-                    $date = Carbon::parse($d->start_time)->format('d.m.Y H:i');
-                    $instructorName = $d->instructor ? $d->instructor->name : 'Instruktor';
-                    $studentName = $d->student ? $d->student->full_name : 'O\'quvchi';
-                    $text .= "{$num}. 📅 <b>{$date}</b> | 👨‍🏫 {$instructorName} ➔ 👤 {$studentName}\n";
-                }
-            }
-
-            $text .= "\n----------------------------\n\n";
-
-            $completed = Driving::with(['instructor', 'student', 'review'])
-                ->where('status', 'completed')
-                ->orderBy('start_time', 'desc')
-                ->take(10)
-                ->get();
-
-            $text .= "✅ <b>YAKUNLANGAN MASHG'ULOTLAR (Top 10):</b>\n";
-            if ($completed->isEmpty()) {
-                $text .= "<i>Yakunlangan mashg'ulotlar yo'q.</i>\n";
-            } else {
-                foreach ($completed as $index => $d) {
-                    $num = $index + 1;
-                    $date = Carbon::parse($d->start_time)->format('d.m.Y H:i');
-                    $instructorName = $d->instructor ? $d->instructor->name : 'Instruktor';
-                    $studentName = $d->student ? $d->student->full_name : 'O\'quvchi';
-                    $rating = $d->review ? " ⭐ {$d->review->rating}" : '';
-                    $text .= "{$num}. 📅 <b>{$date}</b> | 👨‍🏫 {$instructorName} ➔ 👤 {$studentName}{$rating}\n";
-                }
-            }
-        }
-    } elseif ($student) {
-        $text .= "🎓 <b>O'quvchi: {$student->full_name}</b>\n\n";
-
-        // Scheduled Drivings for Student
-        $scheduled = Driving::with(['instructor', 'autodrome'])
-            ->where('student_id', $student->id)
-            ->where('status', 'scheduled')
-            ->orderBy('start_time', 'asc')
-            ->take(10)
-            ->get();
-
-        $text .= "⏳ <b>KUTILAYOTGAN MASHG'ULOTLARINGIZ:</b>\n";
-        if ($scheduled->isEmpty()) {
-            $text .= "<i>Hozircha sizga belgilangan mashg'ulotlar yo'q.</i>\n";
-        } else {
-            foreach ($scheduled as $index => $d) {
-                $num = $index + 1;
-                $date = Carbon::parse($d->start_time)->format('d.m.Y');
-                $time = Carbon::parse($d->start_time)->format('H:i').' - '.Carbon::parse($d->end_time)->format('H:i');
-                $instructorName = $d->instructor ? $d->instructor->name : 'Instruktor';
-                $instructorPhone = ($d->instructor && $d->instructor->phone) ? " (📞 {$d->instructor->phone})" : '';
-                $autodromeName = $d->autodrome ? " | 📍 {$d->autodrome->name}" : '';
-                $text .= "{$num}. 📅 <b>{$date}</b> ({$time})\n   👨‍🏫 {$instructorName}{$instructorPhone}{$autodromeName}\n";
-            }
-        }
-
-        $text .= "\n----------------------------\n\n";
-
-        // Completed Drivings for Student
-        $completed = Driving::with(['instructor', 'review'])
-            ->where('student_id', $student->id)
-            ->where('status', 'completed')
-            ->orderBy('start_time', 'desc')
-            ->take(10)
-            ->get();
-
-        $text .= "✅ <b>YAKUNLANGAN MASHG'ULOTLARINGIZ:</b>\n";
-        if ($completed->isEmpty()) {
-            $text .= "<i>Hozircha yakunlangan mashg'ulotlaringiz yo'q.</i>\n";
-        } else {
-            foreach ($completed as $index => $d) {
-                $num = $index + 1;
-                $date = Carbon::parse($d->start_time)->format('d.m.Y');
-                $time = Carbon::parse($d->start_time)->format('H:i');
-                $instructorName = $d->instructor ? $d->instructor->name : 'Instruktor';
-                $rating = $d->review ? " ⭐ {$d->review->rating}/5" : '';
-                $text .= "{$num}. 📅 <b>{$date}</b> {$time} — 👨‍🏫 {$instructorName}{$rating}\n";
-            }
-        }
+    try {
+        $bot->editMessageText($text, parse_mode: 'HTML', reply_markup: $keyboard);
+    } catch (Throwable $e) {
     }
 
-    $bot->sendMessage($text, parse_mode: 'HTML');
-})->description('Mashg\'ulotlar ro\'yxati (Yakunlangan va kutilayotgan)');
+    $bot->answerCallbackQuery();
+});
 
 $bot->onContact(function (Nutgram $bot) {
     $contact = $bot->message()->contact;
