@@ -56,6 +56,9 @@ class TelegramService
         $text .= "⏰ <b>Vaqt:</b> {$startTime} - {$endTime}\n";
         if ($instructor) {
             $text .= "👨‍🏫 <b>Instruktor:</b> {$instructor->name}\n";
+            if ($instructor->phone) {
+                $text .= "📞 <b>Tel:</b> {$instructor->phone}\n";
+            }
         }
         if ($autodrome) {
             $text .= "📍 <b>Avtodrom:</b> {$autodrome->name}\n";
@@ -98,10 +101,14 @@ class TelegramService
             return;
         }
 
-        $instructorName = $instructor ? $instructor->name : 'Instruktor';
-
         $text = "✅ <b>Mashg'ulotingiz yakunlandi!</b>\n\n";
-        $text .= "👨‍🏫 <b>Instruktor:</b> {$instructorName}\n\n";
+        if ($instructor) {
+            $text .= "👨‍🏫 <b>Instruktor:</b> {$instructor->name}\n";
+            if ($instructor->phone) {
+                $text .= "📞 <b>Tel:</b> {$instructor->phone}\n";
+            }
+            $text .= "\n";
+        }
         $text .= "Iltimos, mashg'ulot sifatini baholang (1-5):";
 
         $keyboard = InlineKeyboardMarkup::make();
@@ -150,6 +157,9 @@ class TelegramService
         $text .= "⏰ <b>Vaqt:</b> {$startTime} - {$endTime}\n";
         if ($instructor) {
             $text .= "👨‍🏫 <b>Instruktor:</b> {$instructor->name}\n";
+            if ($instructor->phone) {
+                $text .= "📞 <b>Tel:</b> {$instructor->phone}\n";
+            }
         }
 
         try {
