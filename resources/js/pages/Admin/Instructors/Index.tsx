@@ -280,8 +280,8 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             <th className="px-4 py-3 font-medium">{t('instructors.phone', 'Telefon')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.groups_count', 'Guruhlar')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.students_count', 'O\'quvchilar')}</th>
-                            <th className="px-4 py-3 font-medium">{t('instructors.reviewed_drivings', 'Baholangan darslar')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.drivings_count', 'Jami darslar')}</th>
+                            <th className="px-4 py-3 font-medium">{t('instructors.reviewed_drivings', 'Baholangan darslar')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.total_points', 'Umumiy ballar')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.rating', 'Reyting')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.kpi', 'KPI (%)')}</th>
@@ -300,8 +300,8 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                 <td className="px-4 py-3">{item.phone}</td>
                                 <td className="px-4 py-3">{item.groups_count}</td>
                                 <td className="px-4 py-3">{item.students_count}</td>
-                                <td className="px-4 py-3 font-medium text-green-600 dark:text-green-400">{item.reviewed_drivings}</td>
                                 <td className="px-4 py-3">{item.total_drivings}</td>
+                                <td className="px-4 py-3 font-medium text-green-600 dark:text-green-400">{item.reviewed_drivings}</td>
                                 <td className="px-4 py-3 font-semibold">{item.score_formatted}</td>
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-1.5">
@@ -382,12 +382,12 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                     <span className="font-medium">{item.students_count}</span>
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground block text-xs">{t('instructors.reviewed_drivings', 'Baholangan darslar')}:</span>
-                                    <span className="font-medium text-green-600 dark:text-green-400">{item.reviewed_drivings}</span>
-                                </div>
-                                <div>
                                     <span className="text-muted-foreground block text-xs">{t('instructors.drivings_count', 'Jami darslar')}:</span>
                                     <span className="font-medium">{item.total_drivings}</span>
+                                </div>
+                                <div>
+                                    <span className="text-muted-foreground block text-xs">{t('instructors.reviewed_drivings', 'Baholangan darslar')}:</span>
+                                    <span className="font-medium text-green-600 dark:text-green-400">{item.reviewed_drivings}</span>
                                 </div>
                                 <div className="col-span-2 pt-1 mt-1 border-t">
                                     <div className="flex justify-between items-center">
