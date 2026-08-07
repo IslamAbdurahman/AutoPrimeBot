@@ -157,5 +157,15 @@
     "password": "Parol",
     "password_hint": "bo'sh qolsa o'zgarmaydi",
     "cannot_delete_self": "O'z hisobingizni o'chira olmaysiz"
+  },
+  "profile": {
+    "title": "Profil sozlamalari",
+    "description": "Shaxsiy ma'lumotlar va parolni yangilashingiz mumkin",
+    "updated_success": "Profil ma'lumotlari yangilandi",
+    "change_password": "Parolni o'zgartirish",
+    "password_hint": "Agar parolni o'zgartirmoqchi bo'lsangiz, quyidagi maydonlarni to'ldiring",
+    "current_password": "Joriy parol",
+    "new_password": "Yangi parol",
+    "confirm_password": "Parolni tasdiqlash"
   }
 }

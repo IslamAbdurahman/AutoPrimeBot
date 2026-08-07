@@ -18,6 +18,7 @@ i18n
             en: { translation: en },
         },
         fallbackLng: 'uz',
+        lng: typeof window !== 'undefined' ? (localStorage.getItem('i18nextLng') || 'uz') : 'uz',
         load: 'languageOnly',
         interpolation: {
             escapeValue: false,
