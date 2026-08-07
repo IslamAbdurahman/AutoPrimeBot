@@ -80,7 +80,7 @@ class InstructorController extends Controller
 
         app(TelegramService::class)->sendDrivingCreatedNotification($driving);
 
-        return redirect()->route('instructor.dashboard');
+        return redirect()->route('admin.dashboard');
     }
 
     /**

@@ -93,7 +93,7 @@ Route::post('/api/telegram-auth', function (Request $request) {
     Auth::login($user, true);
     $request->session()->regenerate();
 
-    $redirectUrl = $user->role === 'instructor' ? route('instructor.dashboard') : route('admin.dashboard');
+    $redirectUrl = route('admin.dashboard');
 
     return response()->json(['success' => true, 'redirect' => $redirectUrl]);
 });
@@ -124,15 +124,12 @@ Route::middleware(['auth.telegram'])->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     Route::get('/dashboard', function () {
-        $user = auth()->user();
-        if ($user && $user->role === 'instructor') {
-            return redirect()->route('instructor.dashboard');
-        }
-
         return redirect()->route('admin.dashboard');
     })->name('dashboard');
     // Instructor Routes
-    Route::get('/instructor/dashboard', [InstructorController::class, 'dashboard'])->name('instructor.dashboard');
+    Route::get('/instructor/dashboard', function () {
+        return redirect()->route('admin.dashboard');
+    })->name('instructor.dashboard');
     Route::get('/instructor/driving/create', [InstructorController::class, 'createDriving'])->name('instructor.driving.create');
     Route::post('/instructor/driving', [InstructorController::class, 'storeDriving'])->name('instructor.driving.store');
     Route::post('/instructor/driving/{driving}/finish', [InstructorController::class, 'finishDriving'])->name('instructor.driving.finish');

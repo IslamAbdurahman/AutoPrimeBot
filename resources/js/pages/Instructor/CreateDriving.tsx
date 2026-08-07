@@ -103,7 +103,7 @@ export default function CreateDriving({ groups = [] }: PageProps) {
 
                     <div className="pt-4 flex gap-3">
                         <Link
-                            href="/instructor/dashboard"
+                            href="/admin/dashboard"
                             className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-3 px-4 rounded-xl text-center transition-colors"
                         >
                             Bekor qilish
