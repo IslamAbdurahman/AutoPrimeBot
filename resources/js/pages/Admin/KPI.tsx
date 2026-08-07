@@ -3,37 +3,39 @@ import { useState } from 'react';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/themes/light.css';
 
-export default function KPI({ instructors, filters }) {
+interface Instructor {
+    id: number;
+    name: string;
+    phone: string;
+    groups_count: number;
+    total_drivings: number;
+    average_rating: number;
+    total_reviews: number;
+    kpi_percentage: number;
+    needs_attention?: boolean;
+    negative_tags_count?: number;
+}
+
+interface PageProps {
+    instructors: Instructor[];
+    filters?: {
+        from?: string;
+        to?: string;
+    };
+}
+
+export default function KPI({ instructors = [], filters = {} }: PageProps) {
     const [fromDate, setFromDate] = useState(filters?.from || '');
     const [toDate, setToDate] = useState(filters?.to || '');
 
-    const formatAsDate = (val) => {
-        let clean = val.replace(/[^\d]/g, '');
-        if (clean.length > 8) clean = clean.substring(0, 8);
-        if (clean.length > 0 && parseInt(clean[0]) > 3) clean = '0' + clean[0];
-        if (clean.length > 1) {
-            if (clean[0] === '3' && parseInt(clean[1]) > 1) clean = '31';
-            if (clean[0] === '0' && clean[1] === '0') clean = '01';
-        }
-        if (clean.length > 2 && parseInt(clean[2]) > 1) clean = clean.substring(0,2) + '0' + clean[2];
-        if (clean.length > 3) {
-            if (clean[2] === '1' && parseInt(clean[3]) > 2) clean = clean.substring(0,3) + '2';
-            if (clean[2] === '0' && clean[3] === '0') clean = clean.substring(0,3) + '1';
-        }
-        let formatted = clean;
-        if (clean.length >= 5) formatted = `${clean.substring(0, 2)}-${clean.substring(2, 4)}-${clean.substring(4)}`;
-        else if (clean.length >= 3) formatted = `${clean.substring(0, 2)}-${clean.substring(2)}`;
-        return formatted;
-    };
-
-    const applyFilters = (newFrom, newTo) => {
+    const applyFilters = (newFrom: string, newTo: string) => {
         router.get('/admin/kpi', { 
             from: newFrom,
             to: newTo
         }, { preserveState: true, replace: true });
     };
 
-    const handleFilterDateChange = (field, dates, dateStr) => {
+    const handleFilterDateChange = (field: 'from' | 'to', dates: Date[], dateStr: string) => {
         if (field === 'from') setFromDate(dateStr);
         else setToDate(dateStr);
         
@@ -42,6 +44,7 @@ export default function KPI({ instructors, filters }) {
             else applyFilters(fromDate, dateStr);
         }
     };
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
             <Head title="Admin KPI Paneli" />

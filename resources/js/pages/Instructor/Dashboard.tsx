@@ -2,12 +2,48 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import TMALayout from '@/Layouts/TMALayout';
 
-export default function Dashboard({ groups, upcomingDrivings }) {
-    const { errors } = usePage().props;
-    const [finishingId, setFinishingId] = useState(null);
+interface Group {
+    id: number;
+    name: string;
+    students_count?: number;
+}
+
+interface Student {
+    id: number;
+    full_name: string;
+    phone?: string;
+}
+
+interface Autodrome {
+    id: number;
+    name: string;
+    latitude: number;
+    longitude: number;
+    radius_meters: number;
+}
+
+interface Driving {
+    id: number;
+    start_time: string;
+    end_time: string;
+    status: string;
+    student?: Student;
+    group?: Group;
+    autodrome?: Autodrome;
+}
+
+interface PageProps {
+    groups: Group[];
+    upcomingDrivings: Driving[];
+}
+
+export default function InstructorDashboard({ groups = [], upcomingDrivings = [] }: PageProps) {
+    const page = usePage();
+    const errors = (page.props.errors || {}) as Record<string, string>;
+    const [finishingId, setFinishingId] = useState<number | null>(null);
     const [locationError, setLocationError] = useState('');
 
-    const handleFinish = (driving) => {
+    const handleFinish = (driving: Driving) => {
         if (!confirm("Haqiqatdan ham bu mashg'ulotni yakunlamoqchimisiz?")) return;
         
         setFinishingId(driving.id);
@@ -22,7 +58,7 @@ export default function Dashboard({ groups, upcomingDrivings }) {
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    router.post(route('instructor.driving.finish', driving.id), {
+                    router.post(`/instructor/drivings/${driving.id}/finish`, {
                         latitude: position.coords.latitude,
                         longitude: position.coords.longitude,
                     }, {
@@ -37,8 +73,7 @@ export default function Dashboard({ groups, upcomingDrivings }) {
                 { enableHighAccuracy: true }
             );
         } else {
-            // No autodrome, finish immediately with dummy coords (or backend won't need them if autodrome is null, but we send 0)
-            router.post(route('instructor.driving.finish', driving.id), {
+            router.post(`/instructor/drivings/${driving.id}/finish`, {
                 latitude: 0,
                 longitude: 0,
             }, {
@@ -66,7 +101,7 @@ export default function Dashboard({ groups, upcomingDrivings }) {
 
                 <div className="flex justify-center">
                     <Link
-                        href={route('instructor.driving.create')}
+                        href="/instructor/drivings/create"
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl text-center transition-colors shadow-sm"
                     >
                         + Yangi mashg'ulot belgilash

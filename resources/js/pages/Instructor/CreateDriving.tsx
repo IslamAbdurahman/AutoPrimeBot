@@ -1,8 +1,24 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, FormEvent } from 'react';
 import { useForm, Link } from '@inertiajs/react';
 import TMALayout from '@/Layouts/TMALayout';
 
-export default function CreateDriving({ groups }) {
+interface Student {
+    id: number;
+    full_name: string;
+    phone?: string;
+}
+
+interface Group {
+    id: number;
+    name: string;
+    students: Student[];
+}
+
+interface PageProps {
+    groups: Group[];
+}
+
+export default function CreateDriving({ groups = [] }: PageProps) {
     const { data, setData, post, processing, errors } = useForm({
         group_id: '',
         student_id: '',
@@ -15,9 +31,9 @@ export default function CreateDriving({ groups }) {
         return groups.find(g => g.id.toString() === data.group_id.toString());
     }, [data.group_id, groups]);
 
-    const submit = (e) => {
+    const submit = (e: FormEvent) => {
         e.preventDefault();
-        post(route('instructor.driving.store'));
+        post('/instructor/drivings');
     };
 
     return (
@@ -87,7 +103,7 @@ export default function CreateDriving({ groups }) {
 
                     <div className="pt-4 flex gap-3">
                         <Link
-                            href={route('instructor.dashboard')}
+                            href="/instructor/dashboard"
                             className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-3 px-4 rounded-xl text-center transition-colors"
                         >
                             Bekor qilish
