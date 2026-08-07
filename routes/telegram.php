@@ -6,6 +6,7 @@ use App\Models\Driving;
 use App\Models\Review;
 use App\Models\Student;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
@@ -117,6 +118,39 @@ $bot->onContact(function (Nutgram $bot) {
 });
 
 // Handle callback queries for rating: rate:{driving_id}:{rating}
+function getAvailableRatingTags(int $rating): array
+{
+    return $rating >= 4
+        ? ['🧠 Zargona tushuntirdi', '✨ Xushmuomala', '🧼 Mashina toza', '⏰ Vaqtida boshladi']
+        : ['⏰ Kechikdi', '🗣 Muomala yomon', '🚗 Mashina nosoz', '⏳ Vaqtidan kam o\'tildi'];
+}
+
+function buildTagKeyboard(int $drivingId, int $rating, array $selectedIndices = []): InlineKeyboardMarkup
+{
+    $keyboard = InlineKeyboardMarkup::make();
+    $tags = getAvailableRatingTags($rating);
+
+    foreach ($tags as $index => $tag) {
+        $isSelected = in_array($index, $selectedIndices, true);
+        $prefix = $isSelected ? '☑️ ' : '⬜ ';
+        $keyboard->addRow(
+            InlineKeyboardButton::make(
+                $prefix.$tag,
+                callback_data: "tag_toggle:{$drivingId}:{$rating}:{$index}"
+            )
+        );
+    }
+
+    $keyboard->addRow(
+        InlineKeyboardButton::make(
+            '✅ Yuborish',
+            callback_data: "submit_rate:{$drivingId}:{$rating}"
+        )
+    );
+
+    return $keyboard;
+}
+
 $bot->onCallbackQueryData('rate:{driving_id}:{rating}', function (Nutgram $bot, $driving_id, $rating) {
     $driving = Driving::find($driving_id);
     if (! $driving) {
@@ -125,89 +159,99 @@ $bot->onCallbackQueryData('rate:{driving_id}:{rating}', function (Nutgram $bot, 
         return;
     }
 
-    if ($driving->student->telegram_id != $bot->userId()) {
+    if ($driving->student && $driving->student->telegram_id != $bot->userId()) {
         $bot->answerCallbackQuery(text: "Bu sizning mashg'ulotingiz emas.");
 
         return;
     }
 
     $rating = (int) $rating;
+    $cacheKey = "driving_review_{$driving_id}";
+    Cache::put($cacheKey, ['rating' => $rating, 'selected' => []], now()->addHours(2));
 
-    // Send reason tags inline keyboard based on rating
-    $keyboard = InlineKeyboardMarkup::make();
-
-    if ($rating >= 4) {
-        $tags = ['🧠 Zargona tushuntirdi', '✨ Xushmuomala', '🧼 Mashina toza', '⏰ Vaqtida boshladi'];
-    } else {
-        $tags = ['⏰ Kechikdi', '🗣 Muomala yomon', '🚗 Mashina nosoz', '⏳ Vaqtidan kam o\'tildi'];
-    }
-
-    foreach ($tags as $index => $tag) {
-        $keyboard->addRow(
-            InlineKeyboardButton::make(
-                $tag,
-                callback_data: "tag:{$driving_id}:{$rating}:{$index}"
-            )
-        );
-    }
-
-    $keyboard->addRow(
-        InlineKeyboardButton::make(
-            '✅ Yuborish',
-            callback_data: "submit_rate:{$driving_id}:{$rating}"
-        )
+    $keyboard = buildTagKeyboard((int) $driving_id, $rating, []);
+    $bot->editMessageText(
+        "Sizning bahoingiz: {$rating} ⭐\nIltimos, qo'shimcha sabablarni tanlang (bir nechta tanlash mumkin):",
+        reply_markup: $keyboard
     );
-
-    $bot->editMessageText("Sizning bahoingiz: {$rating} yulduz.\nIltimos, qo'shimcha sabablarni tanlang:", reply_markup: $keyboard);
+    $bot->answerCallbackQuery();
 });
 
-// We need a mechanism to store selected tags in memory or cache before submitting,
-// but for simplicity in this stateless flow, we can just save a default tag or
-// store them directly if clicked.
-// A better approach for this simplified task is to just submit the rating with the selected tag immediately.
-// Let's modify the above to just submit the rating and tag in one click.
-
-$bot->onCallbackQueryData('tag:{driving_id}:{rating}:{tag_index}', function (Nutgram $bot, $driving_id, $rating, $tag_index) {
+$bot->onCallbackQueryData('tag_toggle:{driving_id}:{rating}:{tag_index}', function (Nutgram $bot, $driving_id, $rating, $tag_index) {
     $driving = Driving::find($driving_id);
     if (! $driving) {
+        $bot->answerCallbackQuery(text: "Mashg'ulot topilmadi.");
+
+        return;
+    }
+
+    if ($driving->student && $driving->student->telegram_id != $bot->userId()) {
+        $bot->answerCallbackQuery(text: "Bu sizning mashg'ulotingiz emas.");
+
         return;
     }
 
     $rating = (int) $rating;
-    $tag_index = (int) $tag_index;
+    $tagIndex = (int) $tag_index;
+    $cacheKey = "driving_review_{$driving_id}";
+    $data = Cache::get($cacheKey, ['rating' => $rating, 'selected' => []]);
 
-    if ($rating >= 4) {
-        $tags = ['🧠 Zargona tushuntirdi', '✨ Xushmuomala', '🧼 Mashina toza', '⏰ Vaqtida boshladi'];
+    $selected = $data['selected'] ?? [];
+    if (in_array($tagIndex, $selected, true)) {
+        $selected = array_values(array_filter($selected, fn ($i) => $i !== $tagIndex));
     } else {
-        $tags = ['⏰ Kechikdi', '🗣 Muomala yomon', '🚗 Mashina nosoz', '⏳ Vaqtidan kam o\'tildi'];
+        $selected[] = $tagIndex;
     }
 
-    $selectedTag = $tags[$tag_index] ?? null;
+    $data['selected'] = $selected;
+    Cache::put($cacheKey, $data, now()->addHours(2));
 
-    Review::updateOrCreate(
-        ['driving_id' => $driving->id],
-        [
-            'rating' => $rating,
-            'reason_tags' => $selectedTag ? [$selectedTag] : null,
-        ]
+    $keyboard = buildTagKeyboard((int) $driving_id, $rating, $selected);
+    $bot->editMessageText(
+        "Sizning bahoingiz: {$rating} ⭐\nIltimos, qo'shimcha sabablarni tanlang (bir nechta tanlash mumkin):",
+        reply_markup: $keyboard
     );
-
-    $bot->editMessageText('Rahmat! Bahoingiz va fikringiz qabul qilindi.');
+    $bot->answerCallbackQuery();
 });
 
 $bot->onCallbackQueryData('submit_rate:{driving_id}:{rating}', function (Nutgram $bot, $driving_id, $rating) {
     $driving = Driving::find($driving_id);
     if (! $driving) {
+        $bot->answerCallbackQuery(text: "Mashg'ulot topilmadi.");
+
         return;
+    }
+
+    if ($driving->student && $driving->student->telegram_id != $bot->userId()) {
+        $bot->answerCallbackQuery(text: "Bu sizning mashg'ulotingiz emas.");
+
+        return;
+    }
+
+    $rating = (int) $rating;
+    $cacheKey = "driving_review_{$driving_id}";
+    $data = Cache::get($cacheKey, ['rating' => $rating, 'selected' => []]);
+    $selectedIndices = $data['selected'] ?? [];
+
+    $allTags = getAvailableRatingTags($rating);
+    $selectedTags = [];
+    foreach ($selectedIndices as $idx) {
+        if (isset($allTags[$idx])) {
+            $selectedTags[] = $allTags[$idx];
+        }
     }
 
     Review::updateOrCreate(
         ['driving_id' => $driving->id],
         [
-            'rating' => (int) $rating,
-            'reason_tags' => [],
+            'rating' => $rating,
+            'reason_tags' => $selectedTags,
         ]
     );
 
-    $bot->editMessageText('Rahmat! Bahoingiz qabul qilindi.');
+    Cache::forget($cacheKey);
+
+    $tagsText = ! empty($selectedTags) ? "\n📝 Izohlar: ".implode(', ', $selectedTags) : '';
+    $bot->editMessageText("⭐ Bahoingiz: {$rating} yulduz{$tagsText}\n\n✅ Rahmat! Bahoingiz va fikringiz qabul qilindi.");
+    $bot->answerCallbackQuery(text: 'Bahoingiz saqlandi!');
 });
