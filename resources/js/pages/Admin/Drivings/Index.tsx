@@ -369,9 +369,9 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                     <p className="text-muted-foreground">{t('drivings.description', 'Mashg\'ulotlar ro\'yxati va holati')}</p>
                 </div>
                 {!isInstructor && (
-                    <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
-                        <Plus className="w-4 h-4 mr-2" />
-                        {t('drivings.new', 'Yangi mashg\'ulot')}
+                    <Button onClick={() => setShowForm(true)} size="icon" className="shrink-0 sm:w-auto sm:px-4 sm:py-2">
+                        <Plus className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">{t('drivings.new', 'Yangi mashg\'ulot')}</span>
                     </Button>
                 )}
             </div>
@@ -390,7 +390,10 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                 className="pl-8"
                             />
                         </div>
-                        <Button type="submit" variant="secondary">{t('common.search', 'Qidirish')}</Button>
+                        <Button type="submit" variant="secondary" size="icon" className="shrink-0 sm:w-auto sm:px-4 sm:py-2">
+                            <Search className="w-4 h-4 sm:mr-2" />
+                            <span className="hidden sm:inline">{t('common.search', 'Qidirish')}</span>
+                        </Button>
                     </form>
 
                     {/* Filters */}

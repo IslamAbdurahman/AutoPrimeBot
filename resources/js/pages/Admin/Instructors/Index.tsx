@@ -442,10 +442,10 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             
                             {!isInstructor && (
                                 <div className="flex gap-2 justify-end pt-1">
-                                    <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
-                                        <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
+                                    <Button variant="outline" size="icon" onClick={() => handleEdit(item)} title={t('common.edit', 'Tahrirlash')}>
+                                        <Edit2 className="w-4 h-4" />
                                     </Button>
-                                    <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
+                                    <Button variant="outline" size="icon" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id} title={t('common.delete', 'O\'chirish')}>
                                         <Trash2 className="w-4 h-4" />
                                     </Button>
                                 </div>

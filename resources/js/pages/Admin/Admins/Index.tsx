@@ -392,15 +392,16 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                                 </div>
 
                                 <div className="flex gap-2 justify-end pt-1">
-                                    <Button variant="outline" size="sm" onClick={() => handleEdit(admin)}>
-                                        <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
+                                    <Button variant="outline" size="icon" onClick={() => handleEdit(admin)} title={t('common.edit', 'Tahrirlash')}>
+                                        <Edit2 className="w-4 h-4" />
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        size="sm"
+                                        size="icon"
                                         className="text-destructive border-destructive/20 hover:bg-destructive/10"
                                         onClick={() => handleDelete(admin)}
                                         disabled={auth.user.id === admin.id || isDeleting === admin.id}
+                                        title={t('common.delete', 'O\'chirish')}
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </Button>

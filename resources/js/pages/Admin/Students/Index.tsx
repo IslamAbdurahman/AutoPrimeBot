@@ -389,17 +389,17 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                             </div>
                             
                             <div className="flex gap-2 justify-end pt-1">
-                                <Button variant="outline" size="sm" asChild>
+                                <Button variant="outline" size="icon" asChild title={t('common.view', 'Ko\'rish')}>
                                     <Link href={`/admin/students/${item.id}`}>
-                                        <Eye className="w-4 h-4 mr-1.5" /> {t('common.view', 'Ko\'rish')}
+                                        <Eye className="w-4 h-4" />
                                     </Link>
                                 </Button>
                                 {!isInstructor && (
                                     <>
-                                        <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
-                                            <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
+                                        <Button variant="outline" size="icon" onClick={() => handleEdit(item)} title={t('common.edit', 'Tahrirlash')}>
+                                            <Edit2 className="w-4 h-4" />
                                         </Button>
-                                        <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
+                                        <Button variant="outline" size="icon" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id} title={t('common.delete', 'O\'chirish')}>
                                             <Trash2 className="w-4 h-4" />
                                         </Button>
                                     </>
