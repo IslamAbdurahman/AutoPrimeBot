@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\DrivingsExport;
 use App\Http\Controllers\Controller;
 use App\Models\Autodrome;
 use App\Models\Driving;
@@ -13,9 +14,20 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DrivingController extends Controller
 {
+    public function export(Request $request)
+    {
+        $filters = $request->all();
+        if ($request->user()->role === 'instructor') {
+            $filters['instructor_id'] = $request->user()->id;
+        }
+
+        return Excel::download(new DrivingsExport($filters), 'mashgulotlar.xlsx');
+    }
+
     public function index(Request $request): Response
     {
         $user = $request->user();

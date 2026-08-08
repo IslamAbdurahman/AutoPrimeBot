@@ -22,6 +22,7 @@
     "actions": "Actions",
     "confirm_delete": "Are you sure you want to delete?",
     "no_data": "No data found",
+    "export_excel": "Export Excel",
     "select": "-- Select --",
     "number": "#",
     "filter": "Filter",

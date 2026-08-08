@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\GroupStudentsExport;
 use App\Http\Controllers\Controller;
 use App\Imports\StudentsImport;
 use App\Models\Group;
@@ -14,6 +15,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class GroupController extends Controller
 {
+    public function exportStudents(Request $request, Group $group)
+    {
+        $filename = "guruh_{$group->name}_oquvchilar.xlsx";
+
+        return Excel::download(new GroupStudentsExport($group, $request->all()), $filename);
+    }
+
     public function index(Request $request): Response
     {
         $user = $request->user();

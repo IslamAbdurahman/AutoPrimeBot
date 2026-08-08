@@ -22,6 +22,7 @@
     "actions": "Действия",
     "confirm_delete": "Вы действительно хотите удалить?",
     "no_data": "Нет данных",
+    "export_excel": "Скачать Excel",
     "select": "-- Выберите --",
     "number": "№",
     "filter": "Фильтровать",

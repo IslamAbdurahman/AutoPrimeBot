@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Edit2, Trash2, CheckCircle2, XCircle, Filter } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, CheckCircle2, XCircle, Filter, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -359,6 +359,17 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         return tag;
     };
 
+    const handleExport = () => {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (status) params.append('status', status);
+        if (instructorId) params.append('instructor_id', instructorId);
+        if (fromDate) params.append('from', fromDate);
+        if (toDate) params.append('to', toDate);
+
+        window.location.href = `/admin/drivings/export?${params.toString()}`;
+    };
+
     return (
         <div className="p-4 sm:p-6 space-y-6">
             <Head title={t('drivings.title', 'Amaliy mashg\'ulotlar')} />
@@ -366,10 +377,16 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
             {/* Header */}
             <div className="flex items-center justify-between gap-4">
                 <h1 className="text-2xl font-bold tracking-tight">{t('drivings.title', 'Amaliy mashg\'ulotlar')}</h1>
-                <Button onClick={() => setShowForm(true)} size="icon" className="shrink-0 sm:w-auto sm:px-4 sm:py-2">
-                    <Plus className="w-4 h-4 sm:mr-2" />
-                    <span className="hidden sm:inline">{t('drivings.new', 'Yangi mashg\'ulot')}</span>
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={handleExport} className="shrink-0 sm:px-4 sm:py-2">
+                        <Download className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">{t('common.export_excel', 'Excel yuklab olish')}</span>
+                    </Button>
+                    <Button onClick={() => setShowForm(true)} size="icon" className="shrink-0 sm:w-auto sm:px-4 sm:py-2">
+                        <Plus className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">{t('drivings.new', 'Yangi mashg\'ulot')}</span>
+                    </Button>
+                </div>
             </div>
 
             {/* Filters Bar */}

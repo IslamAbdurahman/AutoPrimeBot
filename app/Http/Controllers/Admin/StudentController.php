@@ -2,15 +2,22 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\StudentsExport;
 use App\Http\Controllers\Controller;
 use App\Models\Group;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StudentController extends Controller
 {
+    public function export(Request $request)
+    {
+        return Excel::download(new StudentsExport($request->all()), 'oquvchilar.xlsx');
+    }
+
     public function index(Request $request): Response
     {
         $user = $request->user();

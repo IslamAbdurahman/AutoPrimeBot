@@ -80,6 +80,12 @@ export default function GroupShow({ group, students }: PageProps) {
                             {t('groups.instructor_label', 'Instruktor')}: {group.instructor?.name || t('common.not_assigned', 'Biriktirilmagan')} • {t('groups.students_count_label', 'Talabalar soni')}: {students.length}
                         </p>
                     </div>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" onClick={() => window.location.href = `/admin/groups/${group.id}/export-students`}>
+                            <Download className="w-4 h-4 mr-2" />
+                            {t('common.export_excel', 'Excel yuklab olish')}
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

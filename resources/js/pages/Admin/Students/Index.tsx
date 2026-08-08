@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Head, useForm, router, Link, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Edit2, Plus, Search, Eye } from 'lucide-react';
+import { Trash2, Edit2, Plus, Search, Eye, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -140,18 +140,32 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
         }, 300);
     };
 
+    const handleExport = () => {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (groupId) params.append('group_id', groupId);
+
+        window.location.href = `/admin/students/export?${params.toString()}`;
+    };
+
     return (
         <div className="p-6">
             <Head title={t('students.title', 'O\'quvchilar')} />
             
             <div className="flex items-center justify-between gap-4 mb-6">
                 <h1 className="text-2xl font-bold">{t('students.title', 'O\'quvchilar')}</h1>
-                {!isInstructor && (
-                    <Button onClick={() => setShowForm(true)} size="icon" className="shrink-0 md:w-auto md:px-4 md:py-2">
-                        <Plus className="w-4 h-4 md:mr-2" /> 
-                        <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={handleExport} className="shrink-0 md:px-4 md:py-2">
+                        <Download className="w-4 h-4 md:mr-2" />
+                        <span className="hidden md:inline">{t('common.export_excel', 'Excel yuklab olish')}</span>
                     </Button>
-                )}
+                    {!isInstructor && (
+                        <Button onClick={() => setShowForm(true)} size="icon" className="shrink-0 md:w-auto md:px-4 md:py-2">
+                            <Plus className="w-4 h-4 md:mr-2" /> 
+                            <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
+                        </Button>
+                    )}
+                </div>
             </div>
             
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
