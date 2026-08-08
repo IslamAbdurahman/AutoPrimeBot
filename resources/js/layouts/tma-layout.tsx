@@ -39,7 +39,7 @@ export default function TMALayout({ children, title }: TMALayoutProps) {
             <Head title={title ? `${title} - Avtomaktab KPI` : 'Avtomaktab KPI'} />
 
             <header
-                style={{ paddingTop: 'var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)))' }}
+                style={{ paddingTop: 'calc(max(var(--tg-content-safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px), env(safe-area-inset-top, 44px)) + 3.25rem)' }}
                 className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700"
             >
                 <div className="px-4 py-3">

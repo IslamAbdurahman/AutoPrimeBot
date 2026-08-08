@@ -2,6 +2,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { isTelegramWebApp } from '@/hooks/use-telegram';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
 export function AppSidebarHeader({
@@ -9,10 +10,16 @@ export function AppSidebarHeader({
 }: {
     breadcrumbs?: BreadcrumbItemType[];
 }) {
+    const isTg = typeof window !== 'undefined' && (isTelegramWebApp() || !!(window as any).Telegram?.WebApp?.initData || !!(window as any).Telegram?.WebApp?.platform);
+
     return (
         <header
-            style={{ paddingTop: 'var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)))' }}
-            className="sticky top-0 z-40 flex shrink-0 items-center justify-between gap-2 border-b border-sidebar-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-6 py-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4 min-h-16"
+            style={{
+                paddingTop: isTg
+                    ? 'calc(max(var(--tg-content-safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px), env(safe-area-inset-top, 44px)) + 3.25rem)'
+                    : 'env(safe-area-inset-top, 0px)',
+            }}
+            className="sticky top-0 z-40 flex shrink-0 items-end justify-between gap-2 border-b border-sidebar-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-4 pb-3 transition-[width,height] ease-linear md:h-16 md:items-center md:pb-0 md:pt-0 md:px-6 min-h-16"
         >
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1" />

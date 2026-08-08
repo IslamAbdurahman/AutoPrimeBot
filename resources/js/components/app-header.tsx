@@ -69,10 +69,16 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
 
+    const isTg = typeof window !== 'undefined' && (!!(window as any).Telegram?.WebApp?.initData || !!(window as any).Telegram?.WebApp?.platform);
+
     return (
         <>
             <div 
-                style={{ paddingTop: 'var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)))' }}
+                style={{
+                    paddingTop: isTg
+                        ? 'calc(max(var(--tg-content-safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px), env(safe-area-inset-top, 44px)) + 3.25rem)'
+                        : 'env(safe-area-inset-top, 0px)',
+                }}
                 className="sticky top-0 z-30 border-b border-sidebar-border/80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
             >
                 <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
