@@ -57,6 +57,7 @@ interface Driving {
     review?: {
         rating: number;
         reason_tags?: string[];
+        comment?: string;
     };
 }
 
@@ -934,6 +935,11 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                                     </span>
                                                                 );
                                                             })}
+                                                        </div>
+                                                    )}
+                                                    {driving.review.comment && (
+                                                        <div className="text-xs italic text-muted-foreground mt-1 max-w-xs break-words">
+                                                            💬 "{driving.review.comment}"
                                                         </div>
                                                     )}
                                                 </div>

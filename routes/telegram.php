@@ -440,6 +440,8 @@ $bot->onCallbackQueryData('tag_toggle:{driving_id}:{rating}:{tag_index}', functi
     $bot->answerCallbackQuery();
 });
 
+use SergiX44\Nutgram\Telegram\Properties\MessageType;
+
 $bot->onCallbackQueryData('submit_rate:{driving_id}:{rating}', function (Nutgram $bot, $driving_id, $rating) {
     $driving = Driving::find($driving_id);
     if (! $driving) {
@@ -476,8 +478,54 @@ $bot->onCallbackQueryData('submit_rate:{driving_id}:{rating}', function (Nutgram
     );
 
     Cache::forget($cacheKey);
+    Cache::put("awaiting_review_comment_{$bot->userId()}", $driving->id, now()->addMinutes(30));
 
-    $tagsText = ! empty($selectedTags) ? "\n📝 Izohlar: ".implode(', ', $selectedTags) : '';
-    $bot->editMessageText("⭐ Bahoingiz: {$rating} yulduz{$tagsText}\n\n✅ Rahmat! Bahoingiz va fikringiz qabul qilindi.");
+    $tagsText = ! empty($selectedTags) ? "\n📝 Sabablar: ".implode(', ', $selectedTags) : '';
+
+    $keyboard = InlineKeyboardMarkup::make()->addRow(
+        InlineKeyboardButton::make("⏩ O'tkazib yuborish", callback_data: "skip_comment:{$driving->id}")
+    );
+
+    $bot->editMessageText(
+        "⭐ Bahoingiz: {$rating} yulduz{$tagsText}\n\n✅ Bahoingiz saqlandi!\n\n💬 <b>Iltimos, qo'shimcha fikr yoki izohingiz bo'lsa yozib qoldiring (matn shaklida):</b>\n\n<i>(Agar izohingiz bo'lmasa, 'O'tkazib yuborish' tugmasini bosing)</i>",
+        parse_mode: 'HTML',
+        reply_markup: $keyboard
+    );
     $bot->answerCallbackQuery(text: 'Bahoingiz saqlandi!');
+});
+
+$bot->onCallbackQueryData('skip_comment:{driving_id}', function (Nutgram $bot, $driving_id) {
+    Cache::forget("awaiting_review_comment_{$bot->userId()}");
+
+    $driving = Driving::with('review')->find($driving_id);
+    $rating = $driving?->review?->rating ?? 5;
+    $selectedTags = $driving?->review?->reason_tags ?? [];
+    $tagsText = ! empty($selectedTags) ? "\n📝 Sabablar: ".implode(', ', $selectedTags) : '';
+
+    $bot->editMessageText("⭐ Bahoingiz: {$rating} yulduz{$tagsText}\n\n✅ Rahmat! Bahoingiz va fikringiz qabul qilindi.");
+    $bot->answerCallbackQuery(text: 'Rahmat!');
+});
+
+$bot->onMessageType(MessageType::TEXT, function (Nutgram $bot) {
+    $text = trim($bot->message()->text ?? '');
+
+    if (str_starts_with($text, '/')) {
+        return;
+    }
+
+    $userId = $bot->userId();
+    $cacheKey = "awaiting_review_comment_{$userId}";
+    $drivingId = Cache::get($cacheKey);
+
+    if ($drivingId) {
+        $driving = Driving::find($drivingId);
+        if ($driving && $driving->review) {
+            $driving->review->update([
+                'comment' => $text,
+            ]);
+        }
+        Cache::forget($cacheKey);
+
+        $bot->sendMessage('✅ Fikringiz uchun rahmat! Izohingiz saqlandi.');
+    }
 });
