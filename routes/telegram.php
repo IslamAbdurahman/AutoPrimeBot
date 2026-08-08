@@ -478,7 +478,11 @@ $bot->onCallbackQueryData('submit_rate:{driving_id}:{rating}', function (Nutgram
     );
 
     Cache::forget($cacheKey);
-    Cache::put("awaiting_review_comment_{$bot->userId()}", $driving->id, now()->addMinutes(30));
+    $messageId = $bot->message()?->message_id;
+    Cache::put("awaiting_review_comment_{$bot->userId()}", [
+        'driving_id' => $driving->id,
+        'message_id' => $messageId,
+    ], now()->addMinutes(30));
 
     $tagsText = ! empty($selectedTags) ? "\n📝 Sabablar: ".implode(', ', $selectedTags) : '';
 
@@ -515,14 +519,36 @@ $bot->onMessageType(MessageType::TEXT, function (Nutgram $bot) {
 
     $userId = $bot->userId();
     $cacheKey = "awaiting_review_comment_{$userId}";
-    $drivingId = Cache::get($cacheKey);
+    $cacheData = Cache::get($cacheKey);
 
-    if ($drivingId) {
-        $driving = Driving::find($drivingId);
-        if ($driving && $driving->review) {
-            $driving->review->update([
-                'comment' => $text,
-            ]);
+    if ($cacheData) {
+        $drivingId = is_array($cacheData) ? ($cacheData['driving_id'] ?? null) : $cacheData;
+        $messageId = is_array($cacheData) ? ($cacheData['message_id'] ?? null) : null;
+
+        if ($drivingId) {
+            $driving = Driving::with('review')->find($drivingId);
+            if ($driving && $driving->review) {
+                $driving->review->update([
+                    'comment' => $text,
+                ]);
+
+                $rating = $driving->review->rating ?? 5;
+                $selectedTags = $driving->review->reason_tags ?? [];
+                $tagsText = ! empty($selectedTags) ? "\n📝 Sabablar: ".implode(', ', $selectedTags) : '';
+
+                if ($messageId) {
+                    try {
+                        $bot->editMessageText(
+                            "⭐ Bahoingiz: {$rating} yulduz{$tagsText}\n💬 Izoh: ".htmlspecialchars($text)."\n\n✅ Rahmat! Bahoingiz va fikringiz qabul qilindi.",
+                            chat_id: $userId,
+                            message_id: $messageId,
+                            parse_mode: 'HTML'
+                        );
+                    } catch (Throwable $e) {
+                        // Ignore if message cannot be edited
+                    }
+                }
+            }
         }
         Cache::forget($cacheKey);
 
