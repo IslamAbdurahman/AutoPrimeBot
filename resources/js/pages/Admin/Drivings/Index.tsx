@@ -5,8 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, Plus, Edit2, Trash2, CheckCircle2, XCircle, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import Flatpickr from 'react-flatpickr';
-import 'flatpickr/dist/themes/light.css';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
     Dialog,
     DialogContent,
@@ -308,13 +307,13 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         }
     };
 
-    const handleFilterDateChange = (field: 'from' | 'to', dates: Date[], dateStr: string) => {
-        if (field === 'from') setFromDate(dateStr);
-        else setToDate(dateStr);
-        
-        if (dateStr.length === 10 || dateStr.length === 0) {
-            if (field === 'from') applyFilters(search, status, instructorId, dateStr, toDate, perPage);
-            else applyFilters(search, status, instructorId, fromDate, dateStr, perPage);
+    const handleFilterDateChange = (field: 'from' | 'to', dateStr: string) => {
+        if (field === 'from') {
+            setFromDate(dateStr);
+            applyFilters(search, status, instructorId, dateStr, toDate, perPage);
+        } else {
+            setToDate(dateStr);
+            applyFilters(search, status, instructorId, fromDate, dateStr, perPage);
         }
     };
 
@@ -328,109 +327,108 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         }
         
         let formatted = clean;
-        if (clean.length >= 3) {
+        if (clean.length > 2) {
             formatted = clean.substring(0, 2) + ':' + clean.substring(2);
         }
         setData(field, formatted);
     };
 
     return (
-        <div className="space-y-6">
-            <Head title={t('drivings.title', 'Darslar')} />
+        <div className="p-4 sm:p-6 space-y-6">
+            <Head title={t('drivings.title', 'Amaliy mashg\'ulotlar')} />
 
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{t('drivings.title', 'Darslar')}</h1>
-                    <p className="text-sm text-muted-foreground">{t('drivings.description', 'Barcha amaliy haydash mashg\'ulotlari ro\'yxati')}</p>
+                    <h1 className="text-2xl font-bold tracking-tight">{t('drivings.title', 'Amaliy mashg\'ulotlar')}</h1>
+                    <p className="text-muted-foreground">{t('drivings.description', 'Mashg\'ulotlar ro\'yxati va holati')}</p>
                 </div>
-                <div className="flex gap-2 w-full md:w-auto">
-                    <Button onClick={() => setShowForm(true)} className="w-full md:w-auto">
-                        <Plus className="w-4 h-4 mr-2" /> {t('common.add', "Qo'shish")}
-                    </Button>
-                </div>
+                <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t('drivings.new', 'Yangi mashg\'ulot')}
+                </Button>
             </div>
 
-            {/* Top Filter Bar */}
-            <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
-                <form onSubmit={handleSearch} className="flex-1 max-w-sm flex gap-2">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder={t('drivings.search_student', 'Talaba ismi bo\'yicha...')}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="pl-8"
-                        />
-                    </div>
-                    <Button type="submit" variant="secondary">{t('common.search', 'Qidirish')}</Button>
-                </form>
+            {/* Filters Bar */}
+            <div className="bg-card border rounded-xl p-4 shadow-sm space-y-4">
+                <div className="flex flex-col md:flex-row justify-between gap-4">
+                    {/* Search */}
+                    <form onSubmit={handleSearch} className="flex gap-2 flex-1 max-w-md">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder={t('common.search_student', 'Talaba ismi yoki telefon...')}
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="pl-8"
+                            />
+                        </div>
+                        <Button type="submit" variant="secondary">{t('common.search', 'Qidirish')}</Button>
+                    </form>
 
-                {/* Filters */}
-                <div className="flex flex-wrap items-center gap-2">
-                    {/* Desktop Filters */}
-                    <div className="hidden md:flex flex-wrap items-center gap-2">
-                        <select
-                            className="flex h-10 w-full md:w-36 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={status}
-                            onChange={(e) => {
-                                setStatus(e.target.value);
-                                applyFilters(search, e.target.value, instructorId, fromDate, toDate, perPage);
-                            }}
-                        >
-                            <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
-                            <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
-                            <option value="completed">{t('status.completed', 'Tugagan')}</option>
-                            <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
-                        </select>
+                    {/* Filters */}
+                    <div className="flex flex-wrap items-center gap-2">
+                        {/* Desktop Filters */}
+                        <div className="hidden md:flex flex-wrap items-center gap-2">
+                            <select
+                                className="flex h-10 w-full md:w-36 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                value={status}
+                                onChange={(e) => {
+                                    setStatus(e.target.value);
+                                    applyFilters(search, e.target.value, instructorId, fromDate, toDate, perPage);
+                                }}
+                            >
+                                <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
+                                <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
+                                <option value="completed">{t('status.completed', 'Tugagan')}</option>
+                                <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
+                            </select>
 
-                        <select
-                            className="flex h-10 w-full md:w-44 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={instructorId}
-                            onChange={(e) => {
-                                setInstructorId(e.target.value);
-                                applyFilters(search, status, e.target.value, fromDate, toDate, perPage);
-                            }}
-                        >
-                            <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
-                            {instructors.map(inst => (
-                                <option key={inst.id} value={inst.id}>{inst.name}</option>
-                            ))}
-                        </select>
+                            <select
+                                className="flex h-10 w-full md:w-44 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                value={instructorId}
+                                onChange={(e) => {
+                                    setInstructorId(e.target.value);
+                                    applyFilters(search, status, e.target.value, fromDate, toDate, perPage);
+                                }}
+                            >
+                                <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
+                                {instructors.map(inst => (
+                                    <option key={inst.id} value={inst.id}>{inst.name}</option>
+                                ))}
+                            </select>
 
-                        <Flatpickr
-                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                            placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
-                            value={fromDate}
-                            onChange={(dates, dateStr) => handleFilterDateChange('from', dates, dateStr)}
-                            className="flex h-10 w-full md:w-36 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            title={t('common.from', 'Dan')}
-                        />
-                        
-                        <Flatpickr
-                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                            placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
-                            value={toDate}
-                            onChange={(dates, dateStr) => handleFilterDateChange('to', dates, dateStr)}
-                            className="flex h-10 w-full md:w-36 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            title={t('common.to', 'Gacha')}
-                        />
+                            <DatePicker
+                                placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
+                                value={fromDate}
+                                onChange={(val) => handleFilterDateChange('from', val)}
+                                className="w-full md:w-36"
+                                title={t('common.from', 'Dan')}
+                            />
+                            
+                            <DatePicker
+                                placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
+                                value={toDate}
+                                onChange={(val) => handleFilterDateChange('to', val)}
+                                className="w-full md:w-36"
+                                title={t('common.to', 'Gacha')}
+                            />
 
-                        <select
-                            className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={perPage}
-                            onChange={(e) => {
-                                setPerPage(e.target.value);
-                                applyFilters(search, status, instructorId, fromDate, toDate, e.target.value);
-                            }}
-                        >
-                            <option value="10">10 ta</option>
-                            <option value="30">30 ta</option>
-                            <option value="50">50 ta</option>
-                            <option value="all">Barchasi</option>
-                        </select>
-                    </div>
+                            <select
+                                className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                value={perPage}
+                                onChange={(e) => {
+                                    setPerPage(e.target.value);
+                                    applyFilters(search, status, instructorId, fromDate, toDate, e.target.value);
+                                }}
+                            >
+                                <option value="10">10 ta</option>
+                                <option value="30">30 ta</option>
+                                <option value="50">50 ta</option>
+                                <option value="all">Barchasi</option>
+                            </select>
+                        </div>
 
-                    <div className="flex gap-2 w-full md:w-auto">
                         {/* Mobile Filter Sheet */}
                         <div className="md:hidden w-full">
                             <Sheet>
@@ -486,22 +484,20 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                         <div className="grid grid-cols-2 gap-2">
                                             <div className="space-y-2">
                                                 <Label>{t('common.from', 'Dan')}</Label>
-                                                <Flatpickr
-                                                    options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                                                <DatePicker
                                                     placeholder="DD-MM-YYYY"
                                                     value={fromDate}
-                                                    onChange={(dates, dateStr) => handleFilterDateChange('from', dates, dateStr)}
-                                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                    onChange={(val) => handleFilterDateChange('from', val)}
+                                                    className="w-full"
                                                 />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>{t('common.to', 'Gacha')}</Label>
-                                                <Flatpickr
-                                                    options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                                                <DatePicker
                                                     placeholder="DD-MM-YYYY"
                                                     value={toDate}
-                                                    onChange={(dates, dateStr) => handleFilterDateChange('to', dates, dateStr)}
-                                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                    onChange={(val) => handleFilterDateChange('to', val)}
+                                                    className="w-full"
                                                 />
                                             </div>
                                         </div>
@@ -701,13 +697,12 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <Label htmlFor="date">{t('drivings.date', 'Sana')}</Label>
-                                <Flatpickr 
-                                    options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                                <DatePicker 
                                     id="date" 
                                     value={data.date} 
-                                    onChange={(dates, dateStr) => setData('date', dateStr)} 
+                                    onChange={(val) => setData('date', val)} 
                                     placeholder="DD-MM-YYYY"
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="w-full"
                                     required 
                                 />
                                 {errors.start_time && <div className="text-destructive text-sm mt-1">{errors.start_time}</div>}

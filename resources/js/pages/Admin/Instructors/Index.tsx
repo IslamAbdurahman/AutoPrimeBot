@@ -6,6 +6,7 @@ import { Trash2, Edit2, Plus, Search, AlertTriangle, Star, Filter } from 'lucide
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
 import Pagination from '@/components/pagination';
 import { SharedData } from '@/types/auth';
 import {
@@ -103,9 +104,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                 onError: (err) => {
                     toast.error(Object.values(err)[0] as string || t('instructors.error', 'Xatolik yuz berdi'));
                 },
-                onFinish: () => {
-                    setIsDeleting(null);
-                }
+                onFinish: () => setIsDeleting(null)
             });
         }
     };
@@ -169,24 +168,24 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             <option value="50">50</option>
                             <option value="all">{t('common.all', 'Barchasi')}</option>
                         </select>
-                        <Input
-                            type="date"
+                        <DatePicker
+                            placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
                             value={from}
-                            onChange={(e) => {
-                                setFrom(e.target.value);
-                                router.get('/admin/instructors', { search, from: e.target.value, to, per_page: perPage }, { preserveState: true, replace: true });
+                            onChange={(val) => {
+                                setFrom(val);
+                                router.get('/admin/instructors', { search, from: val, to, per_page: perPage }, { preserveState: true, replace: true });
                             }}
-                            className="h-10 w-32"
+                            className="w-36"
                             title={t('common.from', 'Dan')}
                         />
-                        <Input
-                            type="date"
+                        <DatePicker
+                            placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
                             value={to}
-                            onChange={(e) => {
-                                setTo(e.target.value);
-                                router.get('/admin/instructors', { search, from, to: e.target.value, per_page: perPage }, { preserveState: true, replace: true });
+                            onChange={(val) => {
+                                setTo(val);
+                                router.get('/admin/instructors', { search, from, to: val, per_page: perPage }, { preserveState: true, replace: true });
                             }}
-                            className="h-10 w-32"
+                            className="w-36"
                             title={t('common.to', 'Gacha')}
                         />
                     </div>
@@ -218,26 +217,26 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                 <div className="grid gap-4 py-4 mt-2">
                                     <div className="space-y-2">
                                         <Label>{t('common.date_from', 'Sana dan')}</Label>
-                                        <Input
-                                            type="date"
+                                        <DatePicker
+                                            placeholder="DD-MM-YYYY"
                                             value={from}
-                                            onChange={(e) => {
-                                                setFrom(e.target.value);
-                                                router.get('/admin/instructors', { search, from: e.target.value, to, per_page: perPage }, { preserveState: true, replace: true });
+                                            onChange={(val) => {
+                                                setFrom(val);
+                                                router.get('/admin/instructors', { search, from: val, to, per_page: perPage }, { preserveState: true, replace: true });
                                             }}
-                                            className="h-10 w-full"
+                                            className="w-full"
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <Label>{t('common.date_to', 'Sana gacha')}</Label>
-                                        <Input
-                                            type="date"
+                                        <DatePicker
+                                            placeholder="DD-MM-YYYY"
                                             value={to}
-                                            onChange={(e) => {
-                                                setTo(e.target.value);
-                                                router.get('/admin/instructors', { search, from, to: e.target.value, per_page: perPage }, { preserveState: true, replace: true });
+                                            onChange={(val) => {
+                                                setTo(val);
+                                                router.get('/admin/instructors', { search, from, to: val, per_page: perPage }, { preserveState: true, replace: true });
                                             }}
-                                            className="h-10 w-full"
+                                            className="w-full"
                                         />
                                     </div>
                                     <div className="space-y-2">

@@ -1,7 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
-import Flatpickr from 'react-flatpickr';
-import 'flatpickr/dist/themes/light.css';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface Instructor {
     id: number;
@@ -35,13 +34,13 @@ export default function KPI({ instructors = [], filters = {} }: PageProps) {
         }, { preserveState: true, replace: true });
     };
 
-    const handleFilterDateChange = (field: 'from' | 'to', dates: Date[], dateStr: string) => {
-        if (field === 'from') setFromDate(dateStr);
-        else setToDate(dateStr);
-        
-        if (dateStr.length === 10 || dateStr.length === 0) {
-            if (field === 'from') applyFilters(dateStr, toDate);
-            else applyFilters(fromDate, dateStr);
+    const handleFilterDateChange = (field: 'from' | 'to', dateStr: string) => {
+        if (field === 'from') {
+            setFromDate(dateStr);
+            applyFilters(dateStr, toDate);
+        } else {
+            setToDate(dateStr);
+            applyFilters(fromDate, dateStr);
         }
     };
 
@@ -59,21 +58,19 @@ export default function KPI({ instructors = [], filters = {} }: PageProps) {
                     </div>
                     
                     <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto mt-4 md:mt-0">
-                        <Flatpickr 
-                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                        <DatePicker 
                             placeholder="Dan DD-MM-YYYY"
                             value={fromDate}
-                            onChange={(dates, dateStr) => handleFilterDateChange('from', dates, dateStr)}
-                            className="flex h-10 w-full md:w-36 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            onChange={(val) => handleFilterDateChange('from', val)}
+                            className="w-full md:w-36"
                             title="Dan"
                         />
                         
-                        <Flatpickr 
-                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                        <DatePicker 
                             placeholder="Gacha DD-MM-YYYY"
                             value={toDate}
-                            onChange={(dates, dateStr) => handleFilterDateChange('to', dates, dateStr)}
-                            className="flex h-10 w-full md:w-36 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            onChange={(val) => handleFilterDateChange('to', val)}
+                            className="w-full md:w-36"
                             title="Gacha"
                         />
                     </div>
