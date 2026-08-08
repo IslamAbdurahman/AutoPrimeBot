@@ -135,7 +135,11 @@
     "excellent": "Excellent",
     "good": "Good",
     "poor": "Poor",
-    "filter_desc": "Filter instructors"
+    "filter_desc": "Filter instructors",
+    "scheduled_drivings": "drivings scheduled",
+    "completed_drivings": "completed",
+    "ball_label": "score",
+    "drivings_proportion": "Drivings proportion"
   },
   "drivings": {
     "title": "Driving History",

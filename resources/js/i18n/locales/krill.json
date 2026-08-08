@@ -135,7 +135,11 @@
     "excellent": "Аъло",
     "good": "Яхши",
     "poor": "Қониқарсиз",
-    "filter_desc": "Инструкторларни филтрлаш"
+    "filter_desc": "Инструкторларни филтрлаш",
+    "scheduled_drivings": "дарс белгиланган",
+    "completed_drivings": "та якунланган",
+    "ball_label": "балл",
+    "drivings_proportion": "Дарслар пропорцияси"
   },
   "drivings": {
     "title": "Машғулотлар Тарихи",

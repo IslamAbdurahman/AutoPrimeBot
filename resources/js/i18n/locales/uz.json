@@ -135,7 +135,11 @@
     "excellent": "A'lo",
     "good": "Yaxshi",
     "poor": "Qoniqarsiz",
-    "filter_desc": "Instruktorlarni filtrlash"
+    "filter_desc": "Instruktorlarni filtrlash",
+    "scheduled_drivings": "dars belgilangan",
+    "completed_drivings": "ta yakunlangan",
+    "ball_label": "ball",
+    "drivings_proportion": "Darslar proporsiyasi"
   },
   "drivings": {
     "title": "Mashg'ulotlar Tarixi",

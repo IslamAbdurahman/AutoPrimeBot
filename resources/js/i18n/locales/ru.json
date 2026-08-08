@@ -135,7 +135,11 @@
     "excellent": "Отлично",
     "good": "Хорошо",
     "poor": "Неудовлетворительно",
-    "filter_desc": "Фильтр инструкторов"
+    "filter_desc": "Фильтр инструкторов",
+    "scheduled_drivings": "зан. запланировано",
+    "completed_drivings": "завершено",
+    "ball_label": "балл",
+    "drivings_proportion": "Пропорция занятий"
   },
   "drivings": {
     "title": "История занятий",

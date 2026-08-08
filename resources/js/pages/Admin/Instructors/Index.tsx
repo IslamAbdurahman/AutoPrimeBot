@@ -338,14 +338,14 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                 <td className="px-4 py-3 text-center">{item.students_count}</td>
                                 <td className="px-4 py-3 text-center">
                                     <div className="text-xs space-y-0.5 font-medium whitespace-nowrap">
-                                        <div className="text-blue-600 dark:text-blue-400">{item.total_drivings} dars belgilangan</div>
-                                        <div className="text-green-600 dark:text-green-400">{item.completed_drivings} ta yakunlangan</div>
+                                        <div className="text-blue-600 dark:text-blue-400">{item.total_drivings} {t('instructors.scheduled_drivings', 'dars belgilangan')}</div>
+                                        <div className="text-green-600 dark:text-green-400">{item.completed_drivings} {t('instructors.completed_drivings', 'ta yakunlangan')}</div>
                                     </div>
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                     <div className="flex flex-col items-center gap-1">
                                         <div className="font-bold text-xs text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 rounded">
-                                            ball {item.score_formatted}
+                                            {t('instructors.ball_label', 'ball')} {item.score_formatted}
                                         </div>
                                         <div className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
                                             item.reviewed_drivings > 0 && item.average_rating <= 3
@@ -397,7 +397,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                     <div className="font-semibold text-lg">{item.name}</div>
                                 </div>
                                 <div className="font-bold text-xs text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30 px-2 py-1 rounded-md">
-                                    ball {item.score_formatted}
+                                    {t('instructors.ball_label', 'ball')} {item.score_formatted}
                                 </div>
                             </div>
                             
@@ -416,10 +416,10 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                     </div>
                                 </div>
                                 <div className="col-span-2 pt-2 border-t mt-1">
-                                    <span className="text-muted-foreground block text-xs mb-1">{t('instructors.drivings_stats', 'Darslar proporsiyasi')}:</span>
+                                    <span className="text-muted-foreground block text-xs mb-1">{t('instructors.drivings_proportion', 'Darslar proporsiyasi')}:</span>
                                     <div className="flex justify-between items-center text-xs font-semibold">
-                                        <span className="text-blue-600 dark:text-blue-400">{item.total_drivings} dars belgilangan</span>
-                                        <span className="text-green-600 dark:text-green-400">{item.completed_drivings} ta yakunlangan</span>
+                                        <span className="text-blue-600 dark:text-blue-400">{item.total_drivings} {t('instructors.scheduled_drivings', 'dars belgilangan')}</span>
+                                        <span className="text-green-600 dark:text-green-400">{item.completed_drivings} {t('instructors.completed_drivings', 'ta yakunlangan')}</span>
                                     </div>
                                 </div>
                                 <div className="col-span-2 pt-1.5 flex justify-between items-center">
