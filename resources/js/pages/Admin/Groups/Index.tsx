@@ -138,111 +138,109 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
         <div className="p-6">
             <Head title={t('groups.title', 'Guruhlar')} />
             
+            <div className="flex items-center justify-between gap-4 mb-6">
+                <h1 className="text-2xl font-bold">{t('groups.title', 'Guruhlar')}</h1>
+                {!isInstructor && (
+                    <Button onClick={() => setShowForm(true)} size="icon" className="shrink-0 md:w-auto md:px-4 md:py-2">
+                        <Plus className="w-4 h-4 md:mr-2" /> 
+                        <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
+                    </Button>
+                )}
+            </div>
+            
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold">{t('groups.title', 'Guruhlar')}</h1>
-                    <p className="text-muted-foreground">{t('groups.description', 'Maktabdagi guruhlar va ularning instruktorlari')}</p>
+                {/* Desktop Filters */}
+                <div className="hidden md:flex gap-2 items-center">
+                    <select
+                        className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={perPage}
+                        onChange={(e) => {
+                            setPerPage(e.target.value);
+                            applyFilters(search, instructorId, e.target.value);
+                        }}
+                        title={t('common.per_page', 'Sahifada ko\'rsatish')}
+                    >
+                        <option value="10">10</option>
+                        <option value="30">30</option>
+                        <option value="50">50</option>
+                        <option value="all">{t('common.all', 'Barchasi')}</option>
+                    </select>
+                    <select
+                        className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={instructorId}
+                        onChange={(e) => {
+                            setInstructorId(e.target.value);
+                            applyFilters(search, e.target.value, perPage);
+                        }}
+                    >
+                        <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
+                        {instructors.map(inst => (
+                            <option key={inst.id} value={inst.id}>{inst.name}</option>
+                        ))}
+                    </select>
                 </div>
-                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                    {/* Desktop Filters */}
-                    <div className="hidden md:flex gap-2 items-center">
-                        <select
-                            className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={perPage}
-                            onChange={(e) => {
-                                setPerPage(e.target.value);
-                                applyFilters(search, instructorId, e.target.value);
-                            }}
-                            title={t('common.per_page', 'Sahifada ko\'rsatish')}
-                        >
-                            <option value="10">10</option>
-                            <option value="30">30</option>
-                            <option value="50">50</option>
-                            <option value="all">{t('common.all', 'Barchasi')}</option>
-                        </select>
-                        <select
-                            className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={instructorId}
-                            onChange={(e) => {
-                                setInstructorId(e.target.value);
-                                applyFilters(search, e.target.value, perPage);
-                            }}
-                        >
-                            <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
-                            {instructors.map(inst => (
-                                <option key={inst.id} value={inst.id}>{inst.name}</option>
-                            ))}
-                        </select>
-                    </div>
 
-                    <div className="flex gap-2 w-full md:w-auto">
-                        <form onSubmit={handleSearch} className="flex relative flex-1 md:w-64">
-                            <Input 
-                                placeholder={t('common.search', 'Qidirish...')} 
-                                value={search} 
-                                onChange={e => setSearch(e.target.value)} 
-                                className="pr-8"
-                            />
-                            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                <Search className="w-4 h-4" />
-                            </button>
-                        </form>
+                <div className="flex gap-2 w-full md:w-auto">
+                    <form onSubmit={handleSearch} className="flex relative flex-1 md:w-64">
+                        <Input 
+                            placeholder={t('common.search', 'Qidirish...')} 
+                            value={search} 
+                            onChange={e => setSearch(e.target.value)} 
+                            className="pr-8"
+                        />
+                        <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                            <Search className="w-4 h-4" />
+                        </button>
+                    </form>
 
-                        {/* Mobile Filters Trigger */}
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button variant="outline" size="icon" className="md:hidden shrink-0">
-                                    <Filter className="w-4 h-4" />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-xl">
-                                <SheetHeader>
-                                    <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
-                                    <SheetDescription>{t('groups.filter_desc', 'Guruhlarni filtrlash')}</SheetDescription>
-                                </SheetHeader>
-                                <div className="grid gap-4 py-4 mt-2">
-                                    <div className="space-y-2">
-                                        <Label>{t('drivings.instructor', 'Instruktor')}</Label>
-                                        <select
-                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                            value={instructorId}
-                                            onChange={(e) => {
-                                                setInstructorId(e.target.value);
-                                                applyFilters(search, e.target.value, perPage);
-                                            }}
-                                        >
-                                            <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
-                                            {instructors.map(inst => (
-                                                <option key={inst.id} value={inst.id}>{inst.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>{t('common.pagination', 'Sahifalash')}</Label>
-                                        <select
-                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                            value={perPage}
-                                            onChange={(e) => {
-                                                setPerPage(e.target.value);
-                                                applyFilters(search, instructorId, e.target.value);
-                                            }}
-                                        >
-                                            <option value="10">10</option>
-                                            <option value="30">30</option>
-                                            <option value="50">50</option>
-                                            <option value="all">{t('common.all', 'Barchasi')}</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </SheetContent>
-                        </Sheet>
-                        {!isInstructor && (
-                            <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
-                                <Plus className="w-4 h-4 md:mr-2" /> 
-                                <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
+                    {/* Mobile Filters Trigger */}
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="icon" className="md:hidden shrink-0">
+                                <Filter className="w-4 h-4" />
                             </Button>
-                        )}
-                    </div>
+                        </SheetTrigger>
+                        <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-xl">
+                            <SheetHeader>
+                                <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
+                                <SheetDescription>{t('groups.filter_desc', 'Guruhlarni filtrlash')}</SheetDescription>
+                            </SheetHeader>
+                            <div className="grid gap-4 py-4 mt-2">
+                                <div className="space-y-2">
+                                    <Label>{t('drivings.instructor', 'Instruktor')}</Label>
+                                    <select
+                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                        value={instructorId}
+                                        onChange={(e) => {
+                                            setInstructorId(e.target.value);
+                                            applyFilters(search, e.target.value, perPage);
+                                        }}
+                                    >
+                                        <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
+                                        {instructors.map(inst => (
+                                            <option key={inst.id} value={inst.id}>{inst.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>{t('common.pagination', 'Sahifalash')}</Label>
+                                    <select
+                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                        value={perPage}
+                                        onChange={(e) => {
+                                            setPerPage(e.target.value);
+                                            applyFilters(search, instructorId, e.target.value);
+                                        }}
+                                    >
+                                        <option value="10">10</option>
+                                        <option value="30">30</option>
+                                        <option value="50">50</option>
+                                        <option value="all">{t('common.all', 'Barchasi')}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </SheetContent>
+                    </Sheet>
                 </div>
             </div>
 

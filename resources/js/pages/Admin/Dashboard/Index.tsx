@@ -44,10 +44,7 @@ export default function DashboardIndex({ metrics, chartData, filters = {} }: Pag
             <Head title={t('dashboard.title', 'Bosh sahifa')} />
             
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold">{t('dashboard.title', 'Bosh sahifa')}</h1>
-                    <p className="text-muted-foreground">{t('dashboard.description', "Maktabning umumiy holati va ko'rsatkichlari")}</p>
-                </div>
+                <h1 className="text-2xl font-bold">{t('dashboard.title', 'Bosh sahifa')}</h1>
                 <div className="w-full md:w-auto">
                     <form onSubmit={handleSearch} className="flex items-center gap-2 w-full md:w-auto">
                         <DatePicker

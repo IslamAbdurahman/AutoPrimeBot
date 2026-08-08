@@ -148,126 +148,123 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
         <div className="p-6">
             <Head title={t('instructors.title', 'Instruktorlar')} />
 
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold">{t('instructors.title', 'Instruktorlar')}</h1>
-                    <p className="text-muted-foreground">{t('instructors.description', 'Barcha instruktorlar ro\'yxati va ularning ko\'rsatkichlari')}</p>
-                </div>
-                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                    {/* Desktop Filters */}
-                    <div className="hidden md:flex gap-2 items-center">
-                        <select
-                            className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={perPage}
-                            onChange={(e) => {
-                                setPerPage(e.target.value);
-                                router.get('/admin/instructors', { search, from, to, per_page: e.target.value }, { preserveState: true, replace: true });
-                            }}
-                            title={t('common.per_page', 'Sahifada ko\'rsatish')}
-                        >
-                            <option value="10">10</option>
-                            <option value="30">30</option>
-                            <option value="50">50</option>
-                            <option value="all">{t('common.all', 'Barchasi')}</option>
-                        </select>
-                        <DatePicker
-                            placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
-                            value={from}
-                            onChange={(val) => {
-                                setFrom(val);
-                                router.get('/admin/instructors', { search, from: val, to, per_page: perPage }, { preserveState: true, replace: true });
-                            }}
-                            className="w-36"
-                            title={t('common.from', 'Dan')}
-                        />
-                        <DatePicker
-                            placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
-                            value={to}
-                            onChange={(val) => {
-                                setTo(val);
-                                router.get('/admin/instructors', { search, from, to: val, per_page: perPage }, { preserveState: true, replace: true });
-                            }}
-                            className="w-36"
-                            title={t('common.to', 'Gacha')}
-                        />
-                    </div>
+            <div className="flex items-center justify-between gap-4 mb-6">
+                <h1 className="text-2xl font-bold">{t('instructors.title', 'Instruktorlar')}</h1>
+                {!isInstructor && (
+                    <Button onClick={() => setShowForm(true)} size="icon" className="shrink-0 md:w-auto md:px-4 md:py-2">
+                        <Plus className="w-4 h-4 md:mr-2" /> 
+                        <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
+                    </Button>
+                )}
+            </div>
 
-                    <div className="flex gap-2 w-full md:w-auto">
-                        <form onSubmit={handleSearch} className="flex relative flex-1 md:w-64 min-w-[200px]">
-                            <Input
-                                placeholder={t('common.search', 'Qidirish...')}
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                className="pr-8 bg-background w-full"
-                            />
-                            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                <Search className="w-4 h-4" />
-                            </button>
-                        </form>
-                        
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button variant="outline" size="icon" className="md:hidden shrink-0">
-                                    <Filter className="w-4 h-4" />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-xl">
-                                <SheetHeader>
-                                    <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
-                                    <SheetDescription>{t('instructors.filter_desc', 'Instruktorlarni filtrlash')}</SheetDescription>
-                                </SheetHeader>
-                                <div className="grid gap-4 py-4 mt-2">
-                                    <div className="space-y-2">
-                                        <Label>{t('common.date_from', 'Sana dan')}</Label>
-                                        <DatePicker
-                                            placeholder="DD-MM-YYYY"
-                                            value={from}
-                                            onChange={(val) => {
-                                                setFrom(val);
-                                                router.get('/admin/instructors', { search, from: val, to, per_page: perPage }, { preserveState: true, replace: true });
-                                            }}
-                                            className="w-full"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>{t('common.date_to', 'Sana gacha')}</Label>
-                                        <DatePicker
-                                            placeholder="DD-MM-YYYY"
-                                            value={to}
-                                            onChange={(val) => {
-                                                setTo(val);
-                                                router.get('/admin/instructors', { search, from, to: val, per_page: perPage }, { preserveState: true, replace: true });
-                                            }}
-                                            className="w-full"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>{t('common.pagination', 'Sahifalash')}</Label>
-                                        <select
-                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                            value={perPage}
-                                            onChange={(e) => {
-                                                setPerPage(e.target.value);
-                                                router.get('/admin/instructors', { search, from, to, per_page: e.target.value }, { preserveState: true, replace: true });
-                                            }}
-                                        >
-                                            <option value="10">10</option>
-                                            <option value="30">30</option>
-                                            <option value="50">50</option>
-                                            <option value="all">{t('common.all', 'Barchasi')}</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </SheetContent>
-                        </Sheet>
-                        
-                        {!isInstructor && (
-                            <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
-                                <Plus className="w-4 h-4 md:mr-2" /> 
-                                <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                {/* Desktop Filters */}
+                <div className="hidden md:flex gap-2 items-center">
+                    <select
+                        className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={perPage}
+                        onChange={(e) => {
+                            setPerPage(e.target.value);
+                            router.get('/admin/instructors', { search, from, to, per_page: e.target.value }, { preserveState: true, replace: true });
+                        }}
+                        title={t('common.per_page', 'Sahifada ko\'rsatish')}
+                    >
+                        <option value="10">10</option>
+                        <option value="30">30</option>
+                        <option value="50">50</option>
+                        <option value="all">{t('common.all', 'Barchasi')}</option>
+                    </select>
+                    <DatePicker
+                        placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
+                        value={from}
+                        onChange={(val) => {
+                            setFrom(val);
+                            router.get('/admin/instructors', { search, from: val, to, per_page: perPage }, { preserveState: true, replace: true });
+                        }}
+                        className="w-36"
+                        title={t('common.from', 'Dan')}
+                    />
+                    <DatePicker
+                        placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
+                        value={to}
+                        onChange={(val) => {
+                            setTo(val);
+                            router.get('/admin/instructors', { search, from, to: val, per_page: perPage }, { preserveState: true, replace: true });
+                        }}
+                        className="w-36"
+                        title={t('common.to', 'Gacha')}
+                    />
+                </div>
+
+                <div className="flex gap-2 w-full md:w-auto">
+                    <form onSubmit={handleSearch} className="flex relative flex-1 md:w-64 min-w-[200px]">
+                        <Input
+                            placeholder={t('common.search', 'Qidirish...')}
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="pr-8 bg-background w-full"
+                        />
+                        <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                            <Search className="w-4 h-4" />
+                        </button>
+                    </form>
+                    
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="icon" className="md:hidden shrink-0">
+                                <Filter className="w-4 h-4" />
                             </Button>
-                        )}
-                    </div>
+                        </SheetTrigger>
+                        <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-xl">
+                            <SheetHeader>
+                                <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
+                                <SheetDescription>{t('instructors.filter_desc', 'Instruktorlarni filtrlash')}</SheetDescription>
+                            </SheetHeader>
+                            <div className="grid gap-4 py-4 mt-2">
+                                <div className="space-y-2">
+                                    <Label>{t('common.date_from', 'Sana dan')}</Label>
+                                    <DatePicker
+                                        placeholder="DD-MM-YYYY"
+                                        value={from}
+                                        onChange={(val) => {
+                                            setFrom(val);
+                                            router.get('/admin/instructors', { search, from: val, to, per_page: perPage }, { preserveState: true, replace: true });
+                                        }}
+                                        className="w-full"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>{t('common.date_to', 'Sana gacha')}</Label>
+                                    <DatePicker
+                                        placeholder="DD-MM-YYYY"
+                                        value={to}
+                                        onChange={(val) => {
+                                            setTo(val);
+                                            router.get('/admin/instructors', { search, from, to: val, per_page: perPage }, { preserveState: true, replace: true });
+                                        }}
+                                        className="w-full"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>{t('common.pagination', 'Sahifalash')}</Label>
+                                    <select
+                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                        value={perPage}
+                                        onChange={(e) => {
+                                            setPerPage(e.target.value);
+                                            router.get('/admin/instructors', { search, from, to, per_page: e.target.value }, { preserveState: true, replace: true });
+                                        }}
+                                    >
+                                        <option value="10">10</option>
+                                        <option value="30">30</option>
+                                        <option value="50">50</option>
+                                        <option value="all">{t('common.all', 'Barchasi')}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </SheetContent>
+                    </Sheet>
                 </div>
             </div>
 

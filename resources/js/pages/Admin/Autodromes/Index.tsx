@@ -199,13 +199,10 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
         <div className="p-6">
             <Head title={t('autodromes.title', 'Avtodromlar')} />
             
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold">{t('autodromes.title', 'Avtodromlar')}</h1>
-                    <p className="text-muted-foreground">{t('autodromes.description', 'Mashg\'ulot o\'tkaziladigan avtodromlar va ularning hududlari')}</p>
-                </div>
+            <div className="flex items-center justify-between gap-4 mb-6">
+                <h1 className="text-2xl font-bold">{t('autodromes.title', 'Avtodromlar')}</h1>
                 {!isInstructor && (
-                    <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
+                    <Button onClick={() => setShowForm(true)} size="icon" className="shrink-0 md:w-auto md:px-4 md:py-2">
                         <Plus className="w-4 h-4 md:mr-2" />
                         <span className="hidden md:inline">{t('common.add', "Qo'shish")}</span>
                     </Button>

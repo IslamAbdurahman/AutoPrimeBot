@@ -51,12 +51,7 @@ export default function KPI({ instructors = [], filters = {} }: PageProps) {
             <Head title={t('kpi.title', 'KPI Tizimi')} />
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold">{t('kpi.title', 'Avtomaktab KPI Tizimi')}</h1>
-                    <p className="text-muted-foreground">
-                        {t('kpi.description', 'Instruktorlar reytingi va mashg\'ulotlar statistikasi')}
-                    </p>
-                </div>
+                <h1 className="text-2xl font-bold">{t('kpi.title', 'Avtomaktab KPI Tizimi')}</h1>
                 
                 <div className="flex gap-2 w-full md:w-auto">
                     <DatePicker 

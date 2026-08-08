@@ -363,11 +363,8 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
             <Head title={t('drivings.title', 'Amaliy mashg\'ulotlar')} />
 
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{t('drivings.title', 'Amaliy mashg\'ulotlar')}</h1>
-                    <p className="text-muted-foreground">{t('drivings.description', 'Mashg\'ulotlar ro\'yxati va holati')}</p>
-                </div>
+            <div className="flex items-center justify-between gap-4">
+                <h1 className="text-2xl font-bold tracking-tight">{t('drivings.title', 'Amaliy mashg\'ulotlar')}</h1>
                 <Button onClick={() => setShowForm(true)} size="icon" className="shrink-0 sm:w-auto sm:px-4 sm:py-2">
                     <Plus className="w-4 h-4 sm:mr-2" />
                     <span className="hidden sm:inline">{t('drivings.new', 'Yangi mashg\'ulot')}</span>
