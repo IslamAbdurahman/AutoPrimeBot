@@ -59,9 +59,13 @@ function LocationMarker({ position, setPosition, radius }: { position: L.LatLng 
 function MapController({ center }: { center: L.LatLng | null }) {
     const map = useMap();
     useEffect(() => {
-        if (center) {
-            map.setView(center, 15, { animate: true });
-        }
+        const timer = setTimeout(() => {
+            map.invalidateSize();
+            if (center) {
+                map.setView(center, 15, { animate: true });
+            }
+        }, 200);
+        return () => clearTimeout(timer);
     }, [center, map]);
     return null;
 }
@@ -87,24 +91,50 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
         radius_meters: '100',
     });
 
-    useEffect(() => {
-        if (showForm && !editing && !position) {
-            if (navigator.geolocation) {
-                setLocating(true);
+    const getPhoneLocation = (onSuccess: (lat: number, lng: number) => void, onError?: (err: any) => void) => {
+        if (!navigator.geolocation) {
+            if (onError) onError(new Error('Geolocation not supported'));
+            return;
+        }
+
+        // Pass 1: Try high accuracy (GPS) with 6-second timeout
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                onSuccess(pos.coords.latitude, pos.coords.longitude);
+            },
+            (err) => {
+                console.warn('High accuracy geolocation failed or timed out, trying low accuracy fallback:', err);
+                // Pass 2: Fallback to low accuracy (Wi-Fi/Cell/IP) with 12-second timeout
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
-                        const userLatLng = new L.LatLng(pos.coords.latitude, pos.coords.longitude);
-                        setPosition(userLatLng);
-                        setLocating(false);
-                        toast.success(t('autodromes.location_found', 'Hozirgi joylashuvingiz belgilandi'));
+                        onSuccess(pos.coords.latitude, pos.coords.longitude);
                     },
-                    (err) => {
-                        setLocating(false);
-                        console.log('Location error:', err);
+                    (finalErr) => {
+                        console.error('All geolocation attempts failed:', finalErr);
+                        if (onError) onError(finalErr);
                     },
-                    { enableHighAccuracy: true, timeout: 8000 }
+                    { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 }
                 );
-            }
+            },
+            { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
+        );
+    };
+
+    useEffect(() => {
+        if (showForm && !editing && !position) {
+            setLocating(true);
+            getPhoneLocation(
+                (lat, lng) => {
+                    const userLatLng = new L.LatLng(lat, lng);
+                    setPosition(userLatLng);
+                    setLocating(false);
+                    toast.success(t('autodromes.location_found', 'Hozirgi joylashuvingiz belgilandi'));
+                },
+                (err) => {
+                    setLocating(false);
+                    console.log('Location error:', err);
+                }
+            );
         }
     }, [showForm, editing]);
 
@@ -125,18 +155,17 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
         }
 
         setLocating(true);
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const userLatLng = new L.LatLng(pos.coords.latitude, pos.coords.longitude);
+        getPhoneLocation(
+            (lat, lng) => {
+                const userLatLng = new L.LatLng(lat, lng);
                 setPosition(userLatLng);
                 setLocating(false);
                 toast.success(t('autodromes.location_found', 'Hozirgi joylashuvingiz belgilandi'));
             },
             (err) => {
                 setLocating(false);
-                toast.error(t('autodromes.geolocation_denied', 'Joylashuvni aniqlab bo\'lmadi. Ruxsat berilganligini tekshiring.'));
-            },
-            { enableHighAccuracy: true }
+                toast.error(t('autodromes.geolocation_denied', 'Joylashuvni aniqlab bo\'lmadi. Qushimcha ruxsatni tekshiring.'));
+            }
         );
     };
 
