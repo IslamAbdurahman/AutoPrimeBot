@@ -65,12 +65,25 @@ export function TelegramThemeProvider({ children }: { children: React.ReactNode 
             handleViewportResize();
         };
 
+        const updateSafeArea = () => {
+            const root = document.documentElement;
+            if (tg.contentSafeAreaInset?.top !== undefined) {
+                root.style.setProperty('--tg-content-safe-area-inset-top', `${tg.contentSafeAreaInset.top}px`);
+            }
+            if (tg.safeAreaInset?.top !== undefined) {
+                root.style.setProperty('--tg-safe-area-inset-top', `${tg.safeAreaInset.top}px`);
+            }
+        };
+
         if (tg.onEvent) {
             tg.onEvent('themeChanged', updateTheme);
             tg.onEvent('viewportChanged', handleViewportChange);
+            tg.onEvent('contentSafeAreaChanged', updateSafeArea);
+            tg.onEvent('safeAreaChanged', updateSafeArea);
         }
         updateTheme();
         handleViewportChange();
+        updateSafeArea();
 
         tg.ready();
         tg.expand();
