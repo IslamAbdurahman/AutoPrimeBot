@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import Flatpickr from 'react-flatpickr';
+import 'flatpickr/dist/themes/light.css';
 import { useTranslation } from 'react-i18next';
 import { Users, Star, CalendarDays, CheckCircle2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
     BarChart,
@@ -50,18 +51,20 @@ export default function DashboardIndex({ metrics, chartData, filters = {} }: Pag
                 </div>
                 <div className="flex flex-wrap gap-2 w-full md:w-auto">
                     <form onSubmit={handleSearch} className="flex flex-wrap gap-2 w-full md:w-auto">
-                        <Input
-                            type="date"
+                        <Flatpickr
+                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                            placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
                             value={from}
-                            onChange={e => setFrom(e.target.value)}
-                            className="h-10 w-full md:w-36"
+                            onChange={(dates, dateStr) => setFrom(dateStr)}
+                            className="flex h-10 w-full md:w-36 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             title={t('common.from', 'Dan')}
                         />
-                        <Input
-                            type="date"
+                        <Flatpickr
+                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                            placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
                             value={to}
-                            onChange={e => setTo(e.target.value)}
-                            className="h-10 w-full md:w-36"
+                            onChange={(dates, dateStr) => setTo(dateStr)}
+                            className="flex h-10 w-full md:w-36 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             title={t('common.to', 'Gacha')}
                         />
                         <Button type="submit">

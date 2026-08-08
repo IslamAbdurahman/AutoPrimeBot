@@ -16,20 +16,24 @@ class DashboardController extends Controller
 {
     public function index(Request $request): Response
     {
-        $from = $request->input('from', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $to = $request->input('to', Carbon::now()->format('Y-m-d'));
+        $from = $request->input('from', Carbon::now()->startOfMonth()->format('d-m-Y'));
+        $to = $request->input('to', Carbon::now()->format('d-m-Y'));
 
         $fromDate = Carbon::now()->startOfMonth();
         $toDate = Carbon::now()->endOfDay();
         if ($from) {
             try {
-                $fromDate = Carbon::parse($from)->startOfDay();
+                $fromDate = preg_match('/^\d{2}-\d{2}-\d{4}$/', $from)
+                    ? Carbon::createFromFormat('d-m-Y', $from)->startOfDay()
+                    : Carbon::parse($from)->startOfDay();
             } catch (\Exception $e) {
             }
         }
         if ($to) {
             try {
-                $toDate = Carbon::parse($to)->endOfDay();
+                $toDate = preg_match('/^\d{2}-\d{2}-\d{4}$/', $to)
+                    ? Carbon::createFromFormat('d-m-Y', $to)->endOfDay()
+                    : Carbon::parse($to)->endOfDay();
             } catch (\Exception $e) {
             }
         }

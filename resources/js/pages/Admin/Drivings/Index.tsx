@@ -2,9 +2,11 @@ import { useState, useCallback } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Edit2, Trash2, CheckCircle2, XCircle } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, CheckCircle2, XCircle, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import Flatpickr from 'react-flatpickr';
+import 'flatpickr/dist/themes/light.css';
 import {
     Dialog,
     DialogContent,
@@ -21,7 +23,6 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
-import { Filter } from 'lucide-react';
 import Pagination from '@/components/pagination';
 
 interface Instructor {
@@ -107,7 +108,10 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     const [studentSearch, setStudentSearch] = useState('');
 
     const today = new Date();
-    const todayString = today.toISOString().split('T')[0];
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const todayString = `${dd}-${mm}-${yyyy}`;
 
     const { data, setData, post, put, delete: destroy, reset, errors, processing, transform } = useForm({
         instructor_id: auth.user.role === 'instructor' ? String(auth.user.id) : '',
@@ -124,11 +128,14 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     });
 
     transform((data) => {
-        let dateForBackend = data.date;
+        let dateForBackend = '';
         if (data.date && data.date.includes('-')) {
             const parts = data.date.split('-');
             if (parts[0].length === 2 && parts[2]?.length === 4) {
+                // DD-MM-YYYY -> YYYY-MM-DD
                 dateForBackend = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            } else if (parts[0].length === 4) {
+                dateForBackend = data.date;
             }
         }
         return {
@@ -177,10 +184,10 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         };
         const formatDate = (dateString: string) => {
             const date = new Date(dateString);
-            const yyyy = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
+            const d = String(date.getDate()).padStart(2, '0');
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const y = date.getFullYear();
+            return `${d}-${m}-${y}`;
         };
 
         setData({
@@ -200,40 +207,43 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     };
 
     const handleDelete = (driving: Driving) => {
-        if (driving.status === 'completed' || driving.status === 'cancelled' || driving.review) {
-            toast.error(t('drivings.delete_reviewed_error', 'Tugallangan yoki bekor qilingan mashg\'ulotni o\'chirish mumkin emas'));
-            return;
-        }
         if (isDeleting === driving.id) return;
-        if (confirm(t('common.confirm_delete', 'Rostdan ham o\'chirmoqchimisiz?'))) {
+        if (confirm(t('common.confirm_delete', "Rostdan ham o'chirmoqchimisiz?"))) {
             setIsDeleting(driving.id);
             destroy('/admin/drivings/' + driving.id, {
-                onSuccess: () => toast.success(t('drivings.deleted_success', 'Mashg\'ulot o\'chirildi')),
-                onError: (err) => toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi')),
-                onFinish: () => setIsDeleting(null),
+                onSuccess: () => {
+                    toast.success(t('drivings.deleted_success', 'Mashg\'ulot o\'chirildi'));
+                },
+                onError: (err) => {
+                    toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi'));
+                },
+                onFinish: () => {
+                    setIsDeleting(null);
+                }
             });
         }
+    };
+
+    const handleStatusChangeClick = (driving: Driving, newStatus: 'completed' | 'cancelled') => {
+        setStatusModalDriving(driving);
+        setTargetStatus(newStatus);
     };
 
     const handleStatusChangeConfirm = () => {
         if (!statusModalDriving || !targetStatus || isStatusUpdating) return;
 
-        const performUpdate = (lat?: number, lng?: number) => {
+        const performUpdate = (latitude?: number, longitude?: number) => {
             setIsStatusUpdating(true);
             router.put('/admin/drivings/' + statusModalDriving.id, {
-                start_time: statusModalDriving.start_time,
-                end_time: statusModalDriving.end_time,
                 status: targetStatus,
-                latitude: lat,
-                longitude: lng,
+                latitude,
+                longitude,
             }, {
+                preserveScroll: true,
                 onSuccess: () => {
                     setStatusModalDriving(null);
                     setTargetStatus(null);
-                    toast.success(targetStatus === 'completed'
-                        ? t('drivings.status_completed_success', 'Mashg\'ulot yakunlandi')
-                        : t('drivings.status_cancelled_success', 'Mashg\'ulot bekor qilindi')
-                    );
+                    toast.success(targetStatus === 'completed' ? t('drivings.status_completed_success', 'Mashg\'ulot yakunlandi') : t('drivings.status_cancelled_success', 'Mashg\'ulot bekor qilindi'));
                 },
                 onError: (err) => {
                     toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi'));
@@ -249,17 +259,11 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                 toast.error(t('drivings.geolocation_not_supported', 'Brauzeringiz geolokatsiyani qo\'llab-quvvatlamaydi.'));
                 return;
             }
-
-            setIsStatusUpdating(true);
             navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    performUpdate(pos.coords.latitude, pos.coords.longitude);
-                },
-                (err) => {
-                    setIsStatusUpdating(false);
-                    toast.error(t('drivings.geolocation_denied', 'Joylashuvni aniqlab bo\'lmadi. Mashg\'ulotni yakunlash uchun geolokatsiyani yoqing va ruxsat bering.'));
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
+                (pos) => performUpdate(pos.coords.latitude, pos.coords.longitude),
+                () => {
+                    toast.error(t('drivings.geolocation_denied', 'Joylashuvni aniqlab bo\'lmadi.'));
+                }
             );
         } else {
             performUpdate();
@@ -304,69 +308,83 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         }
     };
 
-    const handleFilterDateChange = (field: 'from' | 'to', val: string) => {
-        if (field === 'from') {
-            setFromDate(val);
-            applyFilters(search, status, instructorId, val, toDate, perPage);
-        } else {
-            setToDate(val);
-            applyFilters(search, status, instructorId, fromDate, val, perPage);
+    const handleFilterDateChange = (field: 'from' | 'to', dates: Date[], dateStr: string) => {
+        if (field === 'from') setFromDate(dateStr);
+        else setToDate(dateStr);
+        
+        if (dateStr.length === 10 || dateStr.length === 0) {
+            if (field === 'from') applyFilters(search, status, instructorId, dateStr, toDate, perPage);
+            else applyFilters(search, status, instructorId, fromDate, dateStr, perPage);
         }
     };
 
     const handleTimeChange = (field: 'time_from' | 'time_to', val: string) => {
         let clean = val.replace(/[^\d]/g, '');
         if (clean.length > 4) clean = clean.substring(0, 4);
-        
-        if (clean.length > 0) {
-            if (parseInt(clean[0]) > 2) clean = '0' + clean[0];
-        }
-        if (clean.length > 1) {
-            if (clean[0] === '2' && parseInt(clean[1]) > 3) {
-                clean = '23' + clean.substring(2);
-            }
-        }
         if (clean.length > 2) {
             if (parseInt(clean[2]) > 5) {
                 clean = clean.substring(0, 2) + '5' + clean.substring(3);
             }
         }
-
+        
         let formatted = clean;
         if (clean.length >= 3) {
-            formatted = `${clean.substring(0, 2)}:${clean.substring(2)}`;
+            formatted = clean.substring(0, 2) + ':' + clean.substring(2);
         }
         setData(field, formatted);
     };
 
     return (
-        <div className="p-6">
-            <Head title={t('drivings.title', 'Mashg\'ulotlar Tarixi')} />
-            
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="space-y-6">
+            <Head title={t('drivings.title', 'Darslar')} />
+
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold">{t('drivings.title', 'Mashg\'ulotlar Tarixi')}</h1>
-                    <p className="text-muted-foreground">{t('drivings.description', 'O\'tkazilgan va rejalashtirilgan barcha darslar tarixi')}</p>
+                    <h1 className="text-2xl font-bold tracking-tight">{t('drivings.title', 'Darslar')}</h1>
+                    <p className="text-sm text-muted-foreground">{t('drivings.description', 'Barcha amaliy haydash mashg\'ulotlari ro\'yxati')}</p>
                 </div>
-                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                <div className="flex gap-2 w-full md:w-auto">
+                    <Button onClick={() => setShowForm(true)} className="w-full md:w-auto">
+                        <Plus className="w-4 h-4 mr-2" /> {t('common.add', "Qo'shish")}
+                    </Button>
+                </div>
+            </div>
+
+            {/* Top Filter Bar */}
+            <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+                <form onSubmit={handleSearch} className="flex-1 max-w-sm flex gap-2">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder={t('drivings.search_student', 'Talaba ismi bo\'yicha...')}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="pl-8"
+                        />
+                    </div>
+                    <Button type="submit" variant="secondary">{t('common.search', 'Qidirish')}</Button>
+                </form>
+
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-2">
                     {/* Desktop Filters */}
-                    <div className="hidden md:flex gap-2 items-center">
+                    <div className="hidden md:flex flex-wrap items-center gap-2">
                         <select
-                            className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            className="flex h-10 w-full md:w-36 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                             value={status}
                             onChange={(e) => {
                                 setStatus(e.target.value);
                                 applyFilters(search, e.target.value, instructorId, fromDate, toDate, perPage);
                             }}
                         >
-                            <option value="">{t('status.all', 'Barcha holatlar')}</option>
+                            <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
                             <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
                             <option value="completed">{t('status.completed', 'Tugagan')}</option>
                             <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
                         </select>
 
                         <select
-                            className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            className="flex h-10 w-full md:w-44 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                             value={instructorId}
                             onChange={(e) => {
                                 setInstructorId(e.target.value);
@@ -379,20 +397,22 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                             ))}
                         </select>
 
-                        <Input
-                            type="date"
+                        <Flatpickr
+                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                            placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
                             value={fromDate}
-                            onChange={e => handleFilterDateChange('from', e.target.value)}
-                            className="h-10 w-32"
-                            title="Dan"
+                            onChange={(dates, dateStr) => handleFilterDateChange('from', dates, dateStr)}
+                            className="flex h-10 w-full md:w-36 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            title={t('common.from', 'Dan')}
                         />
                         
-                        <Input
-                            type="date"
+                        <Flatpickr
+                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                            placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
                             value={toDate}
-                            onChange={e => handleFilterDateChange('to', e.target.value)}
-                            className="h-10 w-32"
-                            title="Gacha"
+                            onChange={(dates, dateStr) => handleFilterDateChange('to', dates, dateStr)}
+                            className="flex h-10 w-full md:w-36 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            title={t('common.to', 'Gacha')}
                         />
 
                         <select
@@ -411,194 +431,256 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                     </div>
 
                     <div className="flex gap-2 w-full md:w-auto">
-                        <form onSubmit={handleSearch} className="flex relative flex-1 md:w-64">
-                            <Input 
-                                placeholder={t('students.search_placeholder', 'O\'quvchi orqali qidirish...')} 
-                                value={search} 
-                                onChange={e => setSearch(e.target.value)} 
-                                className="pr-8"
-                            />
-                            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                <Search className="w-4 h-4" />
-                            </button>
-                        </form>
-                        
-                        {/* Mobile Filters Trigger */}
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button variant="outline" size="icon" className="md:hidden shrink-0">
-                                    <Filter className="w-4 h-4" />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-xl">
-                                <SheetHeader>
-                                    <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
-                                    <SheetDescription>{t('drivings.filter_desc', "Mashg'ulotlarni filtrlash")}</SheetDescription>
-                                </SheetHeader>
-                                <div className="grid gap-4 py-4 mt-2">
-                                    <div className="space-y-2">
-                                        <Label>{t('common.status', 'Holati')}</Label>
-                                        <select
-                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                            value={status}
-                                            onChange={(e) => {
-                                                setStatus(e.target.value);
-                                                applyFilters(search, e.target.value, instructorId, fromDate, toDate, perPage);
-                                            }}
-                                        >
-                                            <option value="">{t('status.all', 'Barcha holatlar')}</option>
-                                            <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
-                                            <option value="completed">{t('status.completed', 'Tugagan')}</option>
-                                            <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Instruktor</Label>
-                                        <select
-                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                            value={instructorId}
-                                            onChange={(e) => {
-                                                setInstructorId(e.target.value);
-                                                applyFilters(search, status, e.target.value, fromDate, toDate, perPage);
-                                            }}
-                                        >
-                                            <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
-                                            {instructors.map(inst => (
-                                                <option key={inst.id} value={inst.id}>{inst.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2">
+                        {/* Mobile Filter Sheet */}
+                        <div className="md:hidden w-full">
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+                                        <Filter className="w-4 h-4" />
+                                        {t('common.filter', 'Filtrlar')}
+                                        {(status || instructorId || fromDate || toDate) && (
+                                            <span className="w-2 h-2 rounded-full bg-primary" />
+                                        )}
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto">
+                                    <SheetHeader className="text-left mb-4">
+                                        <SheetTitle>{t('common.filter', 'Filtrlash')}</SheetTitle>
+                                        <SheetDescription>
+                                            {t('common.filter_description', 'Mashg\'ulotlarni holat, instruktor va sana bo\'yicha saralash')}
+                                        </SheetDescription>
+                                    </SheetHeader>
+                                    <div className="space-y-4 py-2">
                                         <div className="space-y-2">
-                                            <Label>{t('common.from', 'Dan')}</Label>
-                                            <Input
-                                                type="date"
-                                                value={fromDate}
-                                                onChange={e => handleFilterDateChange('from', e.target.value)}
-                                                className="h-10 w-full"
-                                            />
+                                            <Label>{t('common.status', 'Holat')}</Label>
+                                            <select
+                                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                value={status}
+                                                onChange={(e) => {
+                                                    setStatus(e.target.value);
+                                                    applyFilters(search, e.target.value, instructorId, fromDate, toDate, perPage);
+                                                }}
+                                            >
+                                                <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
+                                                <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
+                                                <option value="completed">{t('status.completed', 'Tugagan')}</option>
+                                                <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
+                                            </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>{t('common.to', 'Gacha')}</Label>
-                                            <Input
-                                                type="date"
-                                                value={toDate}
-                                                onChange={e => handleFilterDateChange('to', e.target.value)}
-                                                className="h-10 w-full"
-                                            />
+                                            <Label>{t('drivings.instructor', 'Instruktor')}</Label>
+                                            <select
+                                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                value={instructorId}
+                                                onChange={(e) => {
+                                                    setInstructorId(e.target.value);
+                                                    applyFilters(search, status, e.target.value, fromDate, toDate, perPage);
+                                                }}
+                                            >
+                                                <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
+                                                {instructors.map(inst => (
+                                                    <option key={inst.id} value={inst.id}>{inst.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-2">
+                                                <Label>{t('common.from', 'Dan')}</Label>
+                                                <Flatpickr
+                                                    options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                                                    placeholder="DD-MM-YYYY"
+                                                    value={fromDate}
+                                                    onChange={(dates, dateStr) => handleFilterDateChange('from', dates, dateStr)}
+                                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>{t('common.to', 'Gacha')}</Label>
+                                                <Flatpickr
+                                                    options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                                                    placeholder="DD-MM-YYYY"
+                                                    value={toDate}
+                                                    onChange={(dates, dateStr) => handleFilterDateChange('to', dates, dateStr)}
+                                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>{t('common.pagination', 'Sahifalash')}</Label>
+                                            <select
+                                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                value={perPage}
+                                                onChange={(e) => {
+                                                    setPerPage(e.target.value);
+                                                    applyFilters(search, status, instructorId, fromDate, toDate, e.target.value);
+                                                }}
+                                            >
+                                                <option value="10">10 ta</option>
+                                                <option value="30">30 ta</option>
+                                                <option value="50">50 ta</option>
+                                                <option value="all">Barchasi</option>
+                                            </select>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label>{t('common.pagination', 'Sahifalash')}</Label>
-                                        <select
-                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                            value={perPage}
-                                            onChange={(e) => {
-                                                setPerPage(e.target.value);
-                                                applyFilters(search, status, instructorId, fromDate, toDate, e.target.value);
-                                            }}
-                                        >
-                                            <option value="10">10 ta</option>
-                                            <option value="30">30 ta</option>
-                                            <option value="50">50 ta</option>
-                                            <option value="all">{t('common.all', 'Barchasi')}</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </SheetContent>
-                        </Sheet>
-                        <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
-                            <Plus className="w-4 h-4 md:mr-2" /> 
-                            <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
-                        </Button>
+                                </SheetContent>
+                            </Sheet>
+                        </div>
+
+                        {(search || status || instructorId || fromDate || toDate) && (
+                            <Button 
+                                variant="ghost" 
+                                className="w-full md:w-auto"
+                                onClick={() => {
+                                    setSearch('');
+                                    setStatus('');
+                                    setInstructorId('');
+                                    setFromDate('');
+                                    setToDate('');
+                                    router.get('/admin/drivings', {}, { preserveState: false });
+                                }}
+                            >
+                                {t('common.clear', 'Tozalash')}
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
 
+            {/* Create/Edit Form Dialog */}
             <Dialog open={showForm} onOpenChange={(open) => !open && closeForm()}>
-                <DialogContent className="max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>{editing ? t('common.edit', 'Tahrirlash') : t('drivings.new', 'Yangi Mashg\'ulot')}</DialogTitle>
+                        <DialogTitle>{editing ? t('drivings.edit', 'Mashg\'ulotni tahrirlash') : t('drivings.new', 'Yangi mashg\'ulot')}</DialogTitle>
                         <DialogDescription className="sr-only">
-                            {editing ? 'Mashg\'ulotni tahrirlash' : 'Yangi mashg\'ulot qo\'shish'}
+                            {editing ? t('common.edit', 'Tahrirlash') : t('common.add', "Qo'shish")}
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        {!editing && (
-                            <div>
-                                <Label htmlFor="group_id">{t('drivings.group_filter_label', 'Guruh (O\'quvchilarni filtrlash uchun)')}</Label>
-                                <select
-                                    id="group_id"
-                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
-                                    value={data.group_id}
-                                    onChange={e => {
-                                        setData('group_id', e.target.value);
-                                        if (!editing) setData('student_ids', []);
-                                    }}
-                                    disabled={!!editing}
-                                >
-                                    <option value="">{t('common.all_groups', 'Barcha guruhlar')}</option>
-                                    {groups.map(grp => (
-                                        <option key={grp.id} value={grp.id}>{grp.name}</option>
-                                    ))}
-                                </select>
-                                {errors.group_id && <div className="text-destructive text-sm mt-1">{errors.group_id}</div>}
-                            </div>
-                        )}
-
-                        {!editing && (
-                            <div>
-                                <Label htmlFor="student_id">{t('drivings.student', 'O\'quvchi')}</Label>
-                                <div className="border rounded-md p-3 bg-background space-y-2">
-                                    <Input 
-                                        type="text" 
-                                        placeholder={t('students.search_placeholder', 'O\'quvchi orqali qidirish...')} 
-                                        value={studentSearch} 
-                                        onChange={e => setStudentSearch(e.target.value)} 
-                                        className="mb-2 h-8"
-                                    />
-                                    <div className="max-h-48 overflow-y-auto space-y-2">
-                                        {filteredStudents.length === 0 ? (
-                                            <div className="text-sm text-muted-foreground text-center py-2">{t('drivings.no_students', 'O\'quvchilar topilmadi')}</div>
-                                        ) : (
-                                            filteredStudents.map(std => (
-                                                <div key={std.id} className="flex items-center space-x-2">
-                                                    <input 
-                                                        type="checkbox" 
-                                                        id={`std_${std.id}`}
-                                                        checked={data.student_ids.includes(String(std.id))}
-                                                        onChange={() => handleStudentToggle(std.id)}
-                                                        className="rounded border-input text-primary focus:ring-primary"
-                                                    />
-                                                    <label htmlFor={`std_${std.id}`} className="text-sm cursor-pointer">{std.full_name} ({std.phone || '-'})</label>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                                {errors.student_id && <div className="text-destructive text-sm mt-1">{errors.student_id}</div>}
-                                {errors.student_ids && <div className="text-destructive text-sm mt-1">{errors.student_ids}</div>}
-                            </div>
-                        )}
-
-                        {!editing && auth.user.role !== 'instructor' && (
+                        {auth.user.role !== 'instructor' && (
                             <div>
                                 <Label htmlFor="instructor_id">{t('drivings.instructor', 'Instruktor')}</Label>
-                                <select
-                                    id="instructor_id"
-                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
-                                    value={data.instructor_id}
-                                    onChange={e => setData('instructor_id', e.target.value)}
-                                    disabled={!!editing}
+                                <select 
+                                    id="instructor_id" 
+                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={data.instructor_id} 
+                                    onChange={e => setData('instructor_id', e.target.value)} 
+                                    required
                                 >
-                                    <option value="">{t('common.select', '-- Tanlang --')}</option>
-                                    {instructors.map(inst => (
-                                        <option key={inst.id} value={inst.id}>{inst.name}</option>
+                                    <option value="">{t('drivings.select_instructor', 'Instruktorni tanlang')}</option>
+                                    {instructors.map(i => (
+                                        <option key={i.id} value={i.id}>{i.name}</option>
                                     ))}
                                 </select>
                                 {errors.instructor_id && <div className="text-destructive text-sm mt-1">{errors.instructor_id}</div>}
                             </div>
                         )}
+
+                        <div className="space-y-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <Label htmlFor="group_id">{t('students.group_filter_only', 'Guruh (Talabalarni filterlash uchun)')}</Label>
+                                    <select 
+                                        id="group_id" 
+                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        value={data.group_id} 
+                                        onChange={e => {
+                                            const selectedGroupId = e.target.value;
+                                            setData(prev => ({
+                                                ...prev,
+                                                group_id: selectedGroupId,
+                                                student_ids: [],
+                                                student_id: ''
+                                            }));
+                                        }} 
+                                    >
+                                        <option value="">{t('drivings.all_groups', 'Barcha guruhlar')}</option>
+                                        {groups.map(g => (
+                                            <option key={g.id} value={g.id}>{g.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <Label htmlFor="student_search">{t('common.search', 'Qidirish')} (Ism yoki Telefon)</Label>
+                                    <div className="relative">
+                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="student_search"
+                                            placeholder="Masalan: Ali..."
+                                            value={studentSearch}
+                                            onChange={e => setStudentSearch(e.target.value)}
+                                            className="pl-8"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Multi-student selection cards */}
+                            <div>
+                                <div className="flex justify-between items-center mb-1.5">
+                                    <Label className="text-sm font-semibold">
+                                        {editing ? t('drivings.student', 'Talaba') : t('drivings.select_students', 'Talabalarni tanlang')}
+                                    </Label>
+                                    {!editing && (
+                                        <span className="text-xs text-muted-foreground">
+                                            {data.student_ids.length} ta tanlandi
+                                        </span>
+                                    )}
+                                </div>
+
+                                {editing ? (
+                                    /* Single student for edit mode */
+                                    <select 
+                                        id="student_id" 
+                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        value={data.student_id} 
+                                        onChange={e => setData('student_id', e.target.value)} 
+                                        required
+                                    >
+                                        <option value="">{t('drivings.select_student', 'Talabani tanlang')}</option>
+                                        {filteredStudents.map(s => (
+                                            <option key={s.id} value={s.id}>{s.full_name} {s.phone ? `(${s.phone})` : ''}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    /* Multi-select student cards for create mode */
+                                    <div className="border rounded-xl p-3 bg-muted/20 max-h-52 overflow-y-auto space-y-1.5">
+                                        {filteredStudents.length === 0 ? (
+                                            <div className="text-center py-4 text-xs text-muted-foreground">
+                                                Talabalar topilmadi
+                                            </div>
+                                        ) : (
+                                            filteredStudents.map(s => {
+                                                const isSelected = data.student_ids.includes(String(s.id));
+                                                return (
+                                                    <div 
+                                                        key={s.id} 
+                                                        onClick={() => handleStudentToggle(s.id)}
+                                                        className={`flex items-center justify-between p-2.5 rounded-lg border text-sm cursor-pointer transition-colors ${
+                                                            isSelected 
+                                                                ? 'bg-primary/10 border-primary text-primary font-medium' 
+                                                                : 'bg-card hover:bg-muted/50 border-border'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                                                isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground/40'
+                                                            }`}>
+                                                                {isSelected && <span className="text-[10px] leading-none">✓</span>}
+                                                            </div>
+                                                            <span>{s.full_name}</span>
+                                                        </div>
+                                                        {s.phone && (
+                                                            <span className="text-xs text-muted-foreground font-mono">{s.phone}</span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                )}
+                                {errors.student_id && <div className="text-destructive text-sm mt-1">{errors.student_id}</div>}
+                            </div>
+                        </div>
 
                         <div>
                             <Label htmlFor="autodrome_id">{t('drivings.autodrome', 'Avtodrom')}</Label>
@@ -619,12 +701,13 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <Label htmlFor="date">{t('drivings.date', 'Sana')}</Label>
-                                <Input 
-                                    type="date"
+                                <Flatpickr 
+                                    options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
                                     id="date" 
                                     value={data.date} 
-                                    onChange={e => setData('date', e.target.value)} 
-                                    className="h-10 w-full"
+                                    onChange={(dates, dateStr) => setData('date', dateStr)} 
+                                    placeholder="DD-MM-YYYY"
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     required 
                                 />
                                 {errors.start_time && <div className="text-destructive text-sm mt-1">{errors.start_time}</div>}
