@@ -951,18 +951,18 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                         size="sm"
                                                         className="text-green-600 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950/30"
                                                         onClick={() => { setStatusModalDriving(driving); setTargetStatus('completed'); }}
-                                                        title={t('status.completed', 'Tugagan')}
+                                                        title={t('drivings.complete_action', 'Tugatish')}
                                                     >
-                                                        <CheckCircle2 className="w-4 h-4 mr-1" /> {t('status.completed', 'Tugagan')}
+                                                        <CheckCircle2 className="w-4 h-4 mr-1" /> {t('drivings.complete_action', 'Tugatish')}
                                                     </Button>
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
                                                         className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/30"
                                                         onClick={() => { setStatusModalDriving(driving); setTargetStatus('cancelled'); }}
-                                                        title={t('status.cancelled', 'Bekor qilish')}
+                                                        title={t('drivings.cancel_action', 'Bekor qilish')}
                                                     >
-                                                        <XCircle className="w-4 h-4 mr-1" /> {t('status.cancelled', 'Bekor qilish')}
+                                                        <XCircle className="w-4 h-4 mr-1" /> {t('drivings.cancel_action', 'Bekor qilish')}
                                                     </Button>
                                                     <Button
                                                         variant="outline"
@@ -1076,7 +1076,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                 className="flex-1 text-green-600 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950/30"
                                                 onClick={() => { setStatusModalDriving(driving); setTargetStatus('completed'); }}
                                             >
-                                                <CheckCircle2 className="w-4 h-4 mr-1" /> {t('status.completed', 'Tugagan')}
+                                                <CheckCircle2 className="w-4 h-4 mr-1" /> {t('drivings.complete_action', 'Tugatish')}
                                             </Button>
                                             <Button
                                                 variant="outline"
@@ -1084,7 +1084,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                 className="flex-1 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/30"
                                                 onClick={() => { setStatusModalDriving(driving); setTargetStatus('cancelled'); }}
                                             >
-                                                <XCircle className="w-4 h-4 mr-1" /> {t('status.cancelled', 'Bekor qilish')}
+                                                <XCircle className="w-4 h-4 mr-1" /> {t('drivings.cancel_action', 'Bekor qilish')}
                                             </Button>
                                         </div>
                                     )}
