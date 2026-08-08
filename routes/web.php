@@ -117,7 +117,8 @@ Route::any('/register', function () {
 Route::get('/settings/profile', function () {})->name('settings.profile.edit');
 Route::get('/settings/security', function () {})->name('security.edit');
 Route::get('/settings/appearance', function () {})->name('appearance.edit');
-Route::get('/home', function () {})->name('home');
+// Public route for downloading Excel template (no auth required)
+Route::get('admin/groups/download-template', [GroupController::class, 'downloadTemplate'])->name('groups.download-template');
 
 Route::middleware(['auth.telegram'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -137,7 +138,6 @@ Route::middleware(['auth.telegram'])->group(function () {
     // Admin Routes
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('admin/instructors', AdminInstructorController::class)->except(['create', 'show', 'edit']);
-    Route::get('admin/groups/download-template', [GroupController::class, 'downloadTemplate'])->name('groups.download-template');
     Route::post('admin/groups/{group}/import-students', [GroupController::class, 'importStudents'])->name('groups.import-students');
     Route::resource('admin/groups', GroupController::class)->except(['create', 'edit']);
     Route::resource('admin/students', StudentController::class)->except(['create', 'edit']);
