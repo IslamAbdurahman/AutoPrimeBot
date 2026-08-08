@@ -70,14 +70,14 @@ export default function GroupShow({ group, students }: PageProps) {
                     <div>
                         <Link href="/admin/groups" className="text-sm text-blue-600 hover:underline flex items-center mb-2">
                             <ArrowLeft className="w-4 h-4 mr-1" />
-                            Ortga
+                            {t('common.back', 'Ortga')}
                         </Link>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                             <Users className="w-8 h-8 text-blue-600 dark:text-blue-500" />
                             {group.name}
                         </h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Instruktor: {group.instructor?.name || "Biriktirilmagan"} • Talabalar soni: {students.length}
+                            {t('groups.instructor_label', 'Instruktor')}: {group.instructor?.name || t('common.not_assigned', 'Biriktirilmagan')} • {t('groups.students_count_label', 'Talabalar soni')}: {students.length}
                         </p>
                     </div>
                 </div>
@@ -89,10 +89,10 @@ export default function GroupShow({ group, students }: PageProps) {
                             <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                                 <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
                                     <Upload className="w-5 h-5 text-green-600" />
-                                    Excel orqali yuklash
+                                    {t('groups.import_excel', 'Excel orqali yuklash')}
                                 </h2>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                                    Ustunlar: <b>full_name</b>, <b>phone</b>, <b>gender</b> (majburiy emas) bo'lishi kerak.
+                                    {t('groups.excel_columns_hint', "Ustunlar: full_name, phone, gender (majburiy emas) bo'lishi kerak.")}
                                 </p>
                                 
                                 <div className="mb-6">
@@ -102,7 +102,7 @@ export default function GroupShow({ group, students }: PageProps) {
                                         target="_blank"
                                     >
                                         <Download className="w-4 h-4 mr-2" />
-                                        Shablonni yuklab olish
+                                        {t('groups.download_template', 'Shablonni yuklab olish')}
                                     </a>
                                 </div>
                                 
@@ -118,7 +118,7 @@ export default function GroupShow({ group, students }: PageProps) {
                                         {errors.file && <div className="text-red-500 text-sm mt-1">{errors.file}</div>}
                                     </div>
                                     <Button type="submit" disabled={!data.file || uploading} className="w-full">
-                                        {uploading ? 'Yuklanmoqda...' : 'Yuklash'}
+                                        {uploading ? t('common.uploading', 'Yuklanmoqda...') : t('common.upload', 'Yuklash')}
                                     </Button>
                                 </form>
                             </div>
@@ -129,25 +129,25 @@ export default function GroupShow({ group, students }: PageProps) {
                     <div className={isInstructor ? 'col-span-full' : 'lg:col-span-2'}>
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                             <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-                                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Guruh Talabalari</h2>
+                                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t('groups.students_title', 'Guruh Talabalari')}</h2>
                             </div>
                             <div className="overflow-x-auto">
                                 {/* Desktop Table */}
                                 <table className="hidden md:table w-full text-sm text-left text-gray-500 dark:text-gray-400">
                                     <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700/50 dark:text-gray-300">
                                         <tr>
-                                            <th className="px-6 py-4 font-medium">№</th>
-                                            <th className="px-6 py-4 font-medium">F.I.SH</th>
-                                            <th className="px-6 py-4 font-medium">Telefon</th>
-                                            <th className="px-6 py-4 font-medium text-center">Tugagan darslar</th>
-                                            <th className="px-6 py-4 font-medium">Jins</th>
+                                            <th className="px-6 py-4 font-medium">{t('common.number', '№')}</th>
+                                            <th className="px-6 py-4 font-medium">{t('students.full_name', 'F.I.SH')}</th>
+                                            <th className="px-6 py-4 font-medium">{t('students.phone', 'Telefon')}</th>
+                                            <th className="px-6 py-4 font-medium text-center">{t('students.completed_drivings', 'Tugagan darslar')}</th>
+                                            <th className="px-6 py-4 font-medium">{t('students.gender', 'Jins')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
                                         {students.length === 0 ? (
                                             <tr>
-                                                <td colSpan={4} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                                    Guruhda hozircha talabalar yo'q. Excel orqali yuklang.
+                                                <td colSpan={5} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                                    {t('groups.no_students_in_group', "Guruhda hozircha talabalar yo'q. Excel orqali yuklang.")}
                                                 </td>
                                             </tr>
                                         ) : (
@@ -164,7 +164,7 @@ export default function GroupShow({ group, students }: PageProps) {
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        {student.gender === 'female' ? 'Ayol' : 'Erkak'}
+                                                        {student.gender === 'female' ? t('students.gender_female', 'Ayol') : t('students.gender_male', 'Erkak')}
                                                     </td>
                                                 </tr>
                                             ))
@@ -176,7 +176,7 @@ export default function GroupShow({ group, students }: PageProps) {
                                 <div className="md:hidden p-3 space-y-3 bg-muted/20">
                                     {students.length === 0 ? (
                                         <div className="p-6 text-center text-muted-foreground text-sm">
-                                            Guruhda hozircha talabalar yo'q. Excel orqali yuklang.
+                                            {t('groups.no_students_in_group', "Guruhda hozircha talabalar yo'q. Excel orqali yuklang.")}
                                         </div>
                                     ) : (
                                         students.map((student, index) => (
@@ -188,11 +188,11 @@ export default function GroupShow({ group, students }: PageProps) {
                                                     </div>
                                                     <div className="text-right">
                                                         <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded inline-block mb-1">
-                                                            {student.gender === 'female' ? 'Ayol' : 'Erkak'}
+                                                            {student.gender === 'female' ? t('students.gender_female', 'Ayol') : t('students.gender_male', 'Erkak')}
                                                         </span>
                                                         <div>
                                                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                                                {student.completed_drivings_count || 0} dars
+                                                                {student.completed_drivings_count || 0} {t('drivings.lessons_suffix', 'dars')}
                                                             </span>
                                                         </div>
                                                     </div>

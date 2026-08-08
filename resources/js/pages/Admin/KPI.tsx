@@ -1,5 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DatePicker } from '@/components/ui/date-picker';
 
 interface Instructor {
@@ -24,6 +25,7 @@ interface PageProps {
 }
 
 export default function KPI({ instructors = [], filters = {} }: PageProps) {
+    const { t } = useTranslation();
     const [fromDate, setFromDate] = useState(filters?.from || '');
     const [toDate, setToDate] = useState(filters?.to || '');
 
@@ -46,31 +48,31 @@ export default function KPI({ instructors = [], filters = {} }: PageProps) {
 
     return (
         <div className="p-6">
-            <Head title="Admin KPI Paneli" />
+            <Head title={t('kpi.title', 'KPI Tizimi')} />
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Avtomaktab KPI Tizimi</h1>
+                    <h1 className="text-2xl font-bold">{t('kpi.title', 'Avtomaktab KPI Tizimi')}</h1>
                     <p className="text-muted-foreground">
-                        Instruktorlar reytingi va mashg'ulotlar statistikasi
+                        {t('kpi.description', 'Instruktorlar reytingi va mashg\'ulotlar statistikasi')}
                     </p>
                 </div>
                 
                 <div className="flex gap-2 w-full md:w-auto">
                     <DatePicker 
-                        placeholder="Dan DD-MM-YYYY"
+                        placeholder={t('common.date_from', 'Dan') + ' DD-MM-YYYY'}
                         value={fromDate}
                         onChange={(val) => handleFilterDateChange('from', val)}
                         className="w-full md:w-36"
-                        title="Dan"
+                        title={t('common.from', 'Dan')}
                     />
                     
                     <DatePicker 
-                        placeholder="Gacha DD-MM-YYYY"
+                        placeholder={t('common.date_to', 'Gacha') + ' DD-MM-YYYY'}
                         value={toDate}
                         onChange={(val) => handleFilterDateChange('to', val)}
                         className="w-full md:w-36"
-                        title="Gacha"
+                        title={t('common.to', 'Gacha')}
                     />
                 </div>
             </div>
@@ -80,18 +82,18 @@ export default function KPI({ instructors = [], filters = {} }: PageProps) {
                 <table className="hidden md:table w-full text-sm text-left">
                     <thead className="bg-muted/50 text-muted-foreground border-b">
                         <tr>
-                            <th className="px-4 py-3 font-medium">Instruktor</th>
-                            <th className="px-4 py-3 font-medium text-center">Guruh / Dars</th>
-                            <th className="px-4 py-3 font-medium text-center">O'rtacha Baho</th>
-                            <th className="px-4 py-3 font-medium text-center">KPI (%)</th>
-                            <th className="px-4 py-3 font-medium text-center">Holat</th>
+                            <th className="px-4 py-3 font-medium">{t('kpi.instructor', 'Instruktor')}</th>
+                            <th className="px-4 py-3 font-medium text-center">{t('kpi.group_lesson', 'Guruh / Dars')}</th>
+                            <th className="px-4 py-3 font-medium text-center">{t('kpi.average_rating', 'O\'rtacha Baho')}</th>
+                            <th className="px-4 py-3 font-medium text-center">{t('kpi.kpi_percent', 'KPI (%)')}</th>
+                            <th className="px-4 py-3 font-medium text-center">{t('kpi.status', 'Holat')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
                         {instructors.length === 0 ? (
                             <tr>
                                 <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                                    Ma'lumot topilmadi
+                                    {t('common.no_data', 'Ma\'lumot topilmadi')}
                                 </td>
                             </tr>
                         ) : (
@@ -102,15 +104,15 @@ export default function KPI({ instructors = [], filters = {} }: PageProps) {
                                         <div className="text-xs text-muted-foreground">{instructor.phone}</div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <div className="font-medium">{instructor.groups_count} ta guruh</div>
-                                        <div className="text-xs text-muted-foreground">{instructor.total_drivings} ta mashg'ulot</div>
+                                        <div className="font-medium">{instructor.groups_count} {t('kpi.groups_count', 'ta guruh')}</div>
+                                        <div className="text-xs text-muted-foreground">{instructor.total_drivings} {t('kpi.drivings_count', 'ta mashg\'ulot')}</div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                         <div className="inline-flex items-center gap-1 font-semibold">
                                             <span>{instructor.average_rating}</span>
                                             <span className="text-yellow-500">⭐</span>
                                         </div>
-                                        <div className="text-xs text-muted-foreground">{instructor.total_reviews} ta baho</div>
+                                        <div className="text-xs text-muted-foreground">{instructor.total_reviews} {t('kpi.reviews_count', 'ta baho')}</div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${
@@ -124,11 +126,11 @@ export default function KPI({ instructors = [], filters = {} }: PageProps) {
                                     <td className="px-4 py-3 text-center">
                                         {instructor.needs_attention ? (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                                                Xavotirli ({instructor.negative_tags_count} shikoyat)
+                                                {t('kpi.warning_status', 'Xavotirli')} ({instructor.negative_tags_count} {t('kpi.complaints_count', 'shikoyat')})
                                             </span>
                                         ) : (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                                A'lo
+                                                {t('kpi.excellent_status', 'A\'lo')}
                                             </span>
                                         )}
                                     </td>
@@ -142,7 +144,7 @@ export default function KPI({ instructors = [], filters = {} }: PageProps) {
                 <div className="md:hidden p-3 space-y-3 bg-muted/20">
                     {instructors.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground text-sm">
-                            Ma'lumot topilmadi
+                            {t('common.no_data', 'Ma\'lumot topilmadi')}
                         </div>
                     ) : (
                         instructors.map((instructor) => (
@@ -157,17 +159,17 @@ export default function KPI({ instructors = [], filters = {} }: PageProps) {
                                         instructor.kpi_percentage >= 50 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
                                         'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                                     }`}>
-                                        {instructor.kpi_percentage}% KPI
+                                        {instructor.kpi_percentage}% {t('instructors.kpi', 'KPI')}
                                     </span>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2 text-sm pt-2 border-t">
                                     <div>
-                                        <span className="text-muted-foreground text-xs block">Guruh / Darslar:</span>
-                                        <div className="font-medium text-xs mt-0.5">{instructor.groups_count} guruh / {instructor.total_drivings} dars</div>
+                                        <span className="text-muted-foreground text-xs block">{t('kpi.group_lesson', 'Guruh / Darslar')}:</span>
+                                        <div className="font-medium text-xs mt-0.5">{instructor.groups_count} {t('kpi.groups_count', 'guruh')} / {instructor.total_drivings} {t('kpi.drivings_count', 'dars')}</div>
                                     </div>
                                     <div>
-                                        <span className="text-muted-foreground text-xs block">O'rtacha baho:</span>
+                                        <span className="text-muted-foreground text-xs block">{t('kpi.average_rating', 'O\'rtacha baho')}:</span>
                                         <div className="font-medium text-xs mt-0.5 flex items-center gap-1">
                                             <span>{instructor.average_rating}</span>
                                             <span className="text-yellow-500">⭐</span>
@@ -177,14 +179,14 @@ export default function KPI({ instructors = [], filters = {} }: PageProps) {
                                 </div>
 
                                 <div className="pt-2 border-t flex justify-between items-center text-xs">
-                                    <span className="text-muted-foreground">Holat:</span>
+                                    <span className="text-muted-foreground">{t('kpi.status', 'Holat')}:</span>
                                     {instructor.needs_attention ? (
                                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                                            Xavotirli ({instructor.negative_tags_count} ta)
+                                            {t('kpi.warning_status', 'Xavotirli')} ({instructor.negative_tags_count} {t('kpi.complaints_count', 'ta')})
                                         </span>
                                     ) : (
                                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                            A'lo
+                                            {t('kpi.excellent_status', 'A\'lo')}
                                         </span>
                                     )}
                                 </div>

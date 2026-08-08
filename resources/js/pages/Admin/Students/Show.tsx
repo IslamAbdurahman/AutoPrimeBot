@@ -81,9 +81,34 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
         router.get(`/admin/students/${student.id}`, { status: newStatus, per_page: newPerPage }, { preserveState: true, replace: true });
     };
 
+    const translateTag = (tag: string) => {
+        switch (tag) {
+            case 'Kechikdi':
+                return t('drivings.tag_late', 'Kechikdi');
+            case 'Xushmuomala':
+                return t('drivings.tag_polite', 'Xushmuomala');
+            case 'Zargona tushuntirdi':
+                return t('drivings.tag_slang', 'Zargona tushuntirdi');
+            case 'Tushunarsiz':
+                return t('drivings.tag_unclear', 'Tushunarsiz');
+            case 'Mashina nosoz':
+                return t('drivings.tag_car_issue', 'Mashina nosoz');
+            case 'Yaxshi tushuntirdi':
+                return t('drivings.tag_well_explained', 'Yaxshi tushuntirdi');
+            case 'Sabrli':
+                return t('drivings.tag_patient', 'Sabrli');
+            case 'Asabiy':
+                return t('drivings.tag_nervous', 'Asabiy');
+            case "Qo'pol":
+                return t('drivings.tag_rude', "Qo'pol");
+            default:
+                return tag;
+        }
+    };
+
     return (
         <div className="p-4 md:p-6 space-y-6">
-            <Head title={`${student.full_name} - ${t('drivings.title', 'Mashg\'ulotlar')}`} />
+            <Head title={`${student.full_name} - ${t('students.lessons_history', 'Mashg\'ulotlar tarixi')}`} />
 
             {/* Top Navigation & Student Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card border p-4 md:p-6 rounded-xl shadow-sm">
@@ -161,8 +186,8 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
             {/* Filters Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card border p-4 rounded-xl shadow-sm">
                 <div>
-                    <h2 className="text-lg font-semibold">{t('drivings.title', 'Mashg\'ulotlar tarixi')}</h2>
-                    <p className="text-xs text-muted-foreground">{student.full_name}ning barcha mashg'ulotlari va baholari</p>
+                    <h2 className="text-lg font-semibold">{t('students.lessons_history', 'Mashg\'ulotlar tarixi')}</h2>
+                    <p className="text-xs text-muted-foreground">{t('students.lessons_history_desc', "Talabaning barcha mashg'ulotlari va baholari")}</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
@@ -299,7 +324,7 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
                                                     <div className="flex flex-wrap gap-1 justify-center max-w-[200px]">
                                                         {driving.review.reason_tags.map((tag, i) => (
                                                             <span key={i} className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground whitespace-nowrap">
-                                                                {tag}
+                                                                {translateTag(tag)}
                                                             </span>
                                                         ))}
                                                     </div>
@@ -319,7 +344,7 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
                         ) : (
                             <tr>
                                 <td colSpan={5} className="text-center py-8 text-muted-foreground">
-                                    Mashg'ulotlar topilmadi
+                                    {t('common.no_data', 'Ma\'lumot topilmadi')}
                                 </td>
                             </tr>
                         )}
@@ -370,7 +395,7 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
                                             <div className="flex flex-wrap gap-1">
                                                 {driving.review.reason_tags.map((tag, i) => (
                                                     <span key={i} className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
-                                                        {tag}
+                                                        {translateTag(tag)}
                                                     </span>
                                                 ))}
                                             </div>
@@ -386,7 +411,7 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
                         ))
                     ) : (
                         <div className="text-center py-8 text-muted-foreground text-sm">
-                            Mashg'ulotlar topilmadi
+                            {t('common.no_data', 'Ma\'lumot topilmadi')}
                         </div>
                     )}
                 </div>

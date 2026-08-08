@@ -291,7 +291,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             {errors.phone && <div className="text-destructive text-sm mt-1">{errors.phone}</div>}
                         </div>
                         <div>
-                            <Label htmlFor="telegram_id">Telegram ID</Label>
+                            <Label htmlFor="telegram_id">{t('common.telegram_id', 'Telegram ID')}</Label>
                             <Input id="telegram_id" value={data.telegram_id} onChange={e => setData('telegram_id', e.target.value)} placeholder="12345678" />
                             {errors.telegram_id && <div className="text-destructive text-sm mt-1">{errors.telegram_id}</div>}
                         </div>

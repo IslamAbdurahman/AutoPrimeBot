@@ -306,7 +306,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                             <th className="px-4 py-3 font-medium">{t('students.full_name', 'F.I.SH')}</th>
                             <th className="px-4 py-3 font-medium">{t('students.phone', 'Telefon')}</th>
                             <th className="px-4 py-3 font-medium">{t('students.group', 'Guruh')}</th>
-                            <th className="px-4 py-3 font-medium">Telegram ID</th>
+                            <th className="px-4 py-3 font-medium">{t('common.telegram_id', 'Telegram ID')}</th>
                             <th className="px-4 py-3 font-medium text-center">{t('students.completed_drivings', 'Tugagan darslar')}</th>
                             <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>
                         </tr>
@@ -375,7 +375,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                                     </div>
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground text-xs block">Telegram ID:</span>
+                                    <span className="text-muted-foreground text-xs block">{t('common.telegram_id', 'Telegram ID')}:</span>
                                     <div className="font-medium">{item.telegram_id || '-'}</div>
                                 </div>
                                 <div className="col-span-2 pt-1 mt-1 border-t">
