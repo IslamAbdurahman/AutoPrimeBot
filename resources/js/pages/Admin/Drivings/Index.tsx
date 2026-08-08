@@ -609,31 +609,76 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {editing ? (
-                            <div className="bg-muted/40 p-3.5 rounded-xl border space-y-1.5 text-sm">
-                                <div>
-                                    <span className="text-muted-foreground">{t('drivings.student', 'O\'quvchi')}: </span>
-                                    <span className="font-semibold">{editing.student?.full_name || '-'}</span>
-                                    {editing.student?.phone && <span className="text-xs text-muted-foreground ml-1 font-mono">({editing.student.phone})</span>}
+                            <>
+                                <div className="bg-muted/40 p-3.5 rounded-xl border space-y-1.5 text-sm">
+                                    <div>
+                                        <span className="text-muted-foreground">{t('drivings.student', 'O\'quvchi')}: </span>
+                                        <span className="font-semibold">{editing.student?.full_name || '-'}</span>
+                                        {editing.student?.phone && <span className="text-xs text-muted-foreground ml-1 font-mono">({editing.student.phone})</span>}
+                                    </div>
+                                    {editing.group && (
+                                        <div>
+                                            <span className="text-muted-foreground">{t('students.group', 'Guruh')}: </span>
+                                            <span className="font-medium">{editing.group.name}</span>
+                                        </div>
+                                    )}
+                                    {editing.instructor && (
+                                        <div>
+                                            <span className="text-muted-foreground">{t('drivings.instructor', 'Instruktor')}: </span>
+                                            <span className="font-medium">{editing.instructor.name}</span>
+                                        </div>
+                                    )}
+                                    {editing.autodrome && (
+                                        <div>
+                                            <span className="text-muted-foreground">{t('drivings.autodrome', 'Avtodrom')}: </span>
+                                            <span className="font-medium">{editing.autodrome.name}</span>
+                                        </div>
+                                    )}
                                 </div>
-                                {editing.group && (
+
+                                <div>
+                                    <Label htmlFor="date">{t('drivings.date', 'Sana')}</Label>
+                                    <DatePicker 
+                                        id="date" 
+                                        value={data.date} 
+                                        onChange={(val) => setData('date', val)} 
+                                        placeholder="DD-MM-YYYY"
+                                        className="w-full"
+                                        required 
+                                    />
+                                    {errors.start_time && <div className="text-destructive text-sm mt-1">{errors.start_time}</div>}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <span className="text-muted-foreground">{t('students.group', 'Guruh')}: </span>
-                                        <span className="font-medium">{editing.group.name}</span>
+                                        <Label htmlFor="time_from">{t('drivings.start_time', 'Boshlanish vaqti')}</Label>
+                                        <Input 
+                                            type="text" 
+                                            id="time_from" 
+                                            value={data.time_from} 
+                                            onChange={e => handleTimeChange('time_from', e.target.value)} 
+                                            placeholder="09:00"
+                                            pattern="^([01]\d|2[0-3]):([0-5]\d)$"
+                                            title="09:00"
+                                            required 
+                                        />
                                     </div>
-                                )}
-                                {editing.instructor && (
                                     <div>
-                                        <span className="text-muted-foreground">{t('drivings.instructor', 'Instruktor')}: </span>
-                                        <span className="font-medium">{editing.instructor.name}</span>
+                                        <Label htmlFor="time_to">{t('drivings.end_time', 'Tugash vaqti')}</Label>
+                                        <Input 
+                                            type="text" 
+                                            id="time_to" 
+                                            value={data.time_to} 
+                                            onChange={e => handleTimeChange('time_to', e.target.value)} 
+                                            placeholder="18:30"
+                                            pattern="^([01]\d|2[0-3]):([0-5]\d)$"
+                                            title="18:30"
+                                            required 
+                                        />
+                                        {errors.end_time && <div className="text-destructive text-sm mt-1">{errors.end_time}</div>}
                                     </div>
-                                )}
-                                {editing.autodrome && (
-                                    <div>
-                                        <span className="text-muted-foreground">{t('drivings.autodrome', 'Avtodrom')}: </span>
-                                        <span className="font-medium">{editing.autodrome.name}</span>
-                                    </div>
-                                )}
-                            </div>
+                                </div>
+                            </>
                         ) : (
                             <>
                                 {!isInstructor && (
@@ -656,7 +701,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                 )}
 
                                 <div className="space-y-3">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <Label htmlFor="group_id">{t('drivings.group_optional', 'Guruh (Ixtiyoriy)')}</Label>
                                             <select 
@@ -688,7 +733,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                     placeholder={t('common.search_student', 'Talaba ismi yoki telefon...')}
                                                     value={studentSearch}
                                                     onChange={e => setStudentSearch(e.target.value)}
-                                                    className="pl-8"
+                                                    className="pl-8 text-xs sm:text-sm"
                                                 />
                                             </div>
                                         </div>
@@ -701,7 +746,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                             </Label>
                                         </div>
 
-                                        <div className="border rounded-xl p-3 bg-muted/20 max-h-52 overflow-y-auto space-y-1.5">
+                                        <div className="border rounded-xl p-3 bg-muted/20 max-h-48 overflow-y-auto space-y-1.5">
                                             {filteredStudents.length === 0 ? (
                                                 <div className="text-center py-4 text-xs text-muted-foreground">
                                                     {t('drivings.no_students', 'O\'quvchilar topilmadi')}
@@ -739,65 +784,67 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                     </div>
                                 </div>
 
-                                <div>
-                                    <Label htmlFor="autodrome_id">{t('drivings.autodrome', 'Avtodrom')}</Label>
-                                    <select
-                                        id="autodrome_id"
-                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                        value={data.autodrome_id}
-                                        onChange={e => setData('autodrome_id', e.target.value)}
-                                    >
-                                        <option value="">{t('common.select', '-- Tanlang --')}</option>
-                                        {autodromes.map(a => (
-                                            <option key={a.id} value={a.id}>{a.name}</option>
-                                        ))}
-                                    </select>
-                                    {errors.autodrome_id && <div className="text-destructive text-sm mt-1">{errors.autodrome_id}</div>}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <Label htmlFor="autodrome_id">{t('drivings.autodrome', 'Avtodrom')}</Label>
+                                        <select
+                                            id="autodrome_id"
+                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            value={data.autodrome_id}
+                                            onChange={e => setData('autodrome_id', e.target.value)}
+                                        >
+                                            <option value="">{t('common.select', '-- Tanlang --')}</option>
+                                            {autodromes.map(a => (
+                                                <option key={a.id} value={a.id}>{a.name}</option>
+                                            ))}
+                                        </select>
+                                        {errors.autodrome_id && <div className="text-destructive text-sm mt-1">{errors.autodrome_id}</div>}
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="date">{t('drivings.date', 'Sana')}</Label>
+                                        <DatePicker 
+                                            id="date" 
+                                            value={data.date} 
+                                            onChange={(val) => setData('date', val)} 
+                                            placeholder="DD-MM-YYYY"
+                                            className="w-full"
+                                            required 
+                                        />
+                                        {errors.start_time && <div className="text-destructive text-sm mt-1">{errors.start_time}</div>}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <Label htmlFor="time_from">{t('drivings.start_time', 'Boshlanish vaqti')}</Label>
+                                        <Input 
+                                            type="text" 
+                                            id="time_from" 
+                                            value={data.time_from} 
+                                            onChange={e => handleTimeChange('time_from', e.target.value)} 
+                                            placeholder="09:00"
+                                            pattern="^([01]\d|2[0-3]):([0-5]\d)$"
+                                            title="09:00"
+                                            required 
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="time_to">{t('drivings.end_time', 'Tugash vaqti')}</Label>
+                                        <Input 
+                                            type="text" 
+                                            id="time_to" 
+                                            value={data.time_to} 
+                                            onChange={e => handleTimeChange('time_to', e.target.value)} 
+                                            placeholder="18:30"
+                                            pattern="^([01]\d|2[0-3]):([0-5]\d)$"
+                                            title="18:30"
+                                            required 
+                                        />
+                                        {errors.end_time && <div className="text-destructive text-sm mt-1">{errors.end_time}</div>}
+                                    </div>
                                 </div>
                             </>
                         )}
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <Label htmlFor="date">{t('drivings.date', 'Sana')}</Label>
-                                <DatePicker 
-                                    id="date" 
-                                    value={data.date} 
-                                    onChange={(val) => setData('date', val)} 
-                                    placeholder="DD-MM-YYYY"
-                                    className="w-full"
-                                    required 
-                                />
-                                {errors.start_time && <div className="text-destructive text-sm mt-1">{errors.start_time}</div>}
-                            </div>
-                            <div>
-                                <Label htmlFor="time_from">{t('drivings.start_time', 'Boshlanish vaqti')}</Label>
-                                <Input 
-                                    type="text" 
-                                    id="time_from" 
-                                    value={data.time_from} 
-                                    onChange={e => handleTimeChange('time_from', e.target.value)} 
-                                    placeholder="09:00"
-                                    pattern="^([01]\d|2[0-3]):([0-5]\d)$"
-                                    title="09:00"
-                                    required 
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="time_to">{t('drivings.end_time', 'Tugash vaqti')}</Label>
-                                <Input 
-                                    type="text" 
-                                    id="time_to" 
-                                    value={data.time_to} 
-                                    onChange={e => handleTimeChange('time_to', e.target.value)} 
-                                    placeholder="18:30"
-                                    pattern="^([01]\d|2[0-3]):([0-5]\d)$"
-                                    title="18:30"
-                                    required 
-                                />
-                                {errors.end_time && <div className="text-destructive text-sm mt-1">{errors.end_time}</div>}
-                            </div>
-                        </div>
 
                         <div className="flex gap-2 pt-2 justify-end">
                             <Button type="button" variant="outline" onClick={closeForm}>{t('common.cancel', 'Bekor qilish')}</Button>
