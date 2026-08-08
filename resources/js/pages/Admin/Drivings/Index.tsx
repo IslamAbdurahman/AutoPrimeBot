@@ -368,12 +368,10 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                     <h1 className="text-2xl font-bold tracking-tight">{t('drivings.title', 'Amaliy mashg\'ulotlar')}</h1>
                     <p className="text-muted-foreground">{t('drivings.description', 'Mashg\'ulotlar ro\'yxati va holati')}</p>
                 </div>
-                {!isInstructor && (
-                    <Button onClick={() => setShowForm(true)} size="icon" className="shrink-0 sm:w-auto sm:px-4 sm:py-2">
-                        <Plus className="w-4 h-4 sm:mr-2" />
-                        <span className="hidden sm:inline">{t('drivings.new', 'Yangi mashg\'ulot')}</span>
-                    </Button>
-                )}
+                <Button onClick={() => setShowForm(true)} size="icon" className="shrink-0 sm:w-auto sm:px-4 sm:py-2">
+                    <Plus className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">{t('drivings.new', 'Yangi mashg\'ulot')}</span>
+                </Button>
             </div>
 
             {/* Filters Bar */}
@@ -613,139 +611,154 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        {!isInstructor && (
-                            <div>
-                                <Label htmlFor="instructor_id">{t('drivings.instructor', 'Instruktor')}</Label>
-                                <select 
-                                    id="instructor_id" 
-                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                    value={data.instructor_id} 
-                                    onChange={e => setData('instructor_id', e.target.value)} 
-                                    required
-                                >
-                                    <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
-                                    {instructors.map(i => (
-                                        <option key={i.id} value={i.id}>{i.name}</option>
-                                    ))}
-                                </select>
-                                {errors.instructor_id && <div className="text-destructive text-sm mt-1">{errors.instructor_id}</div>}
-                            </div>
-                        )}
-
-                        <div className="space-y-3">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {editing ? (
+                            <div className="bg-muted/40 p-3.5 rounded-xl border space-y-1.5 text-sm">
                                 <div>
-                                    <Label htmlFor="group_id">{t('drivings.group_optional', 'Guruh (Ixtiyoriy)')}</Label>
-                                    <select 
-                                        id="group_id" 
-                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                        value={data.group_id} 
-                                        onChange={e => {
-                                            const selectedGroupId = e.target.value;
-                                            setData(prev => ({
-                                                ...prev,
-                                                group_id: selectedGroupId,
-                                                student_ids: [],
-                                                student_id: ''
-                                            }));
-                                        }} 
-                                    >
-                                        <option value="">{t('students.all_groups', 'Barcha guruhlar')}</option>
-                                        {groups.map(g => (
-                                            <option key={g.id} value={g.id}>{g.name}</option>
-                                        ))}
-                                    </select>
+                                    <span className="text-muted-foreground">{t('drivings.student', 'O\'quvchi')}: </span>
+                                    <span className="font-semibold">{editing.student?.full_name || '-'}</span>
+                                    {editing.student?.phone && <span className="text-xs text-muted-foreground ml-1 font-mono">({editing.student.phone})</span>}
                                 </div>
-                                <div>
-                                    <Label htmlFor="student_search">{t('common.search', 'Qidirish')}</Label>
-                                    <div className="relative">
-                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            id="student_search"
-                                            placeholder={t('common.search_student', 'Talaba ismi yoki telefon...')}
-                                            value={studentSearch}
-                                            onChange={e => setStudentSearch(e.target.value)}
-                                            className="pl-8"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="flex justify-between items-center mb-1.5">
-                                    <Label className="text-sm font-semibold">
-                                        {editing ? t('drivings.student', 'O\'quvchi') : t('students.title', 'O\'quvchilar')}
-                                    </Label>
-                                </div>
-
-                                {editing ? (
-                                    <select 
-                                        id="student_id" 
-                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                        value={data.student_id} 
-                                        onChange={e => setData('student_id', e.target.value)} 
-                                        required
-                                    >
-                                        <option value="">{t('common.select', '-- Tanlang --')}</option>
-                                        {filteredStudents.map(s => (
-                                            <option key={s.id} value={s.id}>{s.full_name} {s.phone ? `(${s.phone})` : ''}</option>
-                                        ))}
-                                    </select>
-                                ) : (
-                                    <div className="border rounded-xl p-3 bg-muted/20 max-h-52 overflow-y-auto space-y-1.5">
-                                        {filteredStudents.length === 0 ? (
-                                            <div className="text-center py-4 text-xs text-muted-foreground">
-                                                {t('drivings.no_students', 'O\'quvchilar topilmadi')}
-                                            </div>
-                                        ) : (
-                                            filteredStudents.map(s => {
-                                                const isSelected = data.student_ids.includes(String(s.id));
-                                                return (
-                                                    <div 
-                                                        key={s.id} 
-                                                        onClick={() => handleStudentToggle(s.id)}
-                                                        className={`flex items-center justify-between p-2.5 rounded-lg border text-sm cursor-pointer transition-colors ${
-                                                            isSelected 
-                                                                ? 'bg-primary/10 border-primary text-primary font-medium' 
-                                                                : 'bg-card hover:bg-muted/50 border-border'
-                                                        }`}
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <div className={`w-4 h-4 rounded border flex items-center justify-center ${
-                                                                isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground/40'
-                                                            }`}>
-                                                                {isSelected && <span className="text-[10px] leading-none">✓</span>}
-                                                            </div>
-                                                            <span>{s.full_name}</span>
-                                                        </div>
-                                                        {s.phone && (
-                                                            <span className="text-xs text-muted-foreground font-mono">{s.phone}</span>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })
-                                        )}
+                                {editing.group && (
+                                    <div>
+                                        <span className="text-muted-foreground">{t('students.group', 'Guruh')}: </span>
+                                        <span className="font-medium">{editing.group.name}</span>
                                     </div>
                                 )}
-                                {errors.student_id && <div className="text-destructive text-sm mt-1">{errors.student_id}</div>}
+                                {editing.instructor && (
+                                    <div>
+                                        <span className="text-muted-foreground">{t('drivings.instructor', 'Instruktor')}: </span>
+                                        <span className="font-medium">{editing.instructor.name}</span>
+                                    </div>
+                                )}
+                                {editing.autodrome && (
+                                    <div>
+                                        <span className="text-muted-foreground">{t('drivings.autodrome', 'Avtodrom')}: </span>
+                                        <span className="font-medium">{editing.autodrome.name}</span>
+                                    </div>
+                                )}
                             </div>
-                        </div>
+                        ) : (
+                            <>
+                                {!isInstructor && (
+                                    <div>
+                                        <Label htmlFor="instructor_id">{t('drivings.instructor', 'Instruktor')}</Label>
+                                        <select 
+                                            id="instructor_id" 
+                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            value={data.instructor_id} 
+                                            onChange={e => setData('instructor_id', e.target.value)} 
+                                            required
+                                        >
+                                            <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
+                                            {instructors.map(i => (
+                                                <option key={i.id} value={i.id}>{i.name}</option>
+                                            ))}
+                                        </select>
+                                        {errors.instructor_id && <div className="text-destructive text-sm mt-1">{errors.instructor_id}</div>}
+                                    </div>
+                                )}
 
-                        <div>
-                            <Label htmlFor="autodrome_id">{t('drivings.autodrome', 'Avtodrom')}</Label>
-                            <select
-                                id="autodrome_id"
-                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                value={data.autodrome_id}
-                                onChange={e => setData('autodrome_id', e.target.value)}
-                            >
-                                <option value="">{t('common.select', '-- Tanlang --')}</option>
-                                {autodromes.map(a => (
-                                    <option key={a.id} value={a.id}>{a.name}</option>
-                                ))}
-                            </select>
-                            {errors.autodrome_id && <div className="text-destructive text-sm mt-1">{errors.autodrome_id}</div>}
-                        </div>
+                                <div className="space-y-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div>
+                                            <Label htmlFor="group_id">{t('drivings.group_optional', 'Guruh (Ixtiyoriy)')}</Label>
+                                            <select 
+                                                id="group_id" 
+                                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                value={data.group_id} 
+                                                onChange={e => {
+                                                    const selectedGroupId = e.target.value;
+                                                    setData(prev => ({
+                                                        ...prev,
+                                                        group_id: selectedGroupId,
+                                                        student_ids: [],
+                                                        student_id: ''
+                                                    }));
+                                                }} 
+                                            >
+                                                <option value="">{t('students.all_groups', 'Barcha guruhlar')}</option>
+                                                {groups.map(g => (
+                                                    <option key={g.id} value={g.id}>{g.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="student_search">{t('common.search', 'Qidirish')}</Label>
+                                            <div className="relative">
+                                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                <Input
+                                                    id="student_search"
+                                                    placeholder={t('common.search_student', 'Talaba ismi yoki telefon...')}
+                                                    value={studentSearch}
+                                                    onChange={e => setStudentSearch(e.target.value)}
+                                                    className="pl-8"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <Label className="text-sm font-semibold">
+                                                {t('students.title', 'O\'quvchilar')}
+                                            </Label>
+                                        </div>
+
+                                        <div className="border rounded-xl p-3 bg-muted/20 max-h-52 overflow-y-auto space-y-1.5">
+                                            {filteredStudents.length === 0 ? (
+                                                <div className="text-center py-4 text-xs text-muted-foreground">
+                                                    {t('drivings.no_students', 'O\'quvchilar topilmadi')}
+                                                </div>
+                                            ) : (
+                                                filteredStudents.map(s => {
+                                                    const isSelected = data.student_ids.includes(String(s.id));
+                                                    return (
+                                                        <div 
+                                                            key={s.id} 
+                                                            onClick={() => handleStudentToggle(s.id)}
+                                                            className={`flex items-center justify-between p-2.5 rounded-lg border text-sm cursor-pointer transition-colors ${
+                                                                isSelected 
+                                                                    ? 'bg-primary/10 border-primary text-primary font-medium' 
+                                                                    : 'bg-card hover:bg-muted/50 border-border'
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <div className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                                                    isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground/40'
+                                                                }`}>
+                                                                    {isSelected && <span className="text-[10px] leading-none">✓</span>}
+                                                                </div>
+                                                                <span>{s.full_name}</span>
+                                                            </div>
+                                                            {s.phone && (
+                                                                <span className="text-xs text-muted-foreground font-mono">{s.phone}</span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+                                        {errors.student_id && <div className="text-destructive text-sm mt-1">{errors.student_id}</div>}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="autodrome_id">{t('drivings.autodrome', 'Avtodrom')}</Label>
+                                    <select
+                                        id="autodrome_id"
+                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                        value={data.autodrome_id}
+                                        onChange={e => setData('autodrome_id', e.target.value)}
+                                    >
+                                        <option value="">{t('common.select', '-- Tanlang --')}</option>
+                                        {autodromes.map(a => (
+                                            <option key={a.id} value={a.id}>{a.name}</option>
+                                        ))}
+                                    </select>
+                                    {errors.autodrome_id && <div className="text-destructive text-sm mt-1">{errors.autodrome_id}</div>}
+                                </div>
+                            </>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
