@@ -117,6 +117,8 @@ Route::any('/register', function () {
 Route::get('/settings/profile', function () {})->name('settings.profile.edit');
 Route::get('/settings/security', function () {})->name('security.edit');
 Route::get('/settings/appearance', function () {})->name('appearance.edit');
+Route::get('/home', function () {})->name('home');
+
 // Public route for downloading Excel template (no auth required)
 Route::get('admin/groups/download-template', [GroupController::class, 'downloadTemplate'])->name('groups.download-template');
 
