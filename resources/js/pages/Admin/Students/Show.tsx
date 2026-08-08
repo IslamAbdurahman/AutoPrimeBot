@@ -327,10 +327,10 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
                 </table>
 
                 {/* Mobile Cards */}
-                <div className="md:hidden divide-y">
+                <div className="md:hidden p-3 space-y-3 bg-muted/20">
                     {drivings.data.length > 0 ? (
                         drivings.data.map((driving) => (
-                            <div key={driving.id} className="p-4 space-y-3">
+                            <div key={driving.id} className="p-4 space-y-3 bg-card border rounded-xl shadow-sm">
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <div className="font-semibold text-sm">

@@ -52,6 +52,7 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
     const [perPage, setPerPage] = useState(filters.per_page || '10');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null);
+    const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
     const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm({
         name: '',
@@ -104,6 +105,7 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (processing) return;
         if (editingAdmin) {
             put(`/admin/admins/${editingAdmin.id}`, {
                 onSuccess: () => {
@@ -132,14 +134,19 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
             toast.error(t('admins.cannot_delete_self', 'O\'z hisobingizni o\'chira olmaysiz'));
             return;
         }
+        if (isDeleting === admin.id) return;
 
         if (confirm(t('common.confirm_delete', 'Rostdan ham ushbu adminni o\'chirmoqchimisiz?'))) {
+            setIsDeleting(admin.id);
             router.delete(`/admin/admins/${admin.id}`, {
                 onSuccess: () => {
                     toast.success(t('common.deleted_success', 'Admin o\'chirildi'));
                 },
                 onError: () => {
                     toast.error(t('common.error', 'Xatolik yuz berdi'));
+                },
+                onFinish: () => {
+                    setIsDeleting(null);
                 }
             });
         }
@@ -338,7 +345,7 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                                                 size="icon"
                                                 className="text-destructive"
                                                 onClick={() => handleDelete(admin)}
-                                                disabled={auth.user.id === admin.id}
+                                                disabled={auth.user.id === admin.id || isDeleting === admin.id}
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </Button>
@@ -357,10 +364,10 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                 </table>
 
                 {/* Mobile Cards */}
-                <div className="md:hidden divide-y">
+                <div className="md:hidden p-3 space-y-3 bg-muted/20">
                     {admins.data.length > 0 ? (
                         admins.data.map((admin) => (
-                            <div key={admin.id} className="p-4 space-y-3">
+                            <div key={admin.id} className="p-4 space-y-3 bg-card border rounded-xl shadow-xs">
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <div className="font-semibold flex items-center gap-1.5">
@@ -389,7 +396,7 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                                         size="sm"
                                         className="text-destructive border-destructive/20 hover:bg-destructive/10"
                                         onClick={() => handleDelete(admin)}
-                                        disabled={auth.user.id === admin.id}
+                                        disabled={auth.user.id === admin.id || isDeleting === admin.id}
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </Button>
@@ -402,9 +409,9 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                         </div>
                     )}
                 </div>
-
-                <Pagination links={admins.links} />
             </div>
+
+            <Pagination links={admins.links} />
         </div>
     );
 }

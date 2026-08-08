@@ -68,6 +68,7 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
     const [editing, setEditing] = useState<Autodrome | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [locating, setLocating] = useState(false);
+    const [isDeleting, setIsDeleting] = useState<number | null>(null);
     
     // Default to Tashkent coordinates if no position is selected
     const defaultCenter = useMemo(() => new L.LatLng(41.2995, 69.2401), []);
@@ -113,9 +114,10 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
 
     const handleLocateMe = () => {
         if (!navigator.geolocation) {
-            toast.error("Qurilmangizda geolokatsiya qo'llab-quvvatlanmaydi");
+            toast.error(t('autodromes.geolocation_not_supported', 'Brauzeringiz geolokatsiyani qo\'llab-quvvatlamaydi'));
             return;
         }
+
         setLocating(true);
         navigator.geolocation.getCurrentPosition(
             (pos) => {
@@ -126,7 +128,7 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
             },
             (err) => {
                 setLocating(false);
-                toast.error("Joylashuvni aniqlab bo'lmadi: " + err.message);
+                toast.error(t('autodromes.geolocation_denied', 'Joylashuvni aniqlab bo\'lmadi. Ruxsat berilganligini tekshiring.'));
             },
             { enableHighAccuracy: true }
         );
@@ -134,6 +136,7 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (processing) return;
         if (editing) {
             put('/admin/autodromes/' + editing.id, {
                 onSuccess: () => {
@@ -166,10 +169,13 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
     };
 
     const handleDelete = (id: number) => {
+        if (isDeleting === id) return;
         if (confirm(t('common.confirm_delete', "Rostdan ham o'chirmoqchimisiz?"))) {
+            setIsDeleting(id);
             destroy('/admin/autodromes/' + id, {
                 onSuccess: () => toast.success(t('common.delete', "O'chirildi")),
                 onError: (err) => toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi')),
+                onFinish: () => setIsDeleting(null),
             });
         }
     };
@@ -302,8 +308,8 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                                             <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
                                                 <Edit2 className="w-4 h-4 text-blue-500" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)}>
-                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
+                                                <Trash2 className="w-4 h-4" />
                                             </Button>
                                         </div>
                                     </td>
@@ -314,14 +320,14 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                 </table>
 
                 {/* Mobile Cards */}
-                <div className="md:hidden divide-y">
+                <div className="md:hidden p-3 space-y-3 bg-muted/20">
                     {autodromes.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground text-sm">
                             {t('common.no_data', 'Ma\'lumot topilmadi')}
                         </div>
                     ) : (
                         autodromes.map((item) => (
-                            <div key={item.id} className="p-4 space-y-3">
+                            <div key={item.id} className="p-4 space-y-3 bg-card border rounded-xl shadow-xs">
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <div className="font-semibold text-lg">{item.name}</div>
@@ -345,7 +351,7 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                                     <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
                                         <Edit2 className="w-4 h-4 mr-1.5 text-blue-500" /> {t('common.edit', 'Tahrirlash')}
                                     </Button>
-                                    <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)}>
+                                    <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
                                         <Trash2 className="w-4 h-4" />
                                     </Button>
                                 </div>

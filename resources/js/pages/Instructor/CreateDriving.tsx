@@ -33,6 +33,7 @@ export default function CreateDriving({ groups = [] }: PageProps) {
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
+        if (processing) return;
         post('/instructor/drivings');
     };
 

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/themes/light.css';
 import { Head, useForm, router } from '@inertiajs/react';
+import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Edit2, Plus, Search, AlertTriangle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -61,6 +62,8 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
     const { t } = useTranslation();
     const [editing, setEditing] = useState<Instructor | null>(null);
     const [showForm, setShowForm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState<number | null>(null);
+
     const [search, setSearch] = useState(filters.search || '');
     const [from, setFrom] = useState(filters.from || '');
     const [to, setTo] = useState(filters.to || '');
@@ -80,13 +83,26 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (processing) return;
         if (editing) {
             put('/admin/instructors/' + editing.id, {
-                onSuccess: () => closeForm(),
+                onSuccess: () => {
+                    closeForm();
+                    toast.success(t('instructors.updated_success', 'Instruktor muvaffaqiyatli yangilandi'));
+                },
+                onError: (err) => {
+                    toast.error(Object.values(err)[0] as string || t('instructors.error', 'Xatolik yuz berdi'));
+                }
             });
         } else {
             post('/admin/instructors', {
-                onSuccess: () => closeForm(),
+                onSuccess: () => {
+                    closeForm();
+                    toast.success(t('instructors.created_success', 'Instruktor muvaffaqiyatli yaratildi'));
+                },
+                onError: (err) => {
+                    toast.error(Object.values(err)[0] as string || t('instructors.error', 'Xatolik yuz berdi'));
+                }
             });
         }
     };
@@ -103,8 +119,14 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
     };
 
     const handleDelete = (id: number) => {
+        if (isDeleting === id) return;
         if (confirm(t('common.confirm_delete', 'Rostdan ham o\'chirmoqchimisiz?'))) {
-            destroy('/admin/instructors/' + id);
+            setIsDeleting(id);
+            destroy('/admin/instructors/' + id, {
+                onSuccess: () => toast.success(t('instructors.deleted_success', 'Instruktor o\'chirildi')),
+                onError: (err) => toast.error(Object.values(err)[0] as string || t('instructors.error', 'Xatolik yuz berdi')),
+                onFinish: () => setIsDeleting(null),
+            });
         }
     };
 
@@ -343,7 +365,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                         <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
                                             <Edit2 className="w-4 h-4" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)}>
+                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
                                             <Trash2 className="w-4 h-4" />
                                         </Button>
                                     </div>
@@ -354,9 +376,9 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                 </table>
                 
                 {/* Mobile Cards */}
-                <div className="md:hidden divide-y">
+                <div className="md:hidden p-3 space-y-3 bg-muted/20">
                     {instructors.data.map((item) => (
-                        <div key={item.id} className="p-4 space-y-3">
+                        <div key={item.id} className="p-4 space-y-3 bg-card border rounded-xl shadow-xs">
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-2">
                                     {item.needs_attention && <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />}
@@ -419,7 +441,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                 <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
                                     <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
                                 </Button>
-                                <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)}>
+                                <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
                                     <Trash2 className="w-4 h-4" />
                                 </Button>
                             </div>

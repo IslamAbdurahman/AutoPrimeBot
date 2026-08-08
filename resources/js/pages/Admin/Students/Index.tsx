@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Head, useForm, router, Link } from '@inertiajs/react';
+import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Edit2, Plus, Search, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -56,6 +57,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
     const { t } = useTranslation();
     const [editing, setEditing] = useState<Student | null>(null);
     const [showForm, setShowForm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState<number | null>(null);
     
     const [search, setSearch] = useState(filters.search || '');
     const [groupId, setGroupId] = useState(filters.group_id || '');
@@ -79,13 +81,26 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (processing) return;
         if (editing) {
             put('/admin/students/' + editing.id, {
-                onSuccess: () => closeForm(),
+                onSuccess: () => {
+                    closeForm();
+                    toast.success(t('students.updated_success', 'O\'quvchi muvaffaqiyatli yangilandi'));
+                },
+                onError: (err) => {
+                    toast.error(Object.values(err)[0] as string || t('students.error', 'Xatolik yuz berdi'));
+                }
             });
         } else {
             post('/admin/students', {
-                onSuccess: () => closeForm(),
+                onSuccess: () => {
+                    closeForm();
+                    toast.success(t('students.created_success', 'O\'quvchi muvaffaqiyatli yaratildi'));
+                },
+                onError: (err) => {
+                    toast.error(Object.values(err)[0] as string || t('students.error', 'Xatolik yuz berdi'));
+                }
             });
         }
     };
@@ -102,8 +117,14 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
     };
 
     const handleDelete = (id: number) => {
+        if (isDeleting === id) return;
         if (confirm(t('common.confirm_delete', 'Rostdan ham o\'chirmoqchimisiz?'))) {
-            destroy('/admin/students/' + id);
+            setIsDeleting(id);
+            destroy('/admin/students/' + id, {
+                onSuccess: () => toast.success(t('students.deleted_success', 'O\'quvchi o\'chirildi')),
+                onError: (err) => toast.error(Object.values(err)[0] as string || t('students.error', 'Xatolik yuz berdi')),
+                onFinish: () => setIsDeleting(null),
+            });
         }
     };
 
@@ -313,7 +334,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                                         <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
                                             <Edit2 className="w-4 h-4" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)}>
+                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
                                             <Trash2 className="w-4 h-4" />
                                         </Button>
                                     </div>
@@ -324,9 +345,9 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                 </table>
                 
                 {/* Mobile Cards */}
-                <div className="md:hidden divide-y">
+                <div className="md:hidden p-3 space-y-3 bg-muted/20">
                     {students.data.map((item) => (
-                        <div key={item.id} className="p-4 space-y-2">
+                        <div key={item.id} className="p-4 space-y-3 bg-card border rounded-xl shadow-xs">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <Link href={`/admin/students/${item.id}`} className="font-semibold text-lg text-primary hover:underline">
@@ -336,7 +357,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                                 </div>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-2 text-sm mt-2">
+                            <div className="grid grid-cols-2 gap-2 text-sm">
                                 <div>
                                     <span className="text-muted-foreground text-xs block">{t('students.group', 'Guruh')}:</span>
                                     <div className="font-medium">
@@ -368,7 +389,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                                 <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
                                     <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
                                 </Button>
-                                <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)}>
+                                <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
                                     <Trash2 className="w-4 h-4" />
                                 </Button>
                             </div>

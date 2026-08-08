@@ -166,26 +166,28 @@ export default function GroupShow({ group, students }: PageProps) {
                                 </table>
 
                                 {/* Mobile Cards */}
-                                <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-700/50">
+                                <div className="md:hidden p-3 space-y-3 bg-muted/20">
                                     {students.length === 0 ? (
-                                        <div className="p-6 text-center text-gray-500 dark:text-gray-400 text-sm">
+                                        <div className="p-6 text-center text-muted-foreground text-sm">
                                             Guruhda hozircha talabalar yo'q. Excel orqali yuklang.
                                         </div>
                                     ) : (
                                         students.map((student, index) => (
-                                            <div key={student.id} className="p-4 space-y-2">
+                                            <div key={student.id} className="p-4 space-y-2 bg-card border rounded-xl shadow-xs">
                                                 <div className="flex justify-between items-start">
                                                     <div>
-                                                        <div className="font-semibold text-gray-900 dark:text-white">{index + 1}. {student.full_name}</div>
-                                                        <div className="text-sm text-gray-500 dark:text-gray-400">{student.phone || '-'}</div>
+                                                        <div className="font-semibold">{index + 1}. {student.full_name}</div>
+                                                        <div className="text-sm text-muted-foreground">{student.phone || '-'}</div>
                                                     </div>
-                                                    <div>
-                                                        <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded block text-center mb-1">
+                                                    <div className="text-right">
+                                                        <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded inline-block mb-1">
                                                             {student.gender === 'female' ? 'Ayol' : 'Erkak'}
                                                         </span>
-                                                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                                            {student.completed_drivings_count || 0} dars
-                                                        </span>
+                                                        <div>
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                                                {student.completed_drivings_count || 0} dars
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

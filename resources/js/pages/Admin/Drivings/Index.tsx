@@ -55,6 +55,7 @@ interface Driving {
     student?: Student;
     group?: Group;
     instructor?: Instructor;
+    autodrome?: Autodrome;
     review?: {
         rating: number;
         reason_tags?: string[];
@@ -93,6 +94,8 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     const [showForm, setShowForm] = useState(false);
     const [statusModalDriving, setStatusModalDriving] = useState<Driving | null>(null);
     const [targetStatus, setTargetStatus] = useState<'completed' | 'cancelled' | null>(null);
+    const [isStatusUpdating, setIsStatusUpdating] = useState(false);
+    const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || '');
@@ -134,6 +137,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (processing) return;
         if (editing) {
             put('/admin/drivings/' + editing.id, {
                 onSuccess: () => {
@@ -197,17 +201,21 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
             toast.error(t('drivings.delete_reviewed_error', 'Tugallangan yoki bekor qilingan mashg\'ulotni o\'chirish mumkin emas'));
             return;
         }
+        if (isDeleting === driving.id) return;
         if (confirm(t('common.confirm_delete', 'Rostdan ham o\'chirmoqchimisiz?'))) {
+            setIsDeleting(driving.id);
             destroy('/admin/drivings/' + driving.id, {
                 onSuccess: () => toast.success(t('drivings.deleted_success', 'Mashg\'ulot o\'chirildi')),
                 onError: (err) => toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi')),
+                onFinish: () => setIsDeleting(null),
             });
         }
     };
 
     const handleStatusChangeConfirm = () => {
-        if (!statusModalDriving || !targetStatus) return;
+        if (!statusModalDriving || !targetStatus || isStatusUpdating) return;
 
+        setIsStatusUpdating(true);
         router.put('/admin/drivings/' + statusModalDriving.id, {
             start_time: statusModalDriving.start_time,
             end_time: statusModalDriving.end_time,
@@ -223,6 +231,9 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
             },
             onError: (err) => {
                 toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi'));
+            },
+            onFinish: () => {
+                setIsStatusUpdating(false);
             }
         });
     };
@@ -655,9 +666,10 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                             type="button"
                             variant={targetStatus === 'completed' ? 'default' : 'destructive'}
                             className={targetStatus === 'completed' ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
+                            disabled={isStatusUpdating}
                             onClick={handleStatusChangeConfirm}
                         >
-                            {targetStatus === 'completed' ? t('drivings.yes_finish', 'Ha, tugatish') : t('drivings.yes_cancel', 'Ha, bekor qilish')}
+                            {isStatusUpdating ? t('common.saving', 'Saqlanmoqda...') : (targetStatus === 'completed' ? t('drivings.yes_finish', 'Ha, tugatish') : t('drivings.yes_cancel', 'Ha, bekor qilish'))}
                         </Button>
                     </div>
                 </DialogContent>
@@ -668,120 +680,136 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                 <table className="hidden md:table w-full text-sm text-left">
                     <thead className="bg-muted/50 text-muted-foreground">
                         <tr>
-                            <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
-                            <th className="px-4 py-3 font-medium">{t('drivings.date_time', 'Sana/Vaqt')}</th>
-                            <th className="px-4 py-3 font-medium">{t('drivings.student_group', 'O\'quvchi / Guruh')}</th>
-                            <th className="px-4 py-3 font-medium">{t('drivings.instructor', 'Instruktor')}</th>
-                            <th className="px-4 py-3 font-medium">{t('common.status', 'Holati')}</th>
-                            <th className="px-4 py-3 font-medium text-center">{t('drivings.review', 'Baho va Fikr')}</th>
-                            <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>
+                            <th className="p-4">{t('drivings.student', 'Talaba')}</th>
+                            <th className="p-4">{t('drivings.instructor', 'Instruktor')}</th>
+                            <th className="p-4">{t('students.group', 'Guruh')}</th>
+                            <th className="p-4">{t('drivings.autodrome', 'Avtodrom')}</th>
+                            <th className="p-4">{t('drivings.date_time', 'Sana va Vaqt')}</th>
+                            <th className="p-4">{t('common.status', 'Holat')}</th>
+                            <th className="p-4">{t('drivings.rating', 'Baho')}</th>
+                            <th className="p-4 text-right">{t('common.actions', 'Amallar')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
-                        {drivings.data.map((driving, index) => (
-                            <tr key={driving.id} className="hover:bg-muted/30">
-                                <td className="px-4 py-3">{(drivings.from || 1) + index}</td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                    <div className="font-medium">
-                                        {(() => {
-                                            const d = new Date(driving.start_time);
-                                            const dd = String(d.getDate()).padStart(2, '0');
-                                            const mm = String(d.getMonth() + 1).padStart(2, '0');
-                                            const yyyy = d.getFullYear();
-                                            return `${dd}-${mm}-${yyyy}`;
-                                        })()}
-                                    </div>
-                                    <div className="text-muted-foreground">
-                                        {new Date(driving.start_time).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })} 
-                                        {' - '} 
-                                        {new Date(driving.end_time).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
-                                    </div>
-                                </td>
-                                <td className="px-4 py-3">
-                                    <div className="font-medium">{driving.student?.full_name || '-'} {driving.student?.phone ? `(${driving.student.phone})` : ''}</div>
-                                    <div className="text-xs px-2 py-0.5 mt-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded inline-block">
-                                        {driving.group?.name || t('students.no_group', 'Guruhsiz')}
-                                    </div>
-                                </td>
-                                <td className="px-4 py-3">{driving.instructor?.name || '-'}</td>
-                                <td className="px-4 py-3">
-                                    {driving.status === 'scheduled' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">{t('status.scheduled', 'Rejada')}</span>}
-                                    {driving.status === 'completed' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">{t('status.completed', 'Tugagan')}</span>}
-                                    {driving.status === 'cancelled' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">{t('status.cancelled', 'Bekor qilingan')}</span>}
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                    {driving.review ? (
-                                        <div className="flex flex-col items-center gap-1">
-                                            <div className="flex items-center text-yellow-500 font-bold">
-                                                {driving.review.rating} ⭐
-                                            </div>
-                                            {driving.review.reason_tags && driving.review.reason_tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-1 justify-center max-w-[150px]">
-                                                    {driving.review.reason_tags.map((tag, i) => (
-                                                        <span key={i} className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground whitespace-nowrap">
-                                                            {tag}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <span className="text-muted-foreground">-</span>
-                                    )}
-                                </td>
-                                <td className="px-4 py-3 text-right">
-                                    <div className="flex justify-end gap-1.5 items-center">
-                                        {driving.status === 'scheduled' && (
-                                            <>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30"
-                                                    onClick={() => { setStatusModalDriving(driving); setTargetStatus('completed'); }}
-                                                    title={t('status.completed', 'Tugatish')}
-                                                >
-                                                    <CheckCircle2 className="w-4 h-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-                                                    onClick={() => { setStatusModalDriving(driving); setTargetStatus('cancelled'); }}
-                                                    title={t('status.cancelled', 'Bekor qilish')}
-                                                >
-                                                    <XCircle className="w-4 h-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(driving)} title={t('common.edit', 'Tahrirlash')}>
-                                                    <Edit2 className="w-4 h-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(driving)} title={t('common.delete', 'O\'chirish')}>
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
-                                            </>
-                                        )}
-                                        {driving.status !== 'scheduled' && (
-                                            <span className="text-xs text-muted-foreground">-</span>
-                                        )}
-                                    </div>
+                        {drivings.data.length === 0 ? (
+                            <tr>
+                                <td colSpan={8} className="p-4 text-center text-muted-foreground">
+                                    {t('common.no_data', 'Ma\'lumot topilmadi')}
                                 </td>
                             </tr>
-                        ))}
+                        ) : (
+                            drivings.data.map((driving) => (
+                                <tr key={driving.id} className="hover:bg-muted/50 transition-colors">
+                                    <td className="p-4 font-medium">
+                                        <div>{driving.student?.full_name || '-'}</div>
+                                        <div className="text-xs text-muted-foreground">{driving.student?.phone || ''}</div>
+                                    </td>
+                                    <td className="p-4">{driving.instructor?.name || '-'}</td>
+                                    <td className="p-4">
+                                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded font-medium">
+                                            {driving.group?.name || t('students.no_group', 'Guruhsiz')}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-xs font-medium">{driving.autodrome?.name || '-'}</td>
+                                    <td className="p-4">
+                                        <div className="font-medium">
+                                            {(() => {
+                                                const d = new Date(driving.start_time);
+                                                const dd = String(d.getDate()).padStart(2, '0');
+                                                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                                                return `${dd}-${mm}-${d.getFullYear()}`;
+                                            })()}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                            {new Date(driving.start_time).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })} - {new Date(driving.end_time).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                    </td>
+                                    <td className="p-4">
+                                        {driving.status === 'scheduled' && <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">{t('status.scheduled', 'Rejada')}</span>}
+                                        {driving.status === 'completed' && <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">{t('status.completed', 'Tugagan')}</span>}
+                                        {driving.status === 'cancelled' && <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">{t('status.cancelled', 'Bekor qilingan')}</span>}
+                                    </td>
+                                    <td className="p-4">
+                                        {driving.review ? (
+                                            <div>
+                                                <div className="flex items-center text-yellow-500 font-bold">
+                                                    {driving.review.rating} ⭐
+                                                </div>
+                                                {driving.review.reason_tags && driving.review.reason_tags.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1 mt-1">
+                                                        {driving.review.reason_tags.map((tag, i) => (
+                                                            <span key={i} className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground border">
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <span className="text-muted-foreground text-xs">{t('drivings.no_review', 'Baholanmagan')}</span>
+                                        )}
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <div className="flex items-center justify-end gap-1.5">
+                                            {driving.status === 'scheduled' && (
+                                                <>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-green-600 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950/30"
+                                                        onClick={() => { setStatusModalDriving(driving); setTargetStatus('completed'); }}
+                                                        title={t('status.completed', 'Tugatish')}
+                                                    >
+                                                        <CheckCircle2 className="w-4 h-4 mr-1" /> {t('status.completed', 'Tugatish')}
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950/30"
+                                                        onClick={() => { setStatusModalDriving(driving); setTargetStatus('cancelled'); }}
+                                                        title={t('status.cancelled', 'Bekor qilish')}
+                                                    >
+                                                        <XCircle className="w-4 h-4 mr-1" /> {t('status.cancelled', 'Bekor qilish')}
+                                                    </Button>
+                                                    <Button variant="outline" size="sm" onClick={() => handleEdit(driving)} title={t('common.edit', 'Tahrirlash')}>
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-destructive border-destructive/20 hover:bg-destructive/10"
+                                                        onClick={() => handleDelete(driving)}
+                                                        disabled={isDeleting === driving.id}
+                                                        title={t('common.delete', 'O\'chirish')}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                </>
+                                            )}
+                                            {driving.status !== 'scheduled' && (
+                                                <span className="text-xs text-muted-foreground">-</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
                 
                 {/* Mobile Cards */}
-                <div className="md:hidden divide-y">
+                <div className="md:hidden p-3 space-y-3 bg-muted/20">
                     {drivings.data.map((driving) => (
-                        <div key={driving.id} className="p-4 space-y-3">
+                        <div key={driving.id} className="p-4 space-y-3 bg-card border rounded-xl shadow-xs">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <div className="font-semibold">{driving.student?.full_name || '-'}</div>
                                     <div className="text-sm text-muted-foreground">{driving.student?.phone || ''}</div>
                                 </div>
                                 <div>
-                                    {driving.status === 'scheduled' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">{t('status.scheduled', 'Rejada')}</span>}
-                                    {driving.status === 'completed' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">{t('status.completed', 'Tugagan')}</span>}
-                                    {driving.status === 'cancelled' && <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">{t('status.cancelled', 'Bekor qilingan')}</span>}
+                                    {driving.status === 'scheduled' && <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">{t('status.scheduled', 'Rejada')}</span>}
+                                    {driving.status === 'completed' && <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">{t('status.completed', 'Tugagan')}</span>}
+                                    {driving.status === 'cancelled' && <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">{t('status.cancelled', 'Bekor qilingan')}</span>}
                                 </div>
                             </div>
                             
@@ -861,6 +889,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                             size="icon"
                                             className="h-9 w-9 text-destructive border-destructive/20 hover:bg-destructive/10"
                                             onClick={() => handleDelete(driving)}
+                                            disabled={isDeleting === driving.id}
                                             title={t('common.delete', 'O\'chirish')}
                                         >
                                             <Trash2 className="w-4 h-4" />
