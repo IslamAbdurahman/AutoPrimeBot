@@ -66,6 +66,8 @@ class InstructorController extends Controller
         $instructors->getCollection()->transform(function ($instructor) {
             $studentsCount = $instructor->groups->sum('students_count');
             $totalDrivings = $instructor->drivings->count();
+            $completedDrivings = $instructor->drivings->where('status', 'completed')->count();
+            $scheduledDrivings = $instructor->drivings->where('status', 'scheduled')->count();
 
             $reviews = $instructor->drivings->pluck('review')->filter();
             $totalReviews = $reviews->count();
@@ -92,6 +94,8 @@ class InstructorController extends Controller
                 'groups_count' => $instructor->groups_count,
                 'students_count' => $studentsCount,
                 'total_drivings' => $totalDrivings,
+                'completed_drivings' => $completedDrivings,
+                'scheduled_drivings' => $scheduledDrivings,
                 'reviewed_drivings' => $totalReviews,
                 'total_score' => $totalScore,
                 'max_score' => $maxScore,

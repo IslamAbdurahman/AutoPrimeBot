@@ -34,6 +34,8 @@ interface Instructor {
     groups_count: number;
     students_count: number;
     total_drivings: number;
+    completed_drivings: number;
+    scheduled_drivings: number;
     reviewed_drivings: number;
     total_score: number;
     max_score: number;
@@ -334,19 +336,29 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                 <td className="px-4 py-3">{item.phone}</td>
                                 <td className="px-4 py-3 text-center">{item.groups_count}</td>
                                 <td className="px-4 py-3 text-center">{item.students_count}</td>
-                                <td className="px-4 py-3 text-center">{item.total_drivings}</td>
                                 <td className="px-4 py-3 text-center">
-                                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
-                                        item.reviewed_drivings > 0 && item.average_rating <= 3
-                                            ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border border-red-200'
-                                            : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
-                                    }`}>
-                                        {item.reviewed_drivings > 0 && item.average_rating <= 3 ? (
-                                            <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400 shrink-0" />
-                                        ) : (
-                                            <Star className="w-3.5 h-3.5 fill-current shrink-0" />
-                                        )}
-                                        <span>{item.average_rating}</span>
+                                    <div className="text-xs space-y-0.5 font-medium whitespace-nowrap">
+                                        <div className="text-blue-600 dark:text-blue-400">{item.total_drivings} dars belgilangan</div>
+                                        <div className="text-green-600 dark:text-green-400">{item.completed_drivings} ta yakunlangan</div>
+                                    </div>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <div className="font-bold text-xs text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 rounded">
+                                            ball {item.score_formatted}
+                                        </div>
+                                        <div className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
+                                            item.reviewed_drivings > 0 && item.average_rating <= 3
+                                                ? 'text-red-600 dark:text-red-400'
+                                                : 'text-muted-foreground'
+                                        }`}>
+                                            {item.reviewed_drivings > 0 && item.average_rating <= 3 ? (
+                                                <AlertTriangle className="w-3 h-3 text-red-600 shrink-0" />
+                                            ) : (
+                                                <Star className="w-3 h-3 fill-current text-yellow-500 shrink-0" />
+                                            )}
+                                            <span>{item.average_rating}</span>
+                                        </div>
                                     </div>
                                 </td>
                                 <td className="px-4 py-3 text-center">
@@ -384,56 +396,41 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                     {item.needs_attention && <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />}
                                     <div className="font-semibold text-lg">{item.name}</div>
                                 </div>
-                                <div className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold ${
-                                    item.reviewed_drivings > 0 && item.average_rating <= 3
-                                        ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border border-red-200'
-                                        : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
-                                }`}>
-                                    {item.reviewed_drivings > 0 && item.average_rating <= 3 ? (
-                                        <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400 shrink-0" />
-                                    ) : (
-                                        <Star className="w-3.5 h-3.5 fill-current shrink-0" />
-                                    )}
-                                    <span>{item.average_rating}</span>
+                                <div className="font-bold text-xs text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30 px-2 py-1 rounded-md">
+                                    ball {item.score_formatted}
                                 </div>
                             </div>
                             
                             <div className="text-sm text-muted-foreground">{item.phone}</div>
                             
-                            <div className="grid grid-cols-2 gap-2 text-sm border-y py-2">
+                            <div className="grid grid-cols-2 gap-2 text-sm border-y py-2.5">
                                 <div>
-                                    <span className="text-muted-foreground block text-xs">{t('instructors.groups_count', 'Guruhlar')}:</span>
-                                    <span className="font-medium">{item.groups_count}</span>
+                                    <span className="text-muted-foreground block text-xs">{t('instructors.groups_count', 'Guruhlar')} / {t('instructors.students_count', 'O\'quvchilar')}:</span>
+                                    <span className="font-medium text-xs">{item.groups_count} guruh ({item.students_count} o'quvchi)</span>
                                 </div>
                                 <div>
-                                    <span className="text-muted-foreground block text-xs">{t('instructors.students_count', 'O\'quvchilar')}:</span>
-                                    <span className="font-medium">{item.students_count}</span>
-                                </div>
-                                <div>
-                                    <span className="text-muted-foreground block text-xs">{t('instructors.drivings_count', 'Jami darslar')}:</span>
-                                    <span className="font-medium">{item.total_drivings}</span>
-                                </div>
-                                <div>
-                                    <span className="text-muted-foreground block text-xs">{t('instructors.reviewed_drivings', 'Baholangan darslar')}:</span>
-                                    <span className="font-medium text-green-600 dark:text-green-400">{item.reviewed_drivings}</span>
-                                </div>
-                                <div className="col-span-2 pt-1 mt-1 border-t">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-muted-foreground text-xs">{t('instructors.total_points', 'Umumiy ballar')}:</span>
-                                        <span className="font-semibold">{item.score_formatted}</span>
+                                    <span className="text-muted-foreground block text-xs">{t('instructors.rating', 'O\'rtacha reyting')}:</span>
+                                    <div className="flex items-center gap-1 font-semibold text-xs text-yellow-600 dark:text-yellow-400">
+                                        <Star className="w-3.5 h-3.5 fill-current" />
+                                        <span>{item.average_rating} ({item.reviewed_drivings} baho)</span>
                                     </div>
                                 </div>
-                                <div className="col-span-2 pt-1">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-muted-foreground text-xs">{t('instructors.kpi', 'KPI (%)')}:</span>
-                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                            item.kpi_percentage >= 80 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                                            item.kpi_percentage >= 50 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                                            'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                        }`}>
-                                            {item.kpi_percentage}%
-                                        </span>
+                                <div className="col-span-2 pt-2 border-t mt-1">
+                                    <span className="text-muted-foreground block text-xs mb-1">{t('instructors.drivings_stats', 'Darslar proporsiyasi')}:</span>
+                                    <div className="flex justify-between items-center text-xs font-semibold">
+                                        <span className="text-blue-600 dark:text-blue-400">{item.total_drivings} dars belgilangan</span>
+                                        <span className="text-green-600 dark:text-green-400">{item.completed_drivings} ta yakunlangan</span>
                                     </div>
+                                </div>
+                                <div className="col-span-2 pt-1.5 flex justify-between items-center">
+                                    <span className="text-muted-foreground text-xs">{t('instructors.kpi', 'KPI (%)')}:</span>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                        item.kpi_percentage >= 80 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                                        item.kpi_percentage >= 50 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                                        'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                    }`}>
+                                        {item.kpi_percentage}%
+                                    </span>
                                 </div>
                             </div>
                             
