@@ -65,6 +65,9 @@ interface Driving {
 interface Autodrome {
     id: number;
     name: string;
+    latitude?: number;
+    longitude?: number;
+    radius_meters?: number;
 }
 
 interface PageProps {
@@ -215,27 +218,52 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     const handleStatusChangeConfirm = () => {
         if (!statusModalDriving || !targetStatus || isStatusUpdating) return;
 
-        setIsStatusUpdating(true);
-        router.put('/admin/drivings/' + statusModalDriving.id, {
-            start_time: statusModalDriving.start_time,
-            end_time: statusModalDriving.end_time,
-            status: targetStatus,
-        }, {
-            onSuccess: () => {
-                setStatusModalDriving(null);
-                setTargetStatus(null);
-                toast.success(targetStatus === 'completed'
-                    ? t('drivings.status_completed_success', 'Mashg\'ulot yakunlandi')
-                    : t('drivings.status_cancelled_success', 'Mashg\'ulot bekor qilindi')
-                );
-            },
-            onError: (err) => {
-                toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi'));
-            },
-            onFinish: () => {
-                setIsStatusUpdating(false);
+        const performUpdate = (lat?: number, lng?: number) => {
+            setIsStatusUpdating(true);
+            router.put('/admin/drivings/' + statusModalDriving.id, {
+                start_time: statusModalDriving.start_time,
+                end_time: statusModalDriving.end_time,
+                status: targetStatus,
+                latitude: lat,
+                longitude: lng,
+            }, {
+                onSuccess: () => {
+                    setStatusModalDriving(null);
+                    setTargetStatus(null);
+                    toast.success(targetStatus === 'completed'
+                        ? t('drivings.status_completed_success', 'Mashg\'ulot yakunlandi')
+                        : t('drivings.status_cancelled_success', 'Mashg\'ulot bekor qilindi')
+                    );
+                },
+                onError: (err) => {
+                    toast.error(Object.values(err)[0] || t('drivings.error', 'Xatolik yuz berdi'));
+                },
+                onFinish: () => {
+                    setIsStatusUpdating(false);
+                }
+            });
+        };
+
+        if (targetStatus === 'completed') {
+            if (!navigator.geolocation) {
+                toast.error(t('drivings.geolocation_not_supported', 'Brauzeringiz geolokatsiyani qo\'llab-quvvatlamaydi.'));
+                return;
             }
-        });
+
+            setIsStatusUpdating(true);
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    performUpdate(pos.coords.latitude, pos.coords.longitude);
+                },
+                (err) => {
+                    setIsStatusUpdating(false);
+                    toast.error(t('drivings.geolocation_denied', 'Joylashuvni aniqlab bo\'lmadi. Mashg\'ulotni yakunlash uchun geolokatsiyani yoqing va ruxsat bering.'));
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        } else {
+            performUpdate();
+        }
     };
 
     const closeForm = () => {
@@ -657,6 +685,18 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                 : t('drivings.confirm_cancel', 'Rostdan ham ushbu mashg\'ulotni bekor qilmoqchimisiz?')}
                         </DialogDescription>
                     </DialogHeader>
+
+                    {targetStatus === 'completed' && statusModalDriving?.autodrome && (
+                        <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                            <div className="font-semibold flex items-center gap-1.5">
+                                <span>📍</span>
+                                <span>{statusModalDriving.autodrome.name} ({statusModalDriving.autodrome.radius_meters}m)</span>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground">
+                                Mashg'ulotni yakunlash uchun avtodrom belgilangan hududida bo'lishingiz shart. GPS joylashuvingiz tekshiriladi.
+                            </p>
+                        </div>
+                    )}
 
                     <div className="flex gap-2 pt-4 justify-end">
                         <Button type="button" variant="outline" onClick={() => { setStatusModalDriving(null); setTargetStatus(null); }}>

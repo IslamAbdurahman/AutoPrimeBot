@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Head, useForm, router, Link } from '@inertiajs/react';
+import { Head, useForm, router, Link, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Edit2, Plus, Search, Eye } from 'lucide-react';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Pagination from '@/components/pagination';
+import { SharedData } from '@/types/auth';
 import {
     Dialog,
     DialogContent,
@@ -55,6 +56,9 @@ interface PageProps {
 
 export default function StudentsIndex({ students, groups, filters = {} }: PageProps) {
     const { t } = useTranslation();
+    const { auth } = usePage<SharedData>().props;
+    const isInstructor = auth?.user?.role === 'instructor';
+
     const [editing, setEditing] = useState<Student | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [isDeleting, setIsDeleting] = useState<number | null>(null);
@@ -238,10 +242,12 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                                 </div>
                             </SheetContent>
                         </Sheet>
-                        <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
-                            <Plus className="w-4 h-4 md:mr-2" /> 
-                            <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
-                        </Button>
+                        {!isInstructor && (
+                            <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
+                                <Plus className="w-4 h-4 md:mr-2" /> 
+                                <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -249,20 +255,18 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
             <Dialog open={showForm} onOpenChange={(open) => !open && closeForm()}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{editing ? t('common.edit', 'Tahrirlash') : t('students.new', 'Yangi O\'quvchi')}</DialogTitle>
-                        <DialogDescription className="sr-only">
-                            {editing ? t('common.edit', 'Tahrirlash') : t('common.add', 'Qo\'shish')}
-                        </DialogDescription>
+                        <DialogTitle>{editing ? t('students.edit', 'O\'quvchini tahrirlash') : t('students.new', 'Yangi o\'quvchi qo\'shish')}</DialogTitle>
+                        <DialogDescription>{t('students.form_desc', 'O\'quvchi ma\'lumotlarini kiriting')}</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <Label htmlFor="full_name">{t('students.full_name', 'F.I.SH')}</Label>
-                            <Input id="full_name" value={data.full_name} onChange={e => setData('full_name', e.target.value)} />
+                            <Input id="full_name" value={data.full_name} onChange={e => setData('full_name', e.target.value)} required />
                             {errors.full_name && <div className="text-destructive text-sm mt-1">{errors.full_name}</div>}
                         </div>
                         <div>
                             <Label htmlFor="phone">{t('students.phone', 'Telefon')} (Masalan: +998901234567)</Label>
-                            <Input id="phone" value={data.phone} onChange={e => setData('phone', e.target.value)} />
+                            <Input id="phone" value={data.phone} onChange={e => setData('phone', e.target.value)} required />
                             {errors.phone && <div className="text-destructive text-sm mt-1">{errors.phone}</div>}
                         </div>
                         <div>
@@ -296,7 +300,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
             <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
                 {/* Desktop Table */}
                 <table className="hidden md:table w-full text-sm text-left">
-                    <thead className="bg-muted/50 text-muted-foreground">
+                    <thead className="bg-muted/50 text-muted-foreground border-b">
                         <tr>
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
                             <th className="px-4 py-3 font-medium">{t('students.full_name', 'F.I.SH')}</th>
@@ -331,12 +335,16 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                                                 <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                                            <Edit2 className="w-4 h-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
+                                        {!isInstructor && (
+                                            <>
+                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                                                    <Edit2 className="w-4 h-4" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -386,12 +394,16 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                                         <Eye className="w-4 h-4 mr-1.5" /> {t('common.view', 'Ko\'rish')}
                                     </Link>
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
-                                    <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
-                                </Button>
-                                <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
+                                {!isInstructor && (
+                                    <>
+                                        <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
+                                            <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     ))}

@@ -63,6 +63,10 @@ class StudentController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->user()->role === 'instructor') {
+            abort(403, 'Instruktorlar faqat mashg\'ulotlar (drivings) bo\'limida amaliyot bajara oladi.');
+        }
+
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:students',
@@ -77,6 +81,10 @@ class StudentController extends Controller
 
     public function update(Request $request, Student $student)
     {
+        if ($request->user()->role === 'instructor') {
+            abort(403, 'Instruktorlar faqat mashg\'ulotlar (drivings) bo\'limida amaliyot bajara oladi.');
+        }
+
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:students,phone,'.$student->id,
@@ -130,8 +138,12 @@ class StudentController extends Controller
         ]);
     }
 
-    public function destroy(Student $student)
+    public function destroy(Student $student, Request $request)
     {
+        if ($request->user()->role === 'instructor') {
+            abort(403, 'Instruktorlar faqat mashg\'ulotlar (drivings) bo\'limida amaliyot bajara oladi.');
+        }
+
         $student->delete();
 
         return redirect()->back();

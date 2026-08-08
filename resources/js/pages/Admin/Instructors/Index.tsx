@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/themes/light.css';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Edit2, Plus, Search, AlertTriangle, Star } from 'lucide-react';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Pagination from '@/components/pagination';
+import { SharedData } from '@/types/auth';
 import {
     Dialog,
     DialogContent,
@@ -40,7 +41,8 @@ interface Instructor {
     max_score: number;
     score_formatted: string;
     average_rating: number;
-    is_low_rating?: boolean;
+    negative_tags_count: number;
+    is_low_rating: boolean;
     needs_attention: boolean;
 }
 
@@ -60,6 +62,9 @@ interface PageProps {
 
 export default function InstructorsIndex({ instructors, filters = {} }: PageProps) {
     const { t } = useTranslation();
+    const { auth } = usePage<SharedData>().props;
+    const isInstructor = auth?.user?.role === 'instructor';
+    
     const [editing, setEditing] = useState<Instructor | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [isDeleting, setIsDeleting] = useState<number | null>(null);
@@ -254,10 +259,12 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             </SheetContent>
                         </Sheet>
                         
-                        <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
-                            <Plus className="w-4 h-4 md:mr-2" /> 
-                            <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
-                        </Button>
+                        {!isInstructor && (
+                            <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
+                                <Plus className="w-4 h-4 md:mr-2" /> 
+                                <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -273,34 +280,25 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <Label htmlFor="name">{t('instructors.name', 'F.I.SH')}</Label>
-                            <Input id="name" value={data.name} onChange={e => setData('name', e.target.value)} />
+                            <Input id="name" value={data.name} onChange={e => setData('name', e.target.value)} required />
                             {errors.name && <div className="text-destructive text-sm mt-1">{errors.name}</div>}
                         </div>
                         <div>
-                            <Label htmlFor="phone">{t('instructors.phone', 'Telefon')} (Masalan: +998901234567)</Label>
-                            <Input id="phone" value={data.phone} onChange={e => setData('phone', e.target.value)} />
+                            <Label htmlFor="phone">{t('instructors.phone', 'Telefon')}</Label>
+                            <Input id="phone" value={data.phone} onChange={e => setData('phone', e.target.value)} placeholder="+998901234567" required />
                             {errors.phone && <div className="text-destructive text-sm mt-1">{errors.phone}</div>}
                         </div>
                         <div>
-                            <Label htmlFor="telegram_id">{t('common.telegram_id_optional', 'Telegram ID (Ixtiyoriy)')}</Label>
-                            <Input id="telegram_id" value={data.telegram_id} onChange={e => setData('telegram_id', e.target.value)} />
+                            <Label htmlFor="telegram_id">Telegram ID</Label>
+                            <Input id="telegram_id" value={data.telegram_id} onChange={e => setData('telegram_id', e.target.value)} placeholder="12345678" />
                             {errors.telegram_id && <div className="text-destructive text-sm mt-1">{errors.telegram_id}</div>}
                         </div>
                         <div>
-                            <Label htmlFor="password">
-                                {t('admins.password', 'Parol')}
-                                {editing && <span className="text-xs text-muted-foreground font-normal ml-1">({t('admins.password_hint', "bo'sh qolsa o'zgarmaydi")})</span>}
-                            </Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                value={data.password}
-                                onChange={e => setData('password', e.target.value)}
-                                placeholder="••••••••"
-                            />
+                            <Label htmlFor="password">{editing ? t('instructors.new_password', 'Yangi Parol (ixtiyoriy)') : t('instructors.password', 'Parol')}</Label>
+                            <Input id="password" type="password" value={data.password} onChange={e => setData('password', e.target.value)} placeholder="******" />
                             {errors.password && <div className="text-destructive text-sm mt-1">{errors.password}</div>}
                         </div>
-                        <div className="flex gap-2 pt-2 justify-end">
+                        <div className="flex gap-2 justify-end pt-4">
                             <Button type="button" variant="outline" onClick={closeForm}>{t('common.cancel', 'Bekor qilish')}</Button>
                             <Button type="submit" disabled={processing}>{processing ? t('common.saving', 'Saqlanmoqda...') : t('common.save', 'Saqlash')}</Button>
                         </div>
@@ -311,48 +309,49 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
             <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
                 {/* Desktop Table */}
                 <table className="hidden md:table w-full text-sm text-left">
-                    <thead className="bg-muted/50 text-muted-foreground">
+                    <thead className="bg-muted/50 text-muted-foreground border-b">
                         <tr>
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
-                            <th className="px-4 py-3 font-medium">{t('instructors.name', 'Ismi')}</th>
+                            <th className="px-4 py-3 font-medium">{t('instructors.name', 'F.I.SH')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.phone', 'Telefon')}</th>
-                            <th className="px-4 py-3 font-medium">{t('instructors.groups_count', 'Guruhlar')}</th>
-                            <th className="px-4 py-3 font-medium">{t('instructors.students_count', 'O\'quvchilar')}</th>
-                            <th className="px-4 py-3 font-medium">{t('instructors.drivings_count', 'Jami darslar')}</th>
-                            <th className="px-4 py-3 font-medium">{t('instructors.reviewed_drivings', 'Baholangan darslar')}</th>
-                            <th className="px-4 py-3 font-medium">{t('instructors.total_points', 'Umumiy ballar')}</th>
-                            <th className="px-4 py-3 font-medium">{t('instructors.rating', 'Reyting')}</th>
-                            <th className="px-4 py-3 font-medium">{t('instructors.kpi', 'KPI (%)')}</th>
-                            <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>
+                            <th className="px-4 py-3 font-medium text-center">{t('instructors.groups_count', 'Guruhlar')}</th>
+                            <th className="px-4 py-3 font-medium text-center">{t('instructors.students_count', 'O\'quvchilar')}</th>
+                            <th className="px-4 py-3 font-medium text-center">{t('instructors.drivings_count', 'Darslar')}</th>
+                            <th className="px-4 py-3 font-medium text-center">{t('instructors.rating', 'Reyting')}</th>
+                            <th className="px-4 py-3 font-medium text-center">{t('instructors.kpi', 'KPI')}</th>
+                            {!isInstructor && <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y">
                         {instructors.data.map((item, index) => (
                             <tr key={item.id} className="hover:bg-muted/30">
                                 <td className="px-4 py-3">{(instructors.from || 1) + index}</td>
-                                <td className="px-4 py-3 font-medium flex items-center gap-2">
-                                    {item.needs_attention && <AlertTriangle className="w-4 h-4 text-destructive" />}
-                                    {item.name}
-                                </td>
-                                <td className="px-4 py-3">{item.phone}</td>
-                                <td className="px-4 py-3">{item.groups_count}</td>
-                                <td className="px-4 py-3">{item.students_count}</td>
-                                <td className="px-4 py-3">{item.total_drivings}</td>
-                                <td className="px-4 py-3 font-medium text-green-600 dark:text-green-400">{item.reviewed_drivings}</td>
-                                <td className="px-4 py-3 font-semibold">{item.score_formatted}</td>
-                                <td className="px-4 py-3">
-                                    <div className="flex items-center gap-1.5">
-                                        <Star className={`w-4 h-4 ${item.reviewed_drivings > 0 && item.average_rating <= 3 ? 'text-red-500 fill-red-500' : 'text-yellow-500 fill-yellow-500'}`} />
-                                        <span className={`font-semibold ${item.reviewed_drivings > 0 && item.average_rating <= 3 ? 'text-red-600' : ''}`}>{item.average_rating}</span>
-                                        {item.reviewed_drivings > 0 && item.average_rating <= 3 && (
-                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300 border border-red-200" title="Past reyting (≤ 3.0)">
-                                                <AlertTriangle className="w-3 h-3 mr-0.5" /> Ogohlantirish
-                                            </span>
-                                        )}
+                                <td className="px-4 py-3 font-medium">
+                                    <div className="flex items-center gap-2">
+                                        {item.needs_attention && <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />}
+                                        <span>{item.name}</span>
                                     </div>
                                 </td>
-                                <td className="px-4 py-3">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                <td className="px-4 py-3">{item.phone}</td>
+                                <td className="px-4 py-3 text-center">{item.groups_count}</td>
+                                <td className="px-4 py-3 text-center">{item.students_count}</td>
+                                <td className="px-4 py-3 text-center">{item.total_drivings}</td>
+                                <td className="px-4 py-3 text-center">
+                                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
+                                        item.reviewed_drivings > 0 && item.average_rating <= 3
+                                            ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border border-red-200'
+                                            : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                                    }`}>
+                                        {item.reviewed_drivings > 0 && item.average_rating <= 3 ? (
+                                            <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400 shrink-0" />
+                                        ) : (
+                                            <Star className="w-3.5 h-3.5 fill-current shrink-0" />
+                                        )}
+                                        <span>{item.average_rating}</span>
+                                    </div>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                                         item.kpi_percentage >= 80 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
                                         item.kpi_percentage >= 50 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
                                         'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
@@ -360,16 +359,18 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                         {item.kpi_percentage}%
                                     </span>
                                 </td>
-                                <td className="px-4 py-3 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                                            <Edit2 className="w-4 h-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </td>
+                                {!isInstructor && (
+                                    <td className="px-4 py-3 text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                                                <Edit2 className="w-4 h-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>
@@ -437,14 +438,16 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                 </div>
                             </div>
                             
-                            <div className="flex gap-2 justify-end pt-1">
-                                <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
-                                    <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
-                                </Button>
-                                <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
-                            </div>
+                            {!isInstructor && (
+                                <div className="flex gap-2 justify-end pt-1">
+                                    <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
+                                        <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
+                                    </Button>
+                                    <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>

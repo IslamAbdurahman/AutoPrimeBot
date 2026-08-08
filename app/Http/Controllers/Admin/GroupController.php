@@ -59,6 +59,10 @@ class GroupController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->user()->role === 'instructor') {
+            abort(403, 'Instruktorlar faqat mashg\'ulotlar (drivings) bo\'limida amaliyot bajara oladi.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'instructor_id' => 'nullable|exists:users,id',
@@ -71,6 +75,10 @@ class GroupController extends Controller
 
     public function update(Request $request, Group $group)
     {
+        if ($request->user()->role === 'instructor') {
+            abort(403, 'Instruktorlar faqat mashg\'ulotlar (drivings) bo\'limida amaliyot bajara oladi.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'instructor_id' => 'nullable|exists:users,id',
@@ -81,8 +89,12 @@ class GroupController extends Controller
         return redirect()->back();
     }
 
-    public function destroy(Group $group)
+    public function destroy(Group $group, Request $request)
     {
+        if ($request->user()->role === 'instructor') {
+            abort(403, 'Instruktorlar faqat mashg\'ulotlar (drivings) bo\'limida amaliyot bajara oladi.');
+        }
+
         $group->delete();
 
         return redirect()->back();
@@ -129,6 +141,10 @@ class GroupController extends Controller
 
     public function importStudents(Request $request, Group $group)
     {
+        if ($request->user()->role === 'instructor') {
+            abort(403, 'Instruktorlar faqat mashg\'ulotlar (drivings) bo\'limida amaliyot bajara oladi.');
+        }
+
         $request->validate([
             'file' => 'required|file|mimes:xlsx,csv,xls',
         ]);

@@ -1,9 +1,10 @@
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { Users, Upload, ArrowLeft, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useRef, useState } from 'react';
+import { SharedData } from '@/types/auth';
 
 interface Group {
     id: number;
@@ -28,6 +29,8 @@ interface PageProps {
 
 export default function GroupShow({ group, students }: PageProps) {
     const { t } = useTranslation();
+    const { auth } = usePage<SharedData>().props;
+    const isInstructor = auth?.user?.role === 'instructor';
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
 
@@ -43,8 +46,10 @@ export default function GroupShow({ group, students }: PageProps) {
 
     const submitUpload = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!data.file) return;
         setUploading(true);
         post(`/admin/groups/${group.id}/import-students`, {
+            forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 setUploading(false);
@@ -79,47 +84,49 @@ export default function GroupShow({ group, students }: PageProps) {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left Column - Import */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
-                                <Upload className="w-5 h-5 text-green-600" />
-                                Excel orqali yuklash
-                            </h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                                Ustunlar: <b>full_name</b>, <b>phone</b>, <b>gender</b> (majburiy emas) bo'lishi kerak.
-                            </p>
-                            
-                            <div className="mb-6">
-                                <a 
-                                    href="/admin/groups/download-template" 
-                                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                                    target="_blank"
-                                >
-                                    <Download className="w-4 h-4 mr-2" />
-                                    Shablonni yuklab olish
-                                </a>
-                            </div>
-                            
-                            <form onSubmit={submitUpload} className="space-y-4">
-                                <div>
-                                    <Input
-                                        type="file"
-                                        accept=".xlsx,.xls,.csv"
-                                        onChange={handleFileChange}
-                                        ref={fileInputRef}
-                                        className="cursor-pointer"
-                                    />
-                                    {errors.file && <div className="text-red-500 text-sm mt-1">{errors.file}</div>}
+                    {!isInstructor && (
+                        <div className="lg:col-span-1">
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                                    <Upload className="w-5 h-5 text-green-600" />
+                                    Excel orqali yuklash
+                                </h2>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                    Ustunlar: <b>full_name</b>, <b>phone</b>, <b>gender</b> (majburiy emas) bo'lishi kerak.
+                                </p>
+                                
+                                <div className="mb-6">
+                                    <a 
+                                        href="/admin/groups/download-template" 
+                                        className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                                        target="_blank"
+                                    >
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Shablonni yuklab olish
+                                    </a>
                                 </div>
-                                <Button type="submit" disabled={!data.file || uploading} className="w-full">
-                                    {uploading ? 'Yuklanmoqda...' : 'Yuklash'}
-                                </Button>
-                            </form>
+                                
+                                <form onSubmit={submitUpload} className="space-y-4">
+                                    <div>
+                                        <Input
+                                            type="file"
+                                            accept=".xlsx,.xls,.csv"
+                                            onChange={handleFileChange}
+                                            ref={fileInputRef}
+                                            className="cursor-pointer"
+                                        />
+                                        {errors.file && <div className="text-red-500 text-sm mt-1">{errors.file}</div>}
+                                    </div>
+                                    <Button type="submit" disabled={!data.file || uploading} className="w-full">
+                                        {uploading ? 'Yuklanmoqda...' : 'Yuklash'}
+                                    </Button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Right Column - Students List */}
-                    <div className="lg:col-span-2">
+                    <div className={isInstructor ? 'col-span-full' : 'lg:col-span-2'}>
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                             <div className="p-6 border-b border-gray-100 dark:border-gray-700">
                                 <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Guruh Talabalari</h2>

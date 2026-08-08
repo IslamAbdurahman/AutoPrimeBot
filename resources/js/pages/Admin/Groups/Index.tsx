@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Edit2, Plus, Search } from 'lucide-react';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Pagination from '@/components/pagination';
+import { SharedData } from '@/types/auth';
 import {
     Dialog,
     DialogContent,
@@ -53,6 +54,9 @@ interface PageProps {
 
 export default function GroupsIndex({ groups, instructors, filters = {} }: PageProps) {
     const { t } = useTranslation();
+    const { auth } = usePage<SharedData>().props;
+    const isInstructor = auth?.user?.role === 'instructor';
+
     const [editing, setEditing] = useState<Group | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [isDeleting, setIsDeleting] = useState<number | null>(null);
@@ -232,10 +236,12 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                                 </div>
                             </SheetContent>
                         </Sheet>
-                        <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
-                            <Plus className="w-4 h-4 md:mr-2" /> 
-                            <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
-                        </Button>
+                        {!isInstructor && (
+                            <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
+                                <Plus className="w-4 h-4 md:mr-2" /> 
+                                <span className="hidden md:inline">{t('common.add', 'Qo\'shish')}</span>
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -250,27 +256,25 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <Label htmlFor="name">{t('groups.name', 'Guruh nomi')}</Label>
-                            <Input id="name" value={data.name} onChange={e => setData('name', e.target.value)} placeholder="Masalan: Guruh-A1" />
+                            <Label htmlFor="name">{t('groups.name', 'Nomi')}</Label>
+                            <Input id="name" value={data.name} onChange={e => setData('name', e.target.value)} required />
                             {errors.name && <div className="text-destructive text-sm mt-1">{errors.name}</div>}
                         </div>
                         <div>
                             <Label htmlFor="instructor_id">{t('drivings.instructor', 'Instruktor')}</Label>
-                            <select
-                                id="instructor_id"
-                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={data.instructor_id}
+                            <select 
+                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                value={data.instructor_id} 
                                 onChange={e => setData('instructor_id', e.target.value)}
                             >
-                                <option value="">{t('common.select', '-- Tanlang --')}</option>
+                                <option value="">{t('groups.select_instructor', '-- Tanlang --')}</option>
                                 {instructors.map(inst => (
                                     <option key={inst.id} value={inst.id}>{inst.name}</option>
                                 ))}
                             </select>
                             {errors.instructor_id && <div className="text-destructive text-sm mt-1">{errors.instructor_id}</div>}
                         </div>
-                        
-                        <div className="flex gap-2 pt-2 justify-end">
+                        <div className="flex gap-2 justify-end pt-4">
                             <Button type="button" variant="outline" onClick={closeForm}>{t('common.cancel', 'Bekor qilish')}</Button>
                             <Button type="submit" disabled={processing}>{processing ? t('common.saving', 'Saqlanmoqda...') : t('common.save', 'Saqlash')}</Button>
                         </div>
@@ -281,12 +285,12 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
             <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
                 {/* Desktop Table */}
                 <table className="hidden md:table w-full text-sm text-left">
-                    <thead className="bg-muted/50 text-muted-foreground">
+                    <thead className="bg-muted/50 text-muted-foreground border-b">
                         <tr>
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
                             <th className="px-4 py-3 font-medium">{t('groups.name', 'Nomi')}</th>
                             <th className="px-4 py-3 font-medium">{t('drivings.instructor', 'Instruktor')}</th>
-                            <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>
+                            {!isInstructor && <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -299,16 +303,18 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                                     </Link>
                                 </td>
                                 <td className="px-4 py-3 text-muted-foreground">{item.instructor?.name || t('common.not_assigned', 'Biriktirilmagan')}</td>
-                                <td className="px-4 py-3 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                                            <Edit2 className="w-4 h-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </td>
+                                {!isInstructor && (
+                                    <td className="px-4 py-3 text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                                                <Edit2 className="w-4 h-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>
@@ -332,12 +338,21 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                             </div>
                             
                             <div className="flex gap-2 justify-end pt-1">
-                                <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
-                                    <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
+                                <Button variant="outline" size="sm" asChild>
+                                    <Link href={`/admin/groups/${item.id}`}>
+                                        {t('common.view', 'Ko\'rish')}
+                                    </Link>
                                 </Button>
-                                <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
+                                {!isInstructor && (
+                                    <>
+                                        <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
+                                            <Edit2 className="w-4 h-4 mr-1.5" /> {t('common.edit', 'Tahrirlash')}
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     ))}

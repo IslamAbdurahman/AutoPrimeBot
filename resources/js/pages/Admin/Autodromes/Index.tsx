@@ -1,14 +1,12 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { useState, useMemo, useEffect } from 'react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
-import { MapContainer, TileLayer, Marker, Circle, useMapEvents, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 import { Trash2, Edit2, Plus, MapPin, Navigation, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { SharedData } from '@/types/auth';
 import {
     Dialog,
     DialogContent,
@@ -16,8 +14,11 @@ import {
     DialogTitle,
     DialogDescription,
 } from '@/components/ui/dialog';
+import { MapContainer, TileLayer, Marker, Circle, useMap, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-// Fix leaflet default icon
+// Fix for default Leaflet icon issues in React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -38,14 +39,16 @@ interface PageProps {
     autodromes: Autodrome[];
 }
 
-function LocationMarker({ position, setPosition, radius }: { position: L.LatLng | null, setPosition: (p: L.LatLng) => void, radius: number }) {
+function LocationMarker({ position, setPosition, radius }: { position: L.LatLng | null; setPosition: (pos: L.LatLng) => void; radius: number }) {
     useMapEvents({
         click(e) {
             setPosition(e.latlng);
         },
     });
 
-    return position === null ? null : (
+    if (!position) return null;
+
+    return (
         <>
             <Marker position={position}></Marker>
             <Circle center={position} pathOptions={{ fillColor: 'blue' }} radius={radius} />
@@ -65,6 +68,9 @@ function MapController({ center }: { center: L.LatLng | null }) {
 
 export default function AutodromesIndex({ autodromes }: PageProps) {
     const { t } = useTranslation();
+    const { auth } = usePage<SharedData>().props;
+    const isInstructor = auth?.user?.role === 'instructor';
+
     const [editing, setEditing] = useState<Autodrome | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [locating, setLocating] = useState(false);
@@ -195,10 +201,12 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
             
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold">{t('autodromes.title', 'Avtodromlar')}</h1>
-                    <p className="text-muted-foreground">{t('autodromes.description', "Mashg'ulotlar o'tkaziladigan maxsus maydonlar va ularning radiuslari")}</p>
+                    <h1 className="text-2xl font-bold tracking-tight">{t('autodromes.title', 'Avtodromlar')}</h1>
+                    <p className="text-sm text-muted-foreground">{t('autodromes.description', 'Mashg\'ulot o\'tkaziladigan avtodromlar va ularning hududlari')}</p>
                 </div>
-                <Button onClick={() => setShowForm(true)}><Plus className="w-4 h-4 mr-2" /> {t('common.add', "Qo'shish")}</Button>
+                {!isInstructor && (
+                    <Button onClick={() => setShowForm(true)}><Plus className="w-4 h-4 mr-2" /> {t('common.add', "Qo'shish")}</Button>
+                )}
             </div>
 
             <Dialog open={showForm} onOpenChange={(open) => !open && closeForm()}>
@@ -281,7 +289,7 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                             <th className="px-4 py-3 font-medium">{t('autodromes.coordinates', 'Kordinatalar')}</th>
                             <th className="px-4 py-3 font-medium">{t('autodromes.radius', 'Radius (metr)')}</th>
                             <th className="px-4 py-3 font-medium text-center">{t('autodromes.completed_drivings', 'Tugagan darslar')}</th>
-                            <th className="px-4 py-3 text-right font-medium">{t('common.actions', 'Amallar')}</th>
+                            {!isInstructor && <th className="px-4 py-3 text-right font-medium">{t('common.actions', 'Amallar')}</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -303,16 +311,18 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                                             {item.completed_drivings_count || 0}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3 text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                                                <Edit2 className="w-4 h-4 text-blue-500" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </td>
+                                    {!isInstructor && (
+                                        <td className="px-4 py-3 text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                                                    <Edit2 className="w-4 h-4 text-blue-500" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             ))
                         )}
@@ -347,14 +357,16 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                                     </span>
                                 </div>
 
-                                <div className="flex gap-2 justify-end pt-1">
-                                    <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
-                                        <Edit2 className="w-4 h-4 mr-1.5 text-blue-500" /> {t('common.edit', 'Tahrirlash')}
-                                    </Button>
-                                    <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                </div>
+                                {!isInstructor && (
+                                    <div className="flex gap-2 justify-end pt-1">
+                                        <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
+                                            <Edit2 className="w-4 h-4 mr-1.5 text-blue-500" /> {t('common.edit', 'Tahrirlash')}
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive/10" onClick={() => handleDelete(item.id)} disabled={isDeleting === item.id}>
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         ))
                     )}

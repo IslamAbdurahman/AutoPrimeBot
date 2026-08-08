@@ -146,7 +146,35 @@ class DrivingController extends Controller
             'start_time' => 'sometimes|required|date',
             'end_time' => 'sometimes|required|date|after:start_time',
             'status' => 'sometimes|required|in:scheduled,completed,cancelled',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
+
+        if (isset($validated['status']) && $validated['status'] === 'completed') {
+            $autodrome = $driving->autodrome ?? ($request->filled('autodrome_id') ? Autodrome::find($request->autodrome_id) : null);
+            if ($autodrome && $autodrome->latitude && $autodrome->longitude) {
+                if (! $request->filled('latitude') || ! $request->filled('longitude')) {
+                    return redirect()->back()->withErrors([
+                        'location' => 'Mashg\'ulotni yakunlash uchun geolokatsiya (GPS) yuborilishi shart.',
+                    ]);
+                }
+
+                $distance = $this->haversineGreatCircleDistance(
+                    (float) $request->latitude,
+                    (float) $request->longitude,
+                    (float) $autodrome->latitude,
+                    (float) $autodrome->longitude
+                );
+
+                if ($distance > $autodrome->radius_meters) {
+                    $distanceMeters = round($distance);
+
+                    return redirect()->back()->withErrors([
+                        'location' => "Siz avtodrom hududida emassiz. Masofangiz: {$distanceMeters} metr (Ruxsat etilgan: {$autodrome->radius_meters} metr).",
+                    ]);
+                }
+            }
+        }
 
         $oldStatus = $driving->status;
         $driving->update($validated);
@@ -160,6 +188,24 @@ class DrivingController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    private function haversineGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo)
+    {
+        $earthRadius = 6371000; // Earth radius in meters
+
+        $latFrom = deg2rad($latitudeFrom);
+        $lonFrom = deg2rad($longitudeFrom);
+        $latTo = deg2rad($latitudeTo);
+        $lonTo = deg2rad($longitudeTo);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+
+        return $angle * $earthRadius;
     }
 
     public function destroy(Driving $driving)

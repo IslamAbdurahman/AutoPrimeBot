@@ -23,6 +23,10 @@ class AutodromeController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->user()->role === 'instructor') {
+            abort(403, 'Instruktorlar faqat mashg\'ulotlar (drivings) bo\'limida amaliyot bajara oladi.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'latitude' => 'required|numeric',
@@ -37,6 +41,10 @@ class AutodromeController extends Controller
 
     public function update(Request $request, Autodrome $autodrome)
     {
+        if ($request->user()->role === 'instructor') {
+            abort(403, 'Instruktorlar faqat mashg\'ulotlar (drivings) bo\'limida amaliyot bajara oladi.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'latitude' => 'required|numeric',
@@ -49,8 +57,12 @@ class AutodromeController extends Controller
         return redirect()->back();
     }
 
-    public function destroy(Autodrome $autodrome)
+    public function destroy(Autodrome $autodrome, Request $request)
     {
+        if ($request->user()->role === 'instructor') {
+            abort(403, 'Instruktorlar faqat mashg\'ulotlar (drivings) bo\'limida amaliyot bajara oladi.');
+        }
+
         $autodrome->delete();
 
         return redirect()->back();
