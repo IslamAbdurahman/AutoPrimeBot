@@ -2,9 +2,8 @@ import { useState, useCallback } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Edit2, Trash2, CheckCircle2, XCircle, Filter, X } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, CheckCircle2, XCircle, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
 import {
@@ -100,14 +99,13 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     const [targetStatus, setTargetStatus] = useState<'completed' | 'cancelled' | null>(null);
     const [isStatusUpdating, setIsStatusUpdating] = useState(false);
     const [isDeleting, setIsDeleting] = useState<number | null>(null);
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || '');
     const [instructorId, setInstructorId] = useState(filters.instructor_id || '');
-    const [groupId, setGroupId] = useState('');
-    const [date, setDate] = useState(filters.from || '');
-    const [perPage, setPerPage] = useState(filters.per_page || '15');
+    const [fromDate, setFromDate] = useState(filters.from || '');
+    const [toDate, setToDate] = useState(filters.to || '');
+    const [perPage, setPerPage] = useState(filters.per_page || '10');
     const [studentSearch, setStudentSearch] = useState('');
 
     const today = new Date();
@@ -147,77 +145,6 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         };
     });
 
-    const activeFilterCount = [search, status, instructorId, groupId, date, perPage !== '15' ? perPage : ''].filter(Boolean).length;
-
-    const handleFilter = () => {
-        router.get('/admin/drivings', {
-            search,
-            status,
-            instructor_id: isInstructor ? undefined : instructorId,
-            group_id: groupId,
-            from: date,
-            to: date,
-            per_page: perPage,
-        }, { preserveState: true, replace: true });
-    };
-
-    const resetFilters = () => {
-        setSearch('');
-        setStatus('');
-        setInstructorId('');
-        setGroupId('');
-        setDate('');
-        setPerPage('15');
-        router.get('/admin/drivings', {}, { preserveState: true, replace: true });
-    };
-
-    const handleOpenModal = (driving?: Driving) => {
-        if (driving) {
-            setEditing(driving);
-            const d = new Date(driving.start_time);
-            const startD = String(d.getDate()).padStart(2, '0');
-            const startM = String(d.getMonth() + 1).padStart(2, '0');
-            const startY = d.getFullYear();
-            
-            const startH = String(d.getHours()).padStart(2, '0');
-            const startMin = String(d.getMinutes()).padStart(2, '0');
-
-            const endD = new Date(driving.end_time);
-            const endH = String(endD.getHours()).padStart(2, '0');
-            const endMin = String(endD.getMinutes()).padStart(2, '0');
-
-            setData({
-                instructor_id: String(driving.instructor_id || ''),
-                student_id: String(driving.student_id || ''),
-                student_ids: [String(driving.student_id || '')],
-                group_id: driving.group_id ? String(driving.group_id) : '',
-                autodrome_id: driving.autodrome_id ? String(driving.autodrome_id) : '',
-                date: `${startD}-${startM}-${startY}`,
-                time_from: `${startH}:${startMin}`,
-                time_to: `${endH}:${endMin}`,
-                start_time: '',
-                end_time: '',
-                status: driving.status,
-            });
-        } else {
-            setEditing(null);
-            reset();
-            setData('date', todayString);
-            if (isInstructor) {
-                setData('instructor_id', String(auth.user.id));
-            }
-        }
-        setShowForm(true);
-    };
-
-    const closeForm = () => {
-        setShowForm(false);
-        setTimeout(() => {
-            setEditing(null);
-            reset();
-        }, 300);
-    };
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (processing) return;
@@ -244,11 +171,43 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         }
     };
 
-    const handleDelete = (driving: Driving) => {
-        if (driving.review) {
-            toast.error(t('drivings.delete_reviewed_error', 'Baholangan mashg\'ulotni o\'chirish mumkin emas'));
+    const handleEdit = (driving: Driving) => {
+        if (driving.status === 'completed' || driving.status === 'cancelled') {
+            toast.error(t('drivings.edit_completed_error', 'Tugallangan yoki bekor qilingan mashg\'ulotni o\'zgartirish mumkin emas'));
             return;
         }
+        setEditing(driving);
+
+        const formatTime = (dateString: string) => {
+            const date = new Date(dateString);
+            return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(11, 16);
+        };
+        const formatDate = (dateString: string) => {
+            const date = new Date(dateString);
+            const d = String(date.getDate()).padStart(2, '0');
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const y = date.getFullYear();
+            return `${d}-${m}-${y}`;
+        };
+
+        setData({
+            instructor_id: String(driving.instructor_id || ''),
+            student_id: String(driving.student_id || ''),
+            student_ids: [String(driving.student_id || '')],
+            group_id: driving.group_id ? String(driving.group_id) : '',
+            autodrome_id: driving.autodrome_id ? String(driving.autodrome_id) : '',
+            date: formatDate(driving.start_time),
+            time_from: formatTime(driving.start_time),
+            time_to: formatTime(driving.end_time),
+            start_time: '',
+            end_time: '',
+            status: driving.status,
+        });
+        setShowForm(true);
+    };
+
+    const handleDelete = (driving: Driving) => {
+        if (isDeleting === driving.id) return;
         if (confirm(t('common.confirm_delete', "Rostdan ham o'chirmoqchimisiz?"))) {
             setIsDeleting(driving.id);
             destroy('/admin/drivings/' + driving.id, {
@@ -292,13 +251,13 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
 
         if (targetStatus === 'completed') {
             if (!navigator.geolocation) {
-                toast.error(t('instructor_panel.geolocation_not_supported', 'Brauzeringiz geolokatsiyani qo\'llab-quvvatlamaydi.'));
+                toast.error(t('drivings.geolocation_not_supported', 'Brauzeringiz geolokatsiyani qo\'llab-quvvatlamaydi.'));
                 return;
             }
             navigator.geolocation.getCurrentPosition(
                 (pos) => performUpdate(pos.coords.latitude, pos.coords.longitude),
-                (err) => {
-                    toast.error(t('instructor_panel.location_error', 'Joylashuvni aniqlash imkonsiz: ') + err.message);
+                () => {
+                    toast.error(t('drivings.geolocation_denied', 'Joylashuvni aniqlab bo\'lmadi.'));
                 }
             );
         } else {
@@ -306,9 +265,33 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         }
     };
 
+    const closeForm = () => {
+        setShowForm(false);
+        setTimeout(() => {
+            setEditing(null);
+            reset();
+        }, 300);
+    };
+
+    const applyFilters = (newSearch: string, newStatus: string, newInst: string, newFrom: string, newTo: string, newPerPage: string) => {
+        router.get('/admin/drivings', {
+            search: newSearch,
+            status: newStatus,
+            instructor_id: newInst,
+            from: newFrom,
+            to: newTo,
+            per_page: newPerPage
+        }, { preserveState: true, replace: true });
+    };
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        applyFilters(search, status, instructorId, fromDate, toDate, perPage);
+    };
+
     const baseFilteredStudents = data.group_id ? students.filter(s => s.group_id === Number(data.group_id)) : students;
-    const filteredStudents = studentSearch 
-        ? baseFilteredStudents.filter(s => s.full_name.toLowerCase().includes(studentSearch.toLowerCase())) 
+    const filteredStudents = studentSearch
+        ? baseFilteredStudents.filter(s => s.full_name.toLowerCase().includes(studentSearch.toLowerCase()))
         : baseFilteredStudents;
 
     const handleStudentToggle = (stdId: number) => {
@@ -320,6 +303,16 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         }
     };
 
+    const handleFilterDateChange = (field: 'from' | 'to', dateStr: string) => {
+        if (field === 'from') {
+            setFromDate(dateStr);
+            applyFilters(search, status, instructorId, dateStr, toDate, perPage);
+        } else {
+            setToDate(dateStr);
+            applyFilters(search, status, instructorId, fromDate, dateStr, perPage);
+        }
+    };
+
     const handleTimeChange = (field: 'time_from' | 'time_to', val: string) => {
         let clean = val.replace(/[^\d]/g, '');
         if (clean.length > 4) clean = clean.substring(0, 4);
@@ -328,6 +321,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                 clean = clean.substring(0, 2) + '5' + clean.substring(3);
             }
         }
+
         let formatted = clean;
         if (clean.length > 2) {
             formatted = clean.substring(0, 2) + ':' + clean.substring(2);
@@ -361,91 +355,146 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     };
 
     return (
-        <div className="p-4 md:p-6 space-y-6">
-            <Head title={t('drivings.title', 'Mashg\'ulotlar Tarixi')} />
+        <div className="p-4 sm:p-6 space-y-6">
+            <Head title={t('drivings.title', 'Amaliy mashg\'ulotlar')} />
 
-            {/* Desktop Filters Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card border p-4 md:p-6 rounded-xl shadow-xs">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">{t('drivings.title', 'Mashg\'ulotlar Tarixi')}</h1>
-                    <p className="text-sm text-muted-foreground">
-                        {t('drivings.description', 'O\'tkazilgan va rejalashtirilgan barcha darslar tarixi')}
-                    </p>
+                    <h1 className="text-2xl font-bold tracking-tight">{t('drivings.title', 'Amaliy mashg\'ulotlar')}</h1>
+                    <p className="text-muted-foreground">{t('drivings.description', 'Mashg\'ulotlar ro\'yxati va holati')}</p>
                 </div>
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                    {/* Mobile Filters Trigger */}
-                    <div className="md:hidden flex-1">
-                        <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                {!isInstructor && (
+                    <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
+                        <Plus className="w-4 h-4 mr-2" />
+                        {t('drivings.new', 'Yangi mashg\'ulot')}
+                    </Button>
+                )}
+            </div>
+
+            {/* Filters Bar */}
+            <div className="bg-card border rounded-xl p-4 shadow-xs space-y-4">
+                <div className="flex flex-col md:flex-row justify-between gap-4">
+                    {/* Search */}
+                    <form onSubmit={handleSearch} className="flex gap-2 flex-1 max-w-md">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder={t('common.search_student', 'Talaba ismi yoki telefon...')}
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="pl-8"
+                            />
+                        </div>
+                        <Button type="submit" variant="secondary">{t('common.search', 'Qidirish')}</Button>
+                    </form>
+
+                    {/* Filters */}
+                    <div className="flex flex-wrap items-center gap-2">
+                        {/* Desktop Filters */}
+                        <div className="hidden md:flex flex-wrap items-center gap-2">
+                            <select
+                                className="flex h-10 w-full md:w-36 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                value={status}
+                                onChange={(e) => {
+                                    setStatus(e.target.value);
+                                    applyFilters(search, e.target.value, instructorId, fromDate, toDate, perPage);
+                                }}
+                            >
+                                <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
+                                <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
+                                <option value="completed">{t('status.completed', 'Tugagan')}</option>
+                                <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
+                            </select>
+
+                            {!isInstructor && (
+                                <select
+                                    className="flex h-10 w-full md:w-44 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    value={instructorId}
+                                    onChange={(e) => {
+                                        setInstructorId(e.target.value);
+                                        applyFilters(search, status, e.target.value, fromDate, toDate, perPage);
+                                    }}
+                                >
+                                    <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
+                                    {instructors.map((ins) => (
+                                        <option key={ins.id} value={ins.id}>{ins.name}</option>
+                                    ))}
+                                </select>
+                            )}
+
+                            <DatePicker
+                                placeholder={t('common.date_from', 'Dan') + ' DD-MM-YYYY'}
+                                value={fromDate}
+                                onChange={(val) => handleFilterDateChange('from', val)}
+                                className="w-36"
+                                title={t('common.from', 'Dan')}
+                            />
+
+                            <DatePicker
+                                placeholder={t('common.date_to', 'Gacha') + ' DD-MM-YYYY'}
+                                value={toDate}
+                                onChange={(val) => handleFilterDateChange('to', val)}
+                                className="w-36"
+                                title={t('common.to', 'Gacha')}
+                            />
+
+                            <select
+                                className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                value={perPage}
+                                onChange={(e) => {
+                                    setPerPage(e.target.value);
+                                    applyFilters(search, status, instructorId, fromDate, toDate, e.target.value);
+                                }}
+                                title={t('common.per_page', 'Sahifada ko\'rsatish')}
+                            >
+                                <option value="10">10</option>
+                                <option value="30">30</option>
+                                <option value="50">50</option>
+                                <option value="all">{t('common.all', 'Barchasi')}</option>
+                            </select>
+                        </div>
+
+                        {/* Mobile Filters Sheet */}
+                        <Sheet>
                             <SheetTrigger asChild>
-                                <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+                                <Button variant="outline" size="icon" className="md:hidden">
                                     <Filter className="w-4 h-4" />
-                                    <span>{t('common.filters', 'Filtrlar')}</span>
-                                    {activeFilterCount > 0 && (
-                                        <Badge variant="secondary" className="ml-1 px-1.5 py-0.5 text-xs">
-                                            {activeFilterCount}
-                                        </Badge>
-                                    )}
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl p-4 overflow-y-auto">
-                                <SheetHeader className="mb-4 text-left">
-                                    <SheetTitle className="flex items-center justify-between">
-                                        <span>{t('common.filters', 'Filtrlar')}</span>
-                                        {activeFilterCount > 0 && (
-                                            <Button variant="ghost" size="sm" onClick={resetFilters} className="text-xs text-muted-foreground">
-                                                {t('common.clear', 'Tozalash')}
-                                            </Button>
-                                        )}
-                                    </SheetTitle>
-                                    <SheetDescription>
-                                        {t('common.filter_description', 'Filtrlash va saralash')}
-                                    </SheetDescription>
+                            <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-xl">
+                                <SheetHeader>
+                                    <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
+                                    <SheetDescription>{t('drivings.filter_desc', 'Mashg\'ulotlarni filtrlash')}</SheetDescription>
                                 </SheetHeader>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="text-xs font-medium text-muted-foreground block mb-1.5">{t('common.search', 'Qidirish')}</label>
-                                        <div className="relative">
-                                            <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
-                                            <Input
-                                                placeholder={t('common.search_student', 'Talaba ismi yoki telefon...')}
-                                                value={search}
-                                                onChange={(e) => setSearch(e.target.value)}
-                                                className="pl-9"
-                                            />
-                                        </div>
+                                <div className="grid gap-4 py-4 mt-2">
+                                    <div className="space-y-2">
+                                        <Label>{t('common.status', 'Holati')}</Label>
+                                        <select
+                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            value={status}
+                                            onChange={(e) => {
+                                                setStatus(e.target.value);
+                                                applyFilters(search, e.target.value, instructorId, fromDate, toDate, perPage);
+                                            }}
+                                        >
+                                            <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
+                                            <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
+                                            <option value="completed">{t('status.completed', 'Tugagan')}</option>
+                                            <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
+                                        </select>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label className="text-xs font-medium text-muted-foreground block mb-1.5">{t('drivings.date', 'Sana')}</label>
-                                            <DatePicker
-                                                placeholder="DD-MM-YYYY"
-                                                value={date}
-                                                onChange={(val) => setDate(val)}
-                                                className="w-full"
-                                                title={t('drivings.date', 'Sana')}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-medium text-muted-foreground block mb-1.5">{t('common.status', 'Holat')}</label>
-                                            <select
-                                                value={status}
-                                                onChange={(e) => setStatus(e.target.value)}
-                                                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                                            >
-                                                <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
-                                                <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
-                                                <option value="completed">{t('status.completed', 'Tugagan')}</option>
-                                                <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
-                                            </select>
-                                        </div>
-                                    </div>
+
                                     {!isInstructor && (
-                                        <div>
-                                            <label className="text-xs font-medium text-muted-foreground block mb-1.5">{t('drivings.instructor', 'Instruktor')}</label>
+                                        <div className="space-y-2">
+                                            <Label>{t('drivings.instructor', 'Instruktor')}</Label>
                                             <select
+                                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                                                 value={instructorId}
-                                                onChange={(e) => setInstructorId(e.target.value)}
-                                                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                                                onChange={(e) => {
+                                                    setInstructorId(e.target.value);
+                                                    applyFilters(search, status, e.target.value, fromDate, toDate, perPage);
+                                                }}
                                             >
                                                 <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
                                                 {instructors.map((ins) => (
@@ -454,121 +503,48 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                             </select>
                                         </div>
                                     )}
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label className="text-xs font-medium text-muted-foreground block mb-1.5">{t('students.group', 'Guruh')}</label>
-                                            <select
-                                                value={groupId}
-                                                onChange={(e) => setGroupId(e.target.value)}
-                                                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                                            >
-                                                <option value="">{t('students.all_groups', 'Barcha guruhlar')}</option>
-                                                {groups.map((g) => (
-                                                    <option key={g.id} value={g.id}>{g.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-medium text-muted-foreground block mb-1.5">{t('common.per_page', 'Har sahifada')}</label>
-                                            <select
-                                                value={perPage}
-                                                onChange={(e) => setPerPage(e.target.value)}
-                                                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                                            >
-                                                <option value="15">15</option>
-                                                <option value="30">30</option>
-                                                <option value="50">50</option>
-                                                <option value="100">100</option>
-                                            </select>
-                                        </div>
+
+                                    <div className="space-y-2">
+                                        <Label>{t('common.date_from', 'Sana dan')}</Label>
+                                        <DatePicker
+                                            placeholder="DD-MM-YYYY"
+                                            value={fromDate}
+                                            onChange={(val) => handleFilterDateChange('from', val)}
+                                            className="w-full"
+                                        />
                                     </div>
-                                    <div className="pt-4 flex gap-2">
-                                        <Button className="w-full" onClick={() => { setIsFilterOpen(false); handleFilter(); }}>
-                                            {t('common.filter', 'Filtrlash')}
-                                        </Button>
+
+                                    <div className="space-y-2">
+                                        <Label>{t('common.date_to', 'Sana gacha')}</Label>
+                                        <DatePicker
+                                            placeholder="DD-MM-YYYY"
+                                            value={toDate}
+                                            onChange={(val) => handleFilterDateChange('to', val)}
+                                            className="w-full"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>{t('common.pagination', 'Sahifalash')}</Label>
+                                        <select
+                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            value={perPage}
+                                            onChange={(e) => {
+                                                setPerPage(e.target.value);
+                                                applyFilters(search, status, instructorId, fromDate, toDate, e.target.value);
+                                            }}
+                                        >
+                                            <option value="10">10</option>
+                                            <option value="30">30</option>
+                                            <option value="50">50</option>
+                                            <option value="all">{t('common.all', 'Barchasi')}</option>
+                                        </select>
                                     </div>
                                 </div>
                             </SheetContent>
                         </Sheet>
                     </div>
-
-                    {!isInstructor && (
-                        <Button onClick={() => handleOpenModal()} className="w-full md:w-auto">
-                            <Plus className="w-4 h-4 mr-2" />
-                            {t('drivings.new', 'Yangi Dars')}
-                        </Button>
-                    )}
                 </div>
-            </div>
-
-            {/* Desktop Filters Bar */}
-            <div className="hidden md:flex flex-wrap items-center gap-3 bg-card border p-4 rounded-xl shadow-xs">
-                <div className="relative min-w-[220px] flex-1">
-                    <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
-                    <Input
-                        placeholder={t('common.search_student', 'Talaba ismi yoki telefon...')}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="pl-9"
-                    />
-                </div>
-                <div className="w-36">
-                    <DatePicker
-                        placeholder="DD-MM-YYYY"
-                        value={date}
-                        onChange={(val) => setDate(val)}
-                        className="w-full"
-                        title={t('drivings.date', 'Sana')}
-                    />
-                </div>
-                <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                    <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
-                    <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
-                    <option value="completed">{t('status.completed', 'Tugagan')}</option>
-                    <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
-                </select>
-                {!isInstructor && (
-                    <select
-                        value={instructorId}
-                        onChange={(e) => setInstructorId(e.target.value)}
-                        className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                    >
-                        <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
-                        {instructors.map((ins) => (
-                            <option key={ins.id} value={ins.id}>{ins.name}</option>
-                        ))}
-                    </select>
-                )}
-                <select
-                    value={groupId}
-                    onChange={(e) => setGroupId(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                    <option value="">{t('students.all_groups', 'Barcha guruhlar')}</option>
-                    {groups.map((g) => (
-                        <option key={g.id} value={g.id}>{g.name}</option>
-                    ))}
-                </select>
-                <select
-                    value={perPage}
-                    onChange={(e) => setPerPage(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                    <option value="15">15</option>
-                    <option value="30">30</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-                {activeFilterCount > 0 && (
-                    <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground hover:text-foreground">
-                        <X className="w-4 h-4 mr-1" />
-                        {t('common.clear', 'Tozalash')}
-                    </Button>
-                )}
             </div>
 
             {/* Status Change Confirmation Modal */}
@@ -621,7 +597,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                 </DialogContent>
             </Dialog>
 
-            {/* Create / Edit Modal */}
+            {/* Create/Edit Modal */}
             <Dialog open={showForm} onOpenChange={(open) => !open && closeForm()}>
                 <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
@@ -912,13 +888,19 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                     >
                                                         <XCircle className="w-4 h-4 mr-1" /> {t('status.cancelled', 'Bekor qilish')}
                                                     </Button>
-                                                    <Button variant="outline" size="sm" onClick={() => handleOpenModal(driving)} title={t('common.edit', 'Tahrirlash')}>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="h-9 w-9"
+                                                        onClick={() => handleEdit(driving)}
+                                                        title={t('common.edit', 'Tahrirlash')}
+                                                    >
                                                         <Edit2 className="w-4 h-4" />
                                                     </Button>
                                                     <Button
                                                         variant="outline"
-                                                        size="sm"
-                                                        className="text-destructive border-destructive/20 hover:bg-destructive/10"
+                                                        size="icon"
+                                                        className="h-9 w-9 text-destructive border-destructive/20 hover:bg-destructive/10"
                                                         onClick={() => handleDelete(driving)}
                                                         disabled={isDeleting === driving.id}
                                                         title={t('common.delete', 'O\'chirish')}
@@ -1023,16 +1005,17 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                         <div className="flex justify-end gap-2 pt-1">
                                             <Button
                                                 variant="outline"
-                                                size="sm"
-                                                onClick={() => handleOpenModal(driving)}
+                                                size="icon"
+                                                className="h-9 w-9"
+                                                onClick={() => handleEdit(driving)}
                                                 title={t('common.edit', 'Tahrirlash')}
                                             >
-                                                <Edit2 className="w-4 h-4 mr-1" /> {t('common.edit', 'Tahrirlash')}
+                                                <Edit2 className="w-4 h-4" />
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                size="sm"
-                                                className="text-destructive border-destructive/20 hover:bg-destructive/10"
+                                                size="icon"
+                                                className="h-9 w-9 text-destructive border-destructive/20 hover:bg-destructive/10"
                                                 onClick={() => handleDelete(driving)}
                                                 disabled={isDeleting === driving.id}
                                                 title={t('common.delete', 'O\'chirish')}
