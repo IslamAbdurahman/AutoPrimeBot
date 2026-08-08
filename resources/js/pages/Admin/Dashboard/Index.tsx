@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { Users, Star, CalendarDays, CheckCircle2 } from 'lucide-react';
+import { Users, Star, CalendarDays, CheckCircle2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import {
@@ -48,24 +48,24 @@ export default function DashboardIndex({ metrics, chartData, filters = {} }: Pag
                     <h1 className="text-2xl font-bold">{t('dashboard.title', 'Bosh sahifa')}</h1>
                     <p className="text-muted-foreground">{t('dashboard.description', "Maktabning umumiy holati va ko'rsatkichlari")}</p>
                 </div>
-                <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                    <form onSubmit={handleSearch} className="flex flex-wrap gap-2 w-full md:w-auto">
+                <div className="w-full md:w-auto">
+                    <form onSubmit={handleSearch} className="flex items-center gap-2 w-full md:w-auto">
                         <DatePicker
                             placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
                             value={from}
                             onChange={(val) => setFrom(val)}
-                            className="w-full md:w-36"
+                            className="flex-1 md:w-36"
                             title={t('common.from', 'Dan')}
                         />
                         <DatePicker
                             placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
                             value={to}
                             onChange={(val) => setTo(val)}
-                            className="w-full md:w-36"
+                            className="flex-1 md:w-36"
                             title={t('common.to', 'Gacha')}
                         />
-                        <Button type="submit">
-                            {t('common.filter', 'Filtrlash')}
+                        <Button type="submit" size="icon" className="shrink-0" title={t('common.filter', 'Filtrlash')}>
+                            <Search className="w-4 h-4" />
                         </Button>
                     </form>
                 </div>
