@@ -866,14 +866,14 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                             <th className="p-4">{t('drivings.autodrome', 'Avtodrom')}</th>
                             <th className="p-4">{t('drivings.date_time', 'Sana / Vaqt')}</th>
                             <th className="p-4">{t('common.status', 'Holat')}</th>
-                            <th className="p-4">{t('drivings.rating', 'Baho')}</th>
+                            {!isInstructor && <th className="p-4">{t('drivings.rating', 'Baho')}</th>}
                             <th className="p-4 text-right">{t('common.actions', 'Amallar')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
                         {drivings.data.length === 0 ? (
                             <tr>
-                                <td colSpan={8} className="p-4 text-center text-muted-foreground">
+                                <td colSpan={isInstructor ? 7 : 8} className="p-4 text-center text-muted-foreground">
                                     {t('common.no_data', 'Ma\'lumot topilmadi')}
                                 </td>
                             </tr>
@@ -909,37 +909,39 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                         {driving.status === 'completed' && <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">{t('status.completed', 'Tugagan')}</span>}
                                         {driving.status === 'cancelled' && <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">{t('status.cancelled', 'Bekor qilingan')}</span>}
                                     </td>
-                                    <td className="p-4">
-                                        {driving.review ? (
-                                            <div>
-                                                <div className="flex items-center text-yellow-500 font-bold">
-                                                    {driving.review.rating} ⭐
-                                                </div>
-                                                {driving.review.reason_tags && driving.review.reason_tags.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1 mt-1">
-                                                        {driving.review.reason_tags.map((tag, i) => {
-                                                            const isNeg = isNegativeTag(tag);
-                                                            return (
-                                                                <span
-                                                                    key={i}
-                                                                    className={`text-[10px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-medium ${
-                                                                        isNeg
-                                                                            ? 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50'
-                                                                            : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50'
-                                                                    }`}
-                                                                >
-                                                                    <span className={`w-1.5 h-1.5 rounded-full ${isNeg ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
-                                                                    {translateTag(tag)}
-                                                                </span>
-                                                            );
-                                                        })}
+                                    {!isInstructor && (
+                                        <td className="p-4">
+                                            {driving.review ? (
+                                                <div>
+                                                    <div className="flex items-center text-yellow-500 font-bold">
+                                                        {driving.review.rating} ⭐
                                                     </div>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <span className="text-muted-foreground text-xs">{t('drivings.no_review', 'Baholanmagan')}</span>
-                                        )}
-                                    </td>
+                                                    {driving.review.reason_tags && driving.review.reason_tags.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1 mt-1">
+                                                            {driving.review.reason_tags.map((tag, i) => {
+                                                                const isNeg = isNegativeTag(tag);
+                                                                return (
+                                                                    <span
+                                                                        key={i}
+                                                                        className={`text-[10px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-medium ${
+                                                                            isNeg
+                                                                                ? 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50'
+                                                                                : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50'
+                                                                        }`}
+                                                                    >
+                                                                        <span className={`w-1.5 h-1.5 rounded-full ${isNeg ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
+                                                                        {translateTag(tag)}
+                                                                    </span>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="text-muted-foreground text-xs">{t('drivings.no_review', 'Baholanmagan')}</span>
+                                            )}
+                                        </td>
+                                    )}
                                     <td className="p-4 text-right">
                                         <div className="flex items-center justify-end gap-1.5">
                                             {driving.status === 'scheduled' && (
@@ -1039,7 +1041,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                     </div>
                                 </div>
                                 
-                                {driving.review && (
+                                {!isInstructor && driving.review && (
                                     <div className="bg-muted/50 p-2 rounded text-sm flex items-center justify-between">
                                         <div className="text-yellow-500 font-bold">{driving.review.rating} ⭐</div>
                                         {driving.review.reason_tags && driving.review.reason_tags.length > 0 && (

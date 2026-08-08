@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
+import { SharedData } from '@/types';
 import { ArrowLeft, Calendar, Car, Star, User, Phone, Send, CheckCircle2, Clock, XCircle, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -74,6 +75,8 @@ interface PageProps {
 
 export default function StudentShow({ student, drivings, stats, filters = {} }: PageProps) {
     const { t } = useTranslation();
+    const { auth } = usePage<SharedData>().props;
+    const isInstructor = auth.user.role === 'instructor';
     const [status, setStatus] = useState(filters.status || '');
     const [perPage, setPerPage] = useState(filters.per_page || '10');
 
@@ -147,12 +150,14 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 self-end sm:self-center">
-                    <div className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-3 py-1.5 rounded-lg text-sm font-semibold">
-                        <Star className="w-4 h-4 fill-current" />
-                        <span>{stats.average_rating}</span>
+                {!isInstructor && (
+                    <div className="flex items-center gap-2 self-end sm:self-center">
+                        <div className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 px-3 py-1.5 rounded-lg text-sm font-semibold">
+                            <Star className="w-4 h-4 fill-current" />
+                            <span>{stats.average_rating}</span>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Quick Stats Grid */}
@@ -287,7 +292,7 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
                             <th className="px-4 py-3 font-medium">{t('drivings.date_time', 'Sana / Vaqt')}</th>
                             <th className="px-4 py-3 font-medium">{t('drivings.instructor', 'Instruktor')}</th>
                             <th className="px-4 py-3 font-medium">{t('common.status', 'Holati')}</th>
-                            <th className="px-4 py-3 font-medium text-center">{t('drivings.review', 'Baho va Fikr')}</th>
+                            {!isInstructor && <th className="px-4 py-3 font-medium text-center">{t('drivings.review', 'Baho va Fikr')}</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -317,48 +322,50 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
                                         {driving.status === 'completed' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">{t('status.completed', 'Tugagan')}</span>}
                                         {driving.status === 'cancelled' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">{t('status.cancelled', 'Bekor qilingan')}</span>}
                                     </td>
-                                    <td className="px-4 py-3 text-center">
-                                        {driving.review ? (
-                                            <div className="flex flex-col items-center gap-1">
-                                                <div className="flex items-center gap-1 text-yellow-500 font-bold">
-                                                    <span>{driving.review.rating}</span>
-                                                    <Star className="w-4 h-4 fill-current" />
+                                    {!isInstructor && (
+                                        <td className="px-4 py-3 text-center">
+                                            {driving.review ? (
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <div className="flex items-center gap-1 text-yellow-500 font-bold">
+                                                        <span>{driving.review.rating}</span>
+                                                        <Star className="w-4 h-4 fill-current" />
+                                                    </div>
+                                                    {driving.review.reason_tags && driving.review.reason_tags.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1 justify-center max-w-[200px]">
+                                                            {driving.review.reason_tags.map((tag, i) => {
+                                                                const isNeg = isNegativeTag(tag);
+                                                                return (
+                                                                    <span
+                                                                        key={i}
+                                                                        className={`text-[10px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-medium whitespace-nowrap ${
+                                                                            isNeg
+                                                                                ? 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50'
+                                                                                : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50'
+                                                                        }`}
+                                                                    >
+                                                                        <span className={`w-1.5 h-1.5 rounded-full ${isNeg ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
+                                                                        {translateTag(tag)}
+                                                                    </span>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                    {driving.review.comment && (
+                                                        <div className="text-xs text-muted-foreground italic max-w-[200px] truncate">
+                                                            "{driving.review.comment}"
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                {driving.review.reason_tags && driving.review.reason_tags.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1 justify-center max-w-[200px]">
-                                                        {driving.review.reason_tags.map((tag, i) => {
-                                                            const isNeg = isNegativeTag(tag);
-                                                            return (
-                                                                <span
-                                                                    key={i}
-                                                                    className={`text-[10px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-medium whitespace-nowrap ${
-                                                                        isNeg
-                                                                            ? 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50'
-                                                                            : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50'
-                                                                    }`}
-                                                                >
-                                                                    <span className={`w-1.5 h-1.5 rounded-full ${isNeg ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
-                                                                    {translateTag(tag)}
-                                                                </span>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
-                                                {driving.review.comment && (
-                                                    <div className="text-xs text-muted-foreground italic max-w-[200px] truncate">
-                                                        "{driving.review.comment}"
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <span className="text-muted-foreground text-xs">-</span>
-                                        )}
-                                    </td>
+                                            ) : (
+                                                <span className="text-muted-foreground text-xs">-</span>
+                                            )}
+                                        </td>
+                                    )}
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={5} className="text-center py-8 text-muted-foreground">
+                                <td colSpan={isInstructor ? 4 : 5} className="text-center py-8 text-muted-foreground text-sm">
                                     {t('common.no_data', 'Ma\'lumot topilmadi')}
                                 </td>
                             </tr>
@@ -400,7 +407,7 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
                                     <span className="font-medium">{driving.instructor?.name || '-'}</span>
                                 </div>
 
-                                {driving.review && (
+                                {!isInstructor && driving.review && (
                                     <div className="pt-2 border-t space-y-1">
                                         <div className="flex items-center gap-1 text-yellow-500 font-bold text-xs">
                                             <span>{t('drivings.review', 'Baho')}: {driving.review.rating}</span>
