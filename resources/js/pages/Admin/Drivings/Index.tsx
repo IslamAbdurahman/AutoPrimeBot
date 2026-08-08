@@ -334,210 +334,182 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     };
 
     return (
-        <div className="p-4 sm:p-6 space-y-6">
+        <div className="p-6">
             <Head title={t('drivings.title', 'Amaliy mashg\'ulotlar')} />
 
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{t('drivings.title', 'Amaliy mashg\'ulotlar')}</h1>
+                    <h1 className="text-2xl font-bold">{t('drivings.title', 'Amaliy mashg\'ulotlar')}</h1>
                     <p className="text-muted-foreground">{t('drivings.description', 'Mashg\'ulotlar ro\'yxati va holati')}</p>
                 </div>
-                <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
-                    <Plus className="w-4 h-4 mr-2" />
-                    {t('drivings.new', 'Yangi mashg\'ulot')}
-                </Button>
-            </div>
+                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                    {/* Desktop Filters */}
+                    <div className="hidden md:flex gap-2 items-center">
+                        <select
+                            className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            value={perPage}
+                            onChange={(e) => {
+                                setPerPage(e.target.value);
+                                applyFilters(search, status, instructorId, fromDate, toDate, e.target.value);
+                            }}
+                            title={t('common.per_page', 'Sahifada ko\'rsatish')}
+                        >
+                            <option value="10">10</option>
+                            <option value="30">30</option>
+                            <option value="50">50</option>
+                            <option value="all">{t('common.all', 'Barchasi')}</option>
+                        </select>
 
-            {/* Filters Bar */}
-            <div className="bg-card border rounded-xl p-4 shadow-sm space-y-4">
-                <div className="flex flex-col md:flex-row justify-between gap-4">
-                    {/* Search */}
-                    <form onSubmit={handleSearch} className="flex gap-2 flex-1 max-w-md">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <select
+                            className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            value={status}
+                            onChange={(e) => {
+                                setStatus(e.target.value);
+                                applyFilters(search, e.target.value, instructorId, fromDate, toDate, perPage);
+                            }}
+                        >
+                            <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
+                            <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
+                            <option value="completed">{t('status.completed', 'Tugagan')}</option>
+                            <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
+                        </select>
+
+                        <select
+                            className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            value={instructorId}
+                            onChange={(e) => {
+                                setInstructorId(e.target.value);
+                                applyFilters(search, status, e.target.value, fromDate, toDate, perPage);
+                            }}
+                        >
+                            <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
+                            {instructors.map(inst => (
+                                <option key={inst.id} value={inst.id}>{inst.name}</option>
+                            ))}
+                        </select>
+
+                        <DatePicker
+                            placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
+                            value={fromDate}
+                            onChange={(val) => handleFilterDateChange('from', val)}
+                            className="w-36"
+                            title={t('common.from', 'Dan')}
+                        />
+                        
+                        <DatePicker
+                            placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
+                            value={toDate}
+                            onChange={(val) => handleFilterDateChange('to', val)}
+                            className="w-36"
+                            title={t('common.to', 'Gacha')}
+                        />
+                    </div>
+
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <form onSubmit={handleSearch} className="flex relative flex-1 md:w-64">
                             <Input
                                 placeholder={t('common.search_student', 'Talaba ismi yoki telefon...')}
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-8"
+                                className="pr-8 bg-background w-full"
                             />
-                        </div>
-                        <Button type="submit" variant="secondary">{t('common.search', 'Qidirish')}</Button>
-                    </form>
-
-                    {/* Filters */}
-                    <div className="flex flex-wrap items-center gap-2">
-                        {/* Desktop Filters */}
-                        <div className="hidden md:flex flex-wrap items-center gap-2">
-                            <select
-                                className="flex h-10 w-full md:w-36 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                value={status}
-                                onChange={(e) => {
-                                    setStatus(e.target.value);
-                                    applyFilters(search, e.target.value, instructorId, fromDate, toDate, perPage);
-                                }}
-                            >
-                                <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
-                                <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
-                                <option value="completed">{t('status.completed', 'Tugagan')}</option>
-                                <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
-                            </select>
-
-                            <select
-                                className="flex h-10 w-full md:w-44 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                value={instructorId}
-                                onChange={(e) => {
-                                    setInstructorId(e.target.value);
-                                    applyFilters(search, status, e.target.value, fromDate, toDate, perPage);
-                                }}
-                            >
-                                <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
-                                {instructors.map(inst => (
-                                    <option key={inst.id} value={inst.id}>{inst.name}</option>
-                                ))}
-                            </select>
-
-                            <DatePicker
-                                placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
-                                value={fromDate}
-                                onChange={(val) => handleFilterDateChange('from', val)}
-                                className="w-full md:w-36"
-                                title={t('common.from', 'Dan')}
-                            />
-                            
-                            <DatePicker
-                                placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
-                                value={toDate}
-                                onChange={(val) => handleFilterDateChange('to', val)}
-                                className="w-full md:w-36"
-                                title={t('common.to', 'Gacha')}
-                            />
-
-                            <select
-                                className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                value={perPage}
-                                onChange={(e) => {
-                                    setPerPage(e.target.value);
-                                    applyFilters(search, status, instructorId, fromDate, toDate, e.target.value);
-                                }}
-                            >
-                                <option value="10">10 ta</option>
-                                <option value="30">30 ta</option>
-                                <option value="50">50 ta</option>
-                                <option value="all">Barchasi</option>
-                            </select>
-                        </div>
+                            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                <Search className="w-4 h-4" />
+                            </button>
+                        </form>
 
                         {/* Mobile Filter Sheet */}
-                        <div className="md:hidden w-full">
-                            <Sheet>
-                                <SheetTrigger asChild>
-                                    <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                                        <Filter className="w-4 h-4" />
-                                        {t('common.filter', 'Filtrlar')}
-                                        {(status || instructorId || fromDate || toDate) && (
-                                            <span className="w-2 h-2 rounded-full bg-primary" />
-                                        )}
-                                    </Button>
-                                </SheetTrigger>
-                                <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto">
-                                    <SheetHeader className="text-left mb-4">
-                                        <SheetTitle>{t('common.filter', 'Filtrlash')}</SheetTitle>
-                                        <SheetDescription>
-                                            {t('common.filter_description', 'Mashg\'ulotlarni holat, instruktor va sana bo\'yicha saralash')}
-                                        </SheetDescription>
-                                    </SheetHeader>
-                                    <div className="space-y-4 py-2">
+                        <Sheet>
+                            <SheetTrigger asChild>
+                                <Button variant="outline" size="icon" className="md:hidden shrink-0">
+                                    <Filter className="w-4 h-4" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-xl">
+                                <SheetHeader>
+                                    <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
+                                    <SheetDescription>
+                                        {t('common.filter_description', 'Mashg\'ulotlarni holat, instruktor va sana bo\'yicha saralash')}
+                                    </SheetDescription>
+                                </SheetHeader>
+                                <div className="grid gap-4 py-4 mt-2">
+                                    <div className="space-y-2">
+                                        <Label>{t('common.status', 'Holat')}</Label>
+                                        <select
+                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            value={status}
+                                            onChange={(e) => {
+                                                setStatus(e.target.value);
+                                                applyFilters(search, e.target.value, instructorId, fromDate, toDate, perPage);
+                                            }}
+                                        >
+                                            <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
+                                            <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
+                                            <option value="completed">{t('status.completed', 'Tugagan')}</option>
+                                            <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>{t('drivings.instructor', 'Instruktor')}</Label>
+                                        <select
+                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            value={instructorId}
+                                            onChange={(e) => {
+                                                setInstructorId(e.target.value);
+                                                applyFilters(search, status, e.target.value, fromDate, toDate, perPage);
+                                            }}
+                                        >
+                                            <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
+                                            {instructors.map(inst => (
+                                                <option key={inst.id} value={inst.id}>{inst.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-2">
-                                            <Label>{t('common.status', 'Holat')}</Label>
-                                            <select
-                                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                                value={status}
-                                                onChange={(e) => {
-                                                    setStatus(e.target.value);
-                                                    applyFilters(search, e.target.value, instructorId, fromDate, toDate, perPage);
-                                                }}
-                                            >
-                                                <option value="">{t('common.all_statuses', 'Barcha holatlar')}</option>
-                                                <option value="scheduled">{t('status.scheduled', 'Rejada')}</option>
-                                                <option value="completed">{t('status.completed', 'Tugagan')}</option>
-                                                <option value="cancelled">{t('status.cancelled', 'Bekor qilingan')}</option>
-                                            </select>
+                                            <Label>{t('common.from', 'Dan')}</Label>
+                                            <DatePicker
+                                                placeholder="DD-MM-YYYY"
+                                                value={fromDate}
+                                                onChange={(val) => handleFilterDateChange('from', val)}
+                                                className="w-full"
+                                            />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>{t('drivings.instructor', 'Instruktor')}</Label>
-                                            <select
-                                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                                value={instructorId}
-                                                onChange={(e) => {
-                                                    setInstructorId(e.target.value);
-                                                    applyFilters(search, status, e.target.value, fromDate, toDate, perPage);
-                                                }}
-                                            >
-                                                <option value="">{t('drivings.all_instructors', 'Barcha instruktorlar')}</option>
-                                                {instructors.map(inst => (
-                                                    <option key={inst.id} value={inst.id}>{inst.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div className="space-y-2">
-                                                <Label>{t('common.from', 'Dan')}</Label>
-                                                <DatePicker
-                                                    placeholder="DD-MM-YYYY"
-                                                    value={fromDate}
-                                                    onChange={(val) => handleFilterDateChange('from', val)}
-                                                    className="w-full"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label>{t('common.to', 'Gacha')}</Label>
-                                                <DatePicker
-                                                    placeholder="DD-MM-YYYY"
-                                                    value={toDate}
-                                                    onChange={(val) => handleFilterDateChange('to', val)}
-                                                    className="w-full"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>{t('common.pagination', 'Sahifalash')}</Label>
-                                            <select
-                                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                                value={perPage}
-                                                onChange={(e) => {
-                                                    setPerPage(e.target.value);
-                                                    applyFilters(search, status, instructorId, fromDate, toDate, e.target.value);
-                                                }}
-                                            >
-                                                <option value="10">10 ta</option>
-                                                <option value="30">30 ta</option>
-                                                <option value="50">50 ta</option>
-                                                <option value="all">Barchasi</option>
-                                            </select>
+                                            <Label>{t('common.to', 'Gacha')}</Label>
+                                            <DatePicker
+                                                placeholder="DD-MM-YYYY"
+                                                value={toDate}
+                                                onChange={(val) => handleFilterDateChange('to', val)}
+                                                className="w-full"
+                                            />
                                         </div>
                                     </div>
-                                </SheetContent>
-                            </Sheet>
-                        </div>
+                                    <div className="space-y-2">
+                                        <Label>{t('common.pagination', 'Sahifalash')}</Label>
+                                        <select
+                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            value={perPage}
+                                            onChange={(e) => {
+                                                setPerPage(e.target.value);
+                                                applyFilters(search, status, instructorId, fromDate, toDate, e.target.value);
+                                            }}
+                                        >
+                                            <option value="10">10</option>
+                                            <option value="30">30</option>
+                                            <option value="50">50</option>
+                                            <option value="all">{t('common.all', 'Barchasi')}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </SheetContent>
+                        </Sheet>
 
-                        {(search || status || instructorId || fromDate || toDate) && (
-                            <Button 
-                                variant="ghost" 
-                                className="w-full md:w-auto"
-                                onClick={() => {
-                                    setSearch('');
-                                    setStatus('');
-                                    setInstructorId('');
-                                    setFromDate('');
-                                    setToDate('');
-                                    router.get('/admin/drivings', {}, { preserveState: false });
-                                }}
-                            >
-                                {t('common.clear', 'Tozalash')}
-                            </Button>
-                        )}
+                        <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
+                            <Plus className="w-4 h-4 md:mr-2" />
+                            <span className="hidden md:inline">{t('drivings.new', 'Yangi mashg\'ulot')}</span>
+                        </Button>
                     </div>
                 </div>
             </div>

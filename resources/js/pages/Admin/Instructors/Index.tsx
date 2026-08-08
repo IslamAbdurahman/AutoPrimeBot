@@ -145,15 +145,17 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
     };
 
     return (
-        <div className="space-y-6">
+        <div className="p-6">
             <Head title={t('instructors.title', 'Instruktorlar')} />
 
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
                     <h1 className="text-2xl font-bold">{t('instructors.title', 'Instruktorlar')}</h1>
+                    <p className="text-muted-foreground">{t('instructors.description', 'Barcha instruktorlar ro\'yxati va ularning ko\'rsatkichlari')}</p>
                 </div>
-                <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                    <div className="hidden md:flex flex-wrap gap-2 items-center">
+                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                    {/* Desktop Filters */}
+                    <div className="hidden md:flex gap-2 items-center">
                         <select
                             className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                             value={perPage}

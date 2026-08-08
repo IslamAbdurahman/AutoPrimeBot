@@ -153,42 +153,25 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
     };
 
     return (
-        <div className="p-4 md:p-6 space-y-6">
+        <div className="p-6">
             <Head title={t('admins.title', 'Adminlar')} />
 
             {/* Header section */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{t('admins.title', 'Adminlar')}</h1>
-                    <p className="text-sm text-muted-foreground">
+                    <h1 className="text-2xl font-bold">{t('admins.title', 'Adminlar')}</h1>
+                    <p className="text-muted-foreground">
                         {t('admins.description', 'Barcha adminlar ro\'yxati va ularni boshqarish')}
                     </p>
                 </div>
-                <Button onClick={openCreateForm} className="w-full sm:w-auto">
-                    <Plus className="w-4 h-4 mr-2" />
-                    {t('admins.new', 'Yangi Admin')}
-                </Button>
-            </div>
-
-            {/* Filters section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card border p-4 rounded-xl shadow-sm">
-                <div className="relative w-full md:w-72">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                        placeholder={t('common.search', 'Qidirish...')}
-                        value={search}
-                        onChange={handleSearchChange}
-                        className="pl-9"
-                    />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
                     {/* Desktop Filters */}
-                    <div className="hidden md:flex items-center gap-2">
+                    <div className="hidden md:flex gap-2 items-center">
                         <select
-                            className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                             value={perPage}
                             onChange={handlePerPageChange}
+                            title={t('common.per_page', 'Sahifada ko\'rsatish')}
                         >
                             <option value="10">10</option>
                             <option value="30">30</option>
@@ -197,35 +180,54 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                         </select>
                     </div>
 
-                    {/* Mobile Sheet Filter */}
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="outline" size="icon" className="md:hidden">
-                                <Filter className="w-4 h-4" />
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="bottom" className="h-[40vh] overflow-y-auto rounded-t-xl">
-                            <SheetHeader>
-                                <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
-                                <SheetDescription>{t('common.filter', 'Filtrlash')}</SheetDescription>
-                            </SheetHeader>
-                            <div className="grid gap-4 py-4 mt-2">
-                                <div className="space-y-2">
-                                    <Label>{t('common.pagination', 'Sahifalash')}</Label>
-                                    <select
-                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                        value={perPage}
-                                        onChange={handlePerPageChange}
-                                    >
-                                        <option value="10">10</option>
-                                        <option value="30">30</option>
-                                        <option value="50">50</option>
-                                        <option value="all">{t('common.all', 'Barchasi')}</option>
-                                    </select>
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <form onSubmit={(e) => { e.preventDefault(); applyFilters(search, perPage); }} className="flex relative flex-1 md:w-64">
+                            <Input
+                                placeholder={t('common.search', 'Qidirish...')}
+                                value={search}
+                                onChange={handleSearchChange}
+                                className="pr-8 bg-background w-full"
+                            />
+                            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                <Search className="w-4 h-4" />
+                            </button>
+                        </form>
+
+                        {/* Mobile Sheet Filter */}
+                        <Sheet>
+                            <SheetTrigger asChild>
+                                <Button variant="outline" size="icon" className="md:hidden shrink-0">
+                                    <Filter className="w-4 h-4" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="bottom" className="h-[40vh] overflow-y-auto rounded-t-xl">
+                                <SheetHeader>
+                                    <SheetTitle>{t('common.filters', 'Filtrlar')}</SheetTitle>
+                                    <SheetDescription>{t('common.filter', 'Filtrlash')}</SheetDescription>
+                                </SheetHeader>
+                                <div className="grid gap-4 py-4 mt-2">
+                                    <div className="space-y-2">
+                                        <Label>{t('common.pagination', 'Sahifalash')}</Label>
+                                        <select
+                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            value={perPage}
+                                            onChange={handlePerPageChange}
+                                        >
+                                            <option value="10">10</option>
+                                            <option value="30">30</option>
+                                            <option value="50">50</option>
+                                            <option value="all">{t('common.all', 'Barchasi')}</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                        </SheetContent>
-                    </Sheet>
+                            </SheetContent>
+                        </Sheet>
+
+                        <Button onClick={openCreateForm} className="whitespace-nowrap shrink-0">
+                            <Plus className="w-4 h-4 md:mr-2" />
+                            <span className="hidden md:inline">{t('admins.new', 'Yangi Admin')}</span>
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -248,40 +250,38 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                                 id="name"
                                 value={data.name}
                                 onChange={e => setData('name', e.target.value)}
-                                placeholder={t('common.example', 'Masalan: Admin To\'raqulov')}
+                                placeholder="Admin ismi"
                                 required
                             />
-                            {errors.name && <div className="text-destructive text-sm mt-1">{errors.name}</div>}
+                            {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="phone">{t('admins.phone', 'Telefon raqami')}</Label>
+                            <Label htmlFor="phone">{t('admins.phone', 'Telefon raqam')}</Label>
                             <Input
                                 id="phone"
-                                type="tel"
                                 value={data.phone}
-                                onChange={e => setData('phone', e.target.value.replace(/[^0-9+]/g, ''))}
-                                placeholder="+998911157709"
+                                onChange={e => setData('phone', e.target.value)}
+                                placeholder="+998901234567"
                                 required
                             />
-                            {errors.phone && <div className="text-destructive text-sm mt-1">{errors.phone}</div>}
+                            {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="telegram_id">{t('common.telegram_id_optional', 'Telegram ID (Ixtiyoriy)')}</Label>
+                            <Label htmlFor="telegram_id">{t('admins.telegram_id', 'Telegram ID (ixtiyoriy)')}</Label>
                             <Input
                                 id="telegram_id"
                                 value={data.telegram_id}
                                 onChange={e => setData('telegram_id', e.target.value)}
-                                placeholder="111111111"
+                                placeholder="Masalan: 123456789"
                             />
-                            {errors.telegram_id && <div className="text-destructive text-sm mt-1">{errors.telegram_id}</div>}
+                            {errors.telegram_id && <p className="text-sm text-destructive">{errors.telegram_id}</p>}
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="password">
-                                {t('admins.password', 'Parol')}
-                                {editingAdmin && <span className="text-xs text-muted-foreground font-normal ml-1">({t('admins.password_hint', "bo'sh qolsa o'zgarmaydi")})</span>}
+                                {editingAdmin ? t('admins.password_edit', 'Parol (o\'zgartirish uchun)') : t('admins.password', 'Parol')}
                             </Label>
                             <Input
                                 id="password"
@@ -291,10 +291,10 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                                 placeholder="••••••••"
                                 required={!editingAdmin}
                             />
-                            {errors.password && <div className="text-destructive text-sm mt-1">{errors.password}</div>}
+                            {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                         </div>
 
-                        <div className="flex gap-2 pt-4 justify-end">
+                        <div className="flex justify-end gap-2 pt-4">
                             <Button type="button" variant="outline" onClick={closeForm}>
                                 {t('common.cancel', 'Bekor qilish')}
                             </Button>
@@ -306,59 +306,63 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                 </DialogContent>
             </Dialog>
 
-            {/* Admins Table / Mobile Cards */}
+            {/* Table / List Container */}
             <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
                 {/* Desktop Table */}
                 <table className="hidden md:table w-full text-sm text-left">
-                    <thead className="bg-muted/50 text-muted-foreground">
+                    <thead className="bg-muted/50 text-muted-foreground border-b">
                         <tr>
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
                             <th className="px-4 py-3 font-medium">{t('admins.name', 'F.I.SH')}</th>
-                            <th className="px-4 py-3 font-medium">{t('admins.phone', 'Telefon')}</th>
-                            <th className="px-4 py-3 font-medium">{t('common.telegram_id', 'Telegram ID')}</th>
+                            <th className="px-4 py-3 font-medium">{t('admins.phone', 'Telefon raqam')}</th>
+                            <th className="px-4 py-3 font-medium">{t('admins.telegram_id', 'Telegram ID')}</th>
                             <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
-                        {admins.data.length > 0 ? (
+                        {admins.data.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                                    {t('common.no_data', 'Ma\'lumot topilmadi')}
+                                </td>
+                            </tr>
+                        ) : (
                             admins.data.map((admin, index) => (
                                 <tr key={admin.id} className="hover:bg-muted/30">
                                     <td className="px-4 py-3">{(admins.from || 1) + index}</td>
-                                    <td className="px-4 py-3 font-medium flex items-center gap-2">
-                                        <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                                        <span>{admin.name}</span>
-                                        {auth.user.id === admin.id && (
-                                            <span className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
-                                                (Siz)
-                                            </span>
-                                        )}
+                                    <td className="px-4 py-3 font-medium">
+                                        <div className="flex items-center gap-2">
+                                            <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+                                            <span>{admin.name}</span>
+                                            {auth.user.id === admin.id && (
+                                                <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-normal">
+                                                    {t('admins.you', 'Siz')}
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-4 py-3">{admin.phone}</td>
-                                    <td className="px-4 py-3 text-muted-foreground">{admin.telegram_id || '-'}</td>
+                                    <td className="px-4 py-3 font-mono text-muted-foreground">{admin.telegram_id || '-'}</td>
                                     <td className="px-4 py-3 text-right">
                                         <div className="flex justify-end gap-2">
                                             <Button variant="ghost" size="icon" onClick={() => handleEdit(admin)}>
                                                 <Edit2 className="w-4 h-4" />
                                             </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="text-destructive"
-                                                onClick={() => handleDelete(admin)}
-                                                disabled={auth.user.id === admin.id || isDeleting === admin.id}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
+                                            {auth.user.id !== admin.id && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="text-destructive"
+                                                    onClick={() => handleDelete(admin)}
+                                                    disabled={isDeleting === admin.id}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
                             ))
-                        ) : (
-                            <tr>
-                                <td colSpan={5} className="text-center py-8 text-muted-foreground">
-                                    {t('common.no_data', 'Ma\'lumot topilmadi')}
-                                </td>
-                            </tr>
                         )}
                     </tbody>
                 </table>

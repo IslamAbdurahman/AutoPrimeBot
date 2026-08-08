@@ -252,7 +252,7 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
             <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
                 {/* Desktop Table */}
                 <table className="hidden md:table w-full text-sm text-left">
-                    <thead className="bg-muted/50 text-muted-foreground">
+                    <thead className="bg-muted/50 text-muted-foreground border-b">
                         <tr>
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
                             <th className="px-4 py-3 font-medium">{t('drivings.date_time', 'Sana / Vaqt')}</th>

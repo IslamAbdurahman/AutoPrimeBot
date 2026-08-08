@@ -199,13 +199,16 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
         <div className="p-6">
             <Head title={t('autodromes.title', 'Avtodromlar')} />
             
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{t('autodromes.title', 'Avtodromlar')}</h1>
-                    <p className="text-sm text-muted-foreground">{t('autodromes.description', 'Mashg\'ulot o\'tkaziladigan avtodromlar va ularning hududlari')}</p>
+                    <h1 className="text-2xl font-bold">{t('autodromes.title', 'Avtodromlar')}</h1>
+                    <p className="text-muted-foreground">{t('autodromes.description', 'Mashg\'ulot o\'tkaziladigan avtodromlar va ularning hududlari')}</p>
                 </div>
                 {!isInstructor && (
-                    <Button onClick={() => setShowForm(true)}><Plus className="w-4 h-4 mr-2" /> {t('common.add', "Qo'shish")}</Button>
+                    <Button onClick={() => setShowForm(true)} className="whitespace-nowrap shrink-0">
+                        <Plus className="w-4 h-4 md:mr-2" />
+                        <span className="hidden md:inline">{t('common.add', "Qo'shish")}</span>
+                    </Button>
                 )}
             </div>
 
@@ -279,10 +282,10 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                 </DialogContent>
             </Dialog>
 
-            <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
+            <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
                 {/* Desktop Table */}
                 <table className="hidden md:table w-full text-sm text-left">
-                    <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                    <thead className="bg-muted/50 text-muted-foreground border-b">
                         <tr>
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
                             <th className="px-4 py-3 font-medium">{t('autodromes.name', 'Nomi')}</th>
