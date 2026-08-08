@@ -180,7 +180,11 @@
     "tag_well_explained": "Хорошо объяснил",
     "tag_patient": "Терпеливый",
     "tag_nervous": "Нервный",
-    "tag_rude": "Грубый"
+    "tag_rude": "Грубый",
+    "tag_clean_car": "Чистая машина",
+    "tag_on_time": "Начал вовремя",
+    "tag_bad_attitude": "Плохое обращение",
+    "tag_short_lesson": "Меньше положенного времени"
   },
   "kpi": {
     "title": "Система KPI автошколы",

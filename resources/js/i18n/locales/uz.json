@@ -180,7 +180,11 @@
     "tag_well_explained": "Yaxshi tushuntirdi",
     "tag_patient": "Sabrli",
     "tag_nervous": "Asabiy",
-    "tag_rude": "Qo'pol"
+    "tag_rude": "Qo'pol",
+    "tag_clean_car": "Mashina toza",
+    "tag_on_time": "Vaqtida boshladi",
+    "tag_bad_attitude": "Muomala yomon",
+    "tag_short_lesson": "Vaqtidan kam o'tildi"
   },
   "kpi": {
     "title": "Avtomaktab KPI Tizimi",

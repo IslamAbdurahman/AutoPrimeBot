@@ -329,29 +329,33 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         setData(field, formatted);
     };
 
+    const isNegativeTag = (tag: string) => {
+        return tag.includes('Kechikdi') ||
+            tag.includes('Zargona') ||
+            tag.includes('nosoz') ||
+            tag.includes('Tushunarsiz') ||
+            tag.includes('yomon') ||
+            tag.includes('kam') ||
+            tag.includes('Asabiy') ||
+            tag.includes('Qo');
+    };
+
     const translateTag = (tag: string) => {
-        switch (tag) {
-            case 'Kechikdi':
-                return t('drivings.tag_late', 'Kechikdi');
-            case 'Xushmuomala':
-                return t('drivings.tag_polite', 'Xushmuomala');
-            case 'Zargona tushuntirdi':
-                return t('drivings.tag_slang', 'Zargona tushuntirdi');
-            case 'Tushunarsiz':
-                return t('drivings.tag_unclear', 'Tushunarsiz');
-            case 'Mashina nosoz':
-                return t('drivings.tag_car_issue', 'Mashina nosoz');
-            case 'Yaxshi tushuntirdi':
-                return t('drivings.tag_well_explained', 'Yaxshi tushuntirdi');
-            case 'Sabrli':
-                return t('drivings.tag_patient', 'Sabrli');
-            case 'Asabiy':
-                return t('drivings.tag_nervous', 'Asabiy');
-            case "Qo'pol":
-                return t('drivings.tag_rude', "Qo'pol");
-            default:
-                return tag;
-        }
+        const clean = tag.replace(/^[^\w\u0400-\u04FF']+\s*/, '').trim();
+        if (tag.includes('Kechikdi') || clean === 'Kechikdi') return t('drivings.tag_late', 'Kechikdi');
+        if (tag.includes('Xushmuomala') || clean === 'Xushmuomala') return t('drivings.tag_polite', 'Xushmuomala');
+        if (tag.includes('Zargona tushuntirdi') || clean === 'Zargona tushuntirdi') return t('drivings.tag_slang', 'Zargona tushuntirdi');
+        if (tag.includes('Tushunarsiz') || clean === 'Tushunarsiz') return t('drivings.tag_unclear', 'Tushunarsiz');
+        if (tag.includes('Mashina nosoz') || clean === 'Mashina nosoz') return t('drivings.tag_car_issue', 'Mashina nosoz');
+        if (tag.includes('Yaxshi tushuntirdi') || clean === 'Yaxshi tushuntirdi') return t('drivings.tag_well_explained', 'Yaxshi tushuntirdi');
+        if (tag.includes('Sabrli') || clean === 'Sabrli') return t('drivings.tag_patient', 'Sabrli');
+        if (tag.includes('Asabiy') || clean === 'Asabiy') return t('drivings.tag_nervous', 'Asabiy');
+        if (tag.includes("Qo'pol") || clean === "Qo'pol" || tag.includes("Qo`pol") || clean === "Qopol") return t('drivings.tag_rude', "Qo'pol");
+        if (tag.includes('Mashina toza') || clean === 'Mashina toza') return t('drivings.tag_clean_car', 'Mashina toza');
+        if (tag.includes('Vaqtida boshladi') || clean === 'Vaqtida boshladi') return t('drivings.tag_on_time', 'Vaqtida boshladi');
+        if (tag.includes('Muomala yomon') || clean === 'Muomala yomon') return t('drivings.tag_bad_attitude', 'Muomala yomon');
+        if (tag.includes('Vaqtidan kam') || clean.includes('Vaqtidan kam')) return t('drivings.tag_short_lesson', "Vaqtidan kam o'tildi");
+        return tag;
     };
 
     return (
@@ -854,11 +858,22 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                 </div>
                                                 {driving.review.reason_tags && driving.review.reason_tags.length > 0 && (
                                                     <div className="flex flex-wrap gap-1 mt-1">
-                                                        {driving.review.reason_tags.map((tag, i) => (
-                                                            <span key={i} className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground border">
-                                                                {translateTag(tag)}
-                                                            </span>
-                                                        ))}
+                                                        {driving.review.reason_tags.map((tag, i) => {
+                                                            const isNeg = isNegativeTag(tag);
+                                                            return (
+                                                                <span
+                                                                    key={i}
+                                                                    className={`text-[10px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-medium ${
+                                                                        isNeg
+                                                                            ? 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50'
+                                                                            : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50'
+                                                                    }`}
+                                                                >
+                                                                    <span className={`w-1.5 h-1.5 rounded-full ${isNeg ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
+                                                                    {translateTag(tag)}
+                                                                </span>
+                                                            );
+                                                        })}
                                                     </div>
                                                 )}
                                             </div>
@@ -970,11 +985,22 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                         <div className="text-yellow-500 font-bold">{driving.review.rating} ⭐</div>
                                         {driving.review.reason_tags && driving.review.reason_tags.length > 0 && (
                                             <div className="flex flex-wrap gap-1 justify-end">
-                                                {driving.review.reason_tags.map((tag, i) => (
-                                                    <span key={i} className="text-[10px] bg-background border px-1.5 py-0.5 rounded text-muted-foreground">
-                                                        {translateTag(tag)}
-                                                    </span>
-                                                ))}
+                                                {driving.review.reason_tags.map((tag, i) => {
+                                                    const isNeg = isNegativeTag(tag);
+                                                    return (
+                                                        <span
+                                                            key={i}
+                                                            className={`text-[10px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-medium ${
+                                                                isNeg
+                                                                    ? 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50'
+                                                                    : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50'
+                                                            }`}
+                                                        >
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${isNeg ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
+                                                            {translateTag(tag)}
+                                                        </span>
+                                                    );
+                                                })}
                                             </div>
                                         )}
                                     </div>

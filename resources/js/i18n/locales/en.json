@@ -180,7 +180,11 @@
     "tag_well_explained": "Well explained",
     "tag_patient": "Patient",
     "tag_nervous": "Nervous",
-    "tag_rude": "Rude"
+    "tag_rude": "Rude",
+    "tag_clean_car": "Clean car",
+    "tag_on_time": "Started on time",
+    "tag_bad_attitude": "Bad attitude",
+    "tag_short_lesson": "Less time than scheduled"
   },
   "kpi": {
     "title": "Driving School KPI System",

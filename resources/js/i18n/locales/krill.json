@@ -180,7 +180,11 @@
     "tag_well_explained": "Яхши тушунтирди",
     "tag_patient": "Сабрли",
     "tag_nervous": "Асабий",
-    "tag_rude": "Қўпол"
+    "tag_rude": "Қўпол",
+    "tag_clean_car": "Машина тоза",
+    "tag_on_time": "Вақтида бошлади",
+    "tag_bad_attitude": "Муомала ёмон",
+    "tag_short_lesson": "Вақтидан кам ўтилди"
   },
   "kpi": {
     "title": "Автомактаб KPI Тизими",
