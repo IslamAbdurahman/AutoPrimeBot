@@ -231,9 +231,9 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                             </div>
                         </div>
 
-                        <div className="border rounded-xl p-2 bg-gray-50 h-[400px]">
+                        <div className="border rounded-xl p-2 bg-muted/40 dark:bg-slate-900/50 h-[400px]">
                             <div className="flex justify-between items-center mb-2 px-1">
-                                <p className="text-sm text-gray-500 font-medium flex items-center gap-2">
+                                <p className="text-sm text-muted-foreground font-medium flex items-center gap-2">
                                     <MapPin className="w-4 h-4" /> 
                                     {t('autodromes.map_hint', 'Xaritadan joyni tanlang (ustiga bosing)')}
                                 </p>
@@ -243,7 +243,7 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                                     size="sm"
                                     onClick={handleLocateMe}
                                     disabled={locating}
-                                    className="h-8 text-xs bg-white text-blue-600 border-blue-200 hover:bg-blue-50"
+                                    className="h-8 text-xs bg-background text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/60 shadow-xs"
                                 >
                                     {locating ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Navigation className="w-3.5 h-3.5 mr-1" />}
                                     {t('autodromes.locate_me', 'Hozirgi joylashuvim')}
