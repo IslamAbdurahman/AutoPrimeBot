@@ -5,8 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { Search, Plus, Edit2, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import Flatpickr from 'react-flatpickr';
-import 'flatpickr/dist/themes/light.css';
 import {
     Dialog,
     DialogContent,
@@ -109,7 +107,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     const [studentSearch, setStudentSearch] = useState('');
 
     const today = new Date();
-    const todayString = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
+    const todayString = today.toISOString().split('T')[0];
 
     const { data, setData, post, put, delete: destroy, reset, errors, processing, transform } = useForm({
         instructor_id: auth.user.role === 'instructor' ? String(auth.user.id) : '',
@@ -126,10 +124,12 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     });
 
     transform((data) => {
-        let dateForBackend = '';
-        if (data.date && data.date.length === 10) {
-            const [dd, mm, yyyy] = data.date.split('-');
-            dateForBackend = `${yyyy}-${mm}-${dd}`;
+        let dateForBackend = data.date;
+        if (data.date && data.date.includes('-')) {
+            const parts = data.date.split('-');
+            if (parts[0].length === 2 && parts[2]?.length === 4) {
+                dateForBackend = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
         }
         return {
             ...data,
@@ -177,10 +177,10 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         };
         const formatDate = (dateString: string) => {
             const date = new Date(dateString);
-            const dd = String(date.getDate()).padStart(2, '0');
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
             const yyyy = date.getFullYear();
-            return `${dd}-${mm}-${yyyy}`;
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
         };
 
         setData({
@@ -304,13 +304,13 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         }
     };
 
-    const handleFilterDateChange = (field: 'from' | 'to', dates: Date[], dateStr: string) => {
-        if (field === 'from') setFromDate(dateStr);
-        else setToDate(dateStr);
-        
-        if (dateStr.length === 10 || dateStr.length === 0) {
-            if (field === 'from') applyFilters(search, status, instructorId, dateStr, toDate, perPage);
-            else applyFilters(search, status, instructorId, fromDate, dateStr, perPage);
+    const handleFilterDateChange = (field: 'from' | 'to', val: string) => {
+        if (field === 'from') {
+            setFromDate(val);
+            applyFilters(search, status, instructorId, val, toDate, perPage);
+        } else {
+            setToDate(val);
+            applyFilters(search, status, instructorId, fromDate, val, perPage);
         }
     };
 
@@ -379,21 +379,19 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                             ))}
                         </select>
 
-                        <Flatpickr
-                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                            placeholder="Dan DD-MM-YYYY"
+                        <Input
+                            type="date"
                             value={fromDate}
-                            onChange={(dates, dateStr) => handleFilterDateChange('from', dates, dateStr)}
-                            className="flex h-10 w-full md:w-32 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            onChange={e => handleFilterDateChange('from', e.target.value)}
+                            className="h-10 w-32"
                             title="Dan"
                         />
                         
-                        <Flatpickr
-                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                            placeholder="Gacha DD-MM-YYYY"
+                        <Input
+                            type="date"
                             value={toDate}
-                            onChange={(dates, dateStr) => handleFilterDateChange('to', dates, dateStr)}
-                            className="flex h-10 w-full md:w-32 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            onChange={e => handleFilterDateChange('to', e.target.value)}
+                            className="h-10 w-32"
                             title="Gacha"
                         />
 
@@ -473,22 +471,20 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-2">
                                             <Label>{t('common.from', 'Dan')}</Label>
-                                            <Flatpickr
-                                                options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                                                placeholder="DD-MM-YYYY"
+                                            <Input
+                                                type="date"
                                                 value={fromDate}
-                                                onChange={(dates, dateStr) => handleFilterDateChange('from', dates, dateStr)}
-                                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                onChange={e => handleFilterDateChange('from', e.target.value)}
+                                                className="h-10 w-full"
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <Label>{t('common.to', 'Gacha')}</Label>
-                                            <Flatpickr
-                                                options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                                                placeholder="DD-MM-YYYY"
+                                            <Input
+                                                type="date"
                                                 value={toDate}
-                                                onChange={(dates, dateStr) => handleFilterDateChange('to', dates, dateStr)}
-                                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                onChange={e => handleFilterDateChange('to', e.target.value)}
+                                                className="h-10 w-full"
                                             />
                                         </div>
                                     </div>
@@ -623,14 +619,12 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <Label htmlFor="date">{t('drivings.date', 'Sana')}</Label>
-                                <Flatpickr 
-                                    options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
+                                <Input 
+                                    type="date"
                                     id="date" 
                                     value={data.date} 
-                                    onChange={(dates, dateStr) => setData('date', dateStr)} 
-                                    placeholder="DD-MM-YYYY"
-                                    title="Sana DD-MM-YYYY formatida bo'lishi kerak (Masalan: 24-08-2026)"
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    onChange={e => setData('date', e.target.value)} 
+                                    className="h-10 w-full"
                                     required 
                                 />
                                 {errors.start_time && <div className="text-destructive text-sm mt-1">{errors.start_time}</div>}

@@ -25,20 +25,24 @@ class InstructorController extends Controller
             });
         }
 
-        $from = $request->input('from', Carbon::now()->startOfMonth()->format('d-m-Y'));
-        $to = $request->input('to', Carbon::now()->format('d-m-Y'));
+        $from = $request->input('from', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $to = $request->input('to', Carbon::now()->format('Y-m-d'));
 
         $drivingsQuery = function ($query) use ($from, $to) {
             $query->with('review');
-            try {
-                $fromDate = Carbon::createFromFormat('d-m-Y', $from)->startOfDay();
-                $query->where('start_time', '>=', $fromDate);
-            } catch (\Exception $e) {
+            if ($from) {
+                try {
+                    $fromDate = Carbon::parse($from)->startOfDay();
+                    $query->where('start_time', '>=', $fromDate);
+                } catch (\Exception $e) {
+                }
             }
-            try {
-                $toDate = Carbon::createFromFormat('d-m-Y', $to)->endOfDay();
-                $query->where('start_time', '<=', $toDate);
-            } catch (\Exception $e) {
+            if ($to) {
+                try {
+                    $toDate = Carbon::parse($to)->endOfDay();
+                    $query->where('start_time', '<=', $toDate);
+                } catch (\Exception $e) {
+                }
             }
         };
 

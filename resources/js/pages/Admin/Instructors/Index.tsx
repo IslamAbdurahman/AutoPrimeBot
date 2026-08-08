@@ -1,10 +1,8 @@
-import { useState, useCallback } from 'react';
-import Flatpickr from 'react-flatpickr';
-import 'flatpickr/dist/themes/light.css';
+import { useState } from 'react';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Edit2, Plus, Search, AlertTriangle, Star } from 'lucide-react';
+import { Trash2, Edit2, Plus, Search, AlertTriangle, Star, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,7 +23,6 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
-import { Filter } from 'lucide-react';
 
 interface Instructor {
     id: number;
@@ -49,7 +46,7 @@ interface Instructor {
 interface PageProps {
     instructors: {
         data: Instructor[];
-        links?: any[];
+        links: any[];
         from?: number;
     };
     filters?: {
@@ -64,20 +61,14 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
     const { t } = useTranslation();
     const { auth } = usePage<SharedData>().props;
     const isInstructor = auth?.user?.role === 'instructor';
-    
+
     const [editing, setEditing] = useState<Instructor | null>(null);
     const [showForm, setShowForm] = useState(false);
-    const [isDeleting, setIsDeleting] = useState<number | null>(null);
-
     const [search, setSearch] = useState(filters.search || '');
     const [from, setFrom] = useState(filters.from || '');
     const [to, setTo] = useState(filters.to || '');
-    const [perPage, setPerPage] = useState(filters.per_page || '10');
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        router.get('/admin/instructors', { search, from, to, per_page: perPage }, { preserveState: true, replace: true });
-    };
+    const [perPage, setPerPage] = useState(filters.per_page || '15');
+    const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
         name: '',
@@ -86,30 +77,9 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
         password: '',
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (processing) return;
-        if (editing) {
-            put('/admin/instructors/' + editing.id, {
-                onSuccess: () => {
-                    closeForm();
-                    toast.success(t('instructors.updated_success', 'Instruktor muvaffaqiyatli yangilandi'));
-                },
-                onError: (err) => {
-                    toast.error(Object.values(err)[0] as string || t('instructors.error', 'Xatolik yuz berdi'));
-                }
-            });
-        } else {
-            post('/admin/instructors', {
-                onSuccess: () => {
-                    closeForm();
-                    toast.success(t('instructors.created_success', 'Instruktor muvaffaqiyatli yaratildi'));
-                },
-                onError: (err) => {
-                    toast.error(Object.values(err)[0] as string || t('instructors.error', 'Xatolik yuz berdi'));
-                }
-            });
-        }
+        router.get('/admin/instructors', { search, from, to, per_page: perPage }, { preserveState: true, replace: true });
     };
 
     const handleEdit = (instructor: Instructor) => {
@@ -124,36 +94,66 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
     };
 
     const handleDelete = (id: number) => {
-        if (isDeleting === id) return;
-        if (confirm(t('common.confirm_delete', 'Rostdan ham o\'chirmoqchimisiz?'))) {
+        if (confirm(t('common.confirm_delete', "Rostdan ham o'chirmoqchimisiz?"))) {
             setIsDeleting(id);
-            destroy('/admin/instructors/' + id, {
-                onSuccess: () => toast.success(t('instructors.deleted_success', 'Instruktor o\'chirildi')),
-                onError: (err) => toast.error(Object.values(err)[0] as string || t('instructors.error', 'Xatolik yuz berdi')),
-                onFinish: () => setIsDeleting(null),
+            destroy(`/admin/instructors/${id}`, {
+                onSuccess: () => {
+                    toast.success(t('instructors.deleted_success', 'Instruktor muvaffaqiyatli o\'chirildi'));
+                },
+                onError: (err) => {
+                    toast.error(Object.values(err)[0] as string || t('instructors.error', 'Xatolik yuz berdi'));
+                },
+                onFinish: () => {
+                    setIsDeleting(null);
+                }
+            });
+        }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (processing) return;
+        if (editing) {
+            put(`/admin/instructors/${editing.id}`, {
+                onSuccess: () => {
+                    setShowForm(false);
+                    setEditing(null);
+                    reset();
+                    toast.success(t('instructors.updated_success', 'Instruktor muvaffaqiyatli yangilandi'));
+                },
+                onError: (err) => {
+                    toast.error(Object.values(err)[0] as string || t('instructors.error', 'Xatolik yuz berdi'));
+                }
+            });
+        } else {
+            post('/admin/instructors', {
+                onSuccess: () => {
+                    setShowForm(false);
+                    reset();
+                    toast.success(t('instructors.created_success', 'Instruktor muvaffaqiyatli qo\'shildi'));
+                },
+                onError: (err) => {
+                    toast.error(Object.values(err)[0] as string || t('instructors.error', 'Xatolik yuz berdi'));
+                }
             });
         }
     };
 
     const closeForm = () => {
         setShowForm(false);
-        setTimeout(() => {
-            setEditing(null);
-            reset();
-        }, 300);
+        setEditing(null);
+        reset();
     };
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="space-y-6">
             <Head title={t('instructors.title', 'Instruktorlar')} />
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold">{t('instructors.title', 'Instruktorlar')}</h1>
-                    <p className="text-muted-foreground">{t('instructors.description', 'Barcha instruktorlar ro\'yxati va ularni boshqarish')}</p>
                 </div>
                 <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                    {/* Desktop Filters */}
                     <div className="hidden md:flex flex-wrap gap-2 items-center">
                         <select
                             className="flex h-10 w-full md:w-auto items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -169,20 +169,24 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             <option value="50">50</option>
                             <option value="all">{t('common.all', 'Barchasi')}</option>
                         </select>
-                        <Flatpickr
-                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                            placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
+                        <Input
+                            type="date"
                             value={from}
-                            onChange={(dates, dateStr) => setFrom(dateStr)}
-                            className="flex h-10 w-full md:w-32 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            onChange={(e) => {
+                                setFrom(e.target.value);
+                                router.get('/admin/instructors', { search, from: e.target.value, to, per_page: perPage }, { preserveState: true, replace: true });
+                            }}
+                            className="h-10 w-32"
                             title={t('common.from', 'Dan')}
                         />
-                        <Flatpickr
-                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                            placeholder={t('common.to', 'Gacha') + ' DD-MM-YYYY'}
+                        <Input
+                            type="date"
                             value={to}
-                            onChange={(dates, dateStr) => setTo(dateStr)}
-                            className="flex h-10 w-full md:w-32 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            onChange={(e) => {
+                                setTo(e.target.value);
+                                router.get('/admin/instructors', { search, from, to: e.target.value, per_page: perPage }, { preserveState: true, replace: true });
+                            }}
+                            className="h-10 w-32"
                             title={t('common.to', 'Gacha')}
                         />
                     </div>
@@ -200,7 +204,6 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             </button>
                         </form>
                         
-                        {/* Mobile Filters Trigger */}
                         <Sheet>
                             <SheetTrigger asChild>
                                 <Button variant="outline" size="icon" className="md:hidden shrink-0">
@@ -215,28 +218,26 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                 <div className="grid gap-4 py-4 mt-2">
                                     <div className="space-y-2">
                                         <Label>{t('common.date_from', 'Sana dan')}</Label>
-                                        <Flatpickr
-                                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                                            placeholder="Dan DD-MM-YYYY"
+                                        <Input
+                                            type="date"
                                             value={from}
-                                            onChange={(dates, dateStr) => {
-                                                setFrom(dateStr);
-                                                router.get('/admin/instructors', { search, from: dateStr, to, per_page: perPage }, { preserveState: true, replace: true });
+                                            onChange={(e) => {
+                                                setFrom(e.target.value);
+                                                router.get('/admin/instructors', { search, from: e.target.value, to, per_page: perPage }, { preserveState: true, replace: true });
                                             }}
-                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                                            className="h-10 w-full"
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <Label>{t('common.date_to', 'Sana gacha')}</Label>
-                                        <Flatpickr
-                                            options={{ dateFormat: 'd-m-Y', allowInput: true, disableMobile: true }}
-                                            placeholder="Gacha DD-MM-YYYY"
+                                        <Input
+                                            type="date"
                                             value={to}
-                                            onChange={(dates, dateStr) => {
-                                                setTo(dateStr);
-                                                router.get('/admin/instructors', { search, from, to: dateStr, per_page: perPage }, { preserveState: true, replace: true });
+                                            onChange={(e) => {
+                                                setTo(e.target.value);
+                                                router.get('/admin/instructors', { search, from, to: e.target.value, per_page: perPage }, { preserveState: true, replace: true });
                                             }}
-                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                                            className="h-10 w-full"
                                         />
                                     </div>
                                     <div className="space-y-2">
