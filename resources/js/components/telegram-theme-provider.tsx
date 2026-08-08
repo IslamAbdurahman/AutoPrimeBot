@@ -75,6 +75,14 @@ export function TelegramThemeProvider({ children }: { children: React.ReactNode 
         tg.ready();
         tg.expand();
 
+        if (typeof tg.requestFullscreen === 'function') {
+            try {
+                tg.requestFullscreen();
+            } catch (e) {
+                console.log('requestFullscreen error', e);
+            }
+        }
+
         if (tg.isVersionAtLeast?.('7.7') && typeof tg.disableVerticalSwipes === 'function') {
             tg.disableVerticalSwipes();
         }

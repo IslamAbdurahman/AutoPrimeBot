@@ -64,6 +64,14 @@ export function initTelegramWebApp() {
     tg.ready();
     tg.expand();
 
+    if (typeof tg.requestFullscreen === 'function') {
+        try {
+            tg.requestFullscreen();
+        } catch (e) {
+            console.log('requestFullscreen error', e);
+        }
+    }
+
     // disableVerticalSwipes is available in SDK 7.7+
     if (tg.isVersionAtLeast?.('7.7') && typeof tg.disableVerticalSwipes === 'function') {
         tg.disableVerticalSwipes();
