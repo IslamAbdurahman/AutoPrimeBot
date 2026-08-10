@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Driving;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -32,19 +33,34 @@ class DrivingsExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMap
             $query->where('status', $this->filters['status']);
         }
 
-        if (! empty($this->filters['from'])) {
-            $query->whereDate('start_time', '>=', $this->filters['from']);
+        $from = $this->filters['from'] ?? null;
+        $to = $this->filters['to'] ?? null;
+
+        if ($from) {
+            try {
+                $fromDate = preg_match('/^\d{2}-\d{2}-\d{4}$/', $from)
+                    ? Carbon::createFromFormat('d-m-Y', $from)->startOfDay()
+                    : Carbon::parse($from)->startOfDay();
+                $query->where('start_time', '>=', $fromDate);
+            } catch (\Exception $e) {
+            }
         }
 
-        if (! empty($this->filters['to'])) {
-            $query->whereDate('start_time', '<=', $this->filters['to']);
+        if ($to) {
+            try {
+                $toDate = preg_match('/^\d{2}-\d{2}-\d{4}$/', $to)
+                    ? Carbon::createFromFormat('d-m-Y', $to)->endOfDay()
+                    : Carbon::parse($to)->endOfDay();
+                $query->where('start_time', '<=', $toDate);
+            } catch (\Exception $e) {
+            }
         }
 
         if (! empty($this->filters['instructor_id'])) {
             $query->where('instructor_id', $this->filters['instructor_id']);
         }
 
-        return $query->latest('start_time');
+        return $query->orderBy('start_time', 'desc');
     }
 
     public function headings(): array
