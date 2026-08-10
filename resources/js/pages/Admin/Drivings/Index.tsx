@@ -792,15 +792,17 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                         <div>
                                             <div className="flex justify-between items-center mb-1">
                                                 <Label htmlFor="student_search">{t('common.search', 'Qidirish')}</Label>
-                                                <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none text-muted-foreground hover:text-foreground">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={showOtherStudents}
-                                                        onChange={e => setShowOtherStudents(e.target.checked)}
-                                                        className="rounded border-muted-foreground/40 text-primary focus:ring-primary h-3.5 w-3.5"
-                                                    />
+                                                <div 
+                                                    onClick={() => setShowOtherStudents(prev => !prev)}
+                                                    className="flex items-center gap-1.5 text-xs cursor-pointer select-none text-muted-foreground hover:text-foreground transition-colors"
+                                                >
+                                                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                                                        showOtherStudents ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground/40 bg-background'
+                                                    }`}>
+                                                        {showOtherStudents && <span className="text-[9px] leading-none">✓</span>}
+                                                    </div>
                                                     <span>{t('drivings.select_other_students', 'Boshqa va guruhsiz o\'quvchilar')}</span>
-                                                </label>
+                                                </div>
                                             </div>
                                             <div className="relative">
                                                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -826,14 +828,14 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                 <span className="text-[11px] font-normal">{apiSearchResults.length} ta topildi</span>
                                             )}
                                         </div>
-                                        <div className="border rounded-xl p-2 bg-muted/20 max-h-36 overflow-y-auto space-y-1">
+                                        <div className="border rounded-xl p-2 bg-muted/20 h-36 overflow-y-auto space-y-1">
                                             {isSearchingStudents ? (
-                                                <div className="flex items-center justify-center py-4 text-xs text-muted-foreground gap-2">
-                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                <div className="flex items-center justify-center h-full text-xs text-muted-foreground gap-2">
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
                                                     <span>{t('common.searching', 'Qidirilmoqda...')}</span>
                                                 </div>
                                             ) : apiSearchResults.length === 0 ? (
-                                                <div className="text-center py-4 text-xs text-muted-foreground">
+                                                <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
                                                     {t('drivings.no_students', 'O\'quvchilar topilmadi')}
                                                 </div>
                                             ) : (
