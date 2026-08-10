@@ -18,6 +18,50 @@ class StudentController extends Controller
         return Excel::download(new StudentsExport($request->all()), 'oquvchilar.xlsx');
     }
 
+    public function searchApi(Request $request)
+    {
+        $user = $request->user();
+        $isInstructor = $user->role === 'instructor';
+
+        $query = Student::with('group')->orderBy('full_name', 'asc');
+
+        $search = $request->get('q');
+        if (! empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('full_name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhereHas('group', function ($gQ) use ($search) {
+                        $gQ->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $otherStudents = filter_var($request->get('other_students'), FILTER_VALIDATE_BOOLEAN);
+
+        if ($otherStudents) {
+            $query->where(function ($q) use ($isInstructor, $user) {
+                $q->whereNull('group_id');
+                if ($isInstructor) {
+                    $q->orWhereHas('group', function ($gQ) use ($user) {
+                        $gQ->where('instructor_id', '!=', $user->id);
+                    });
+                } else {
+                    $q->orWhereNotNull('group_id');
+                }
+            });
+        } elseif ($request->filled('group_id')) {
+            $query->where('group_id', $request->group_id);
+        } elseif ($isInstructor) {
+            $query->whereHas('group', function ($q) use ($user) {
+                $q->where('instructor_id', $user->id);
+            });
+        }
+
+        $limit = min((int) $request->get('limit', 30), 100);
+
+        return response()->json($query->limit($limit)->get());
+    }
+
     public function index(Request $request): Response
     {
         $user = $request->user();

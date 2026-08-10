@@ -140,6 +140,7 @@ Route::middleware(['auth.telegram'])->group(function () {
     // Admin Routes
     Route::get('admin/drivings/export', [DrivingController::class, 'export'])->name('drivings.export');
     Route::get('admin/students/export', [StudentController::class, 'export'])->name('students.export');
+    Route::get('admin/students/search-api', [StudentController::class, 'searchApi'])->name('students.search-api');
     Route::get('admin/instructors/export', [AdminInstructorController::class, 'export'])->name('instructors.export');
     Route::get('admin/groups/{group}/export-students', [GroupController::class, 'exportStudents'])->name('groups.export-students');
 

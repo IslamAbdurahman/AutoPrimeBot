@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, Edit2, Trash2, CheckCircle2, XCircle, Filter, Download } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, CheckCircle2, XCircle, Filter, Download, Loader2, ShoppingCart, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -109,6 +109,10 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     const [toDate, setToDate] = useState(filters.to || '');
     const [perPage, setPerPage] = useState(filters.per_page || '10');
     const [studentSearch, setStudentSearch] = useState('');
+    const [showOtherStudents, setShowOtherStudents] = useState(false);
+    const [apiSearchResults, setApiSearchResults] = useState<Student[]>([]);
+    const [isSearchingStudents, setIsSearchingStudents] = useState(false);
+    const [selectedStudentsBasket, setSelectedStudentsBasket] = useState<Student[]>([]);
 
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, '0');
@@ -129,6 +133,28 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         end_time: '',
         status: 'scheduled',
     });
+
+    useEffect(() => {
+        if (!showForm) return;
+
+        const timer = setTimeout(() => {
+            setIsSearchingStudents(true);
+            const params = new URLSearchParams();
+            if (studentSearch) params.append('q', studentSearch);
+            if (data.group_id && !showOtherStudents) params.append('group_id', data.group_id);
+            if (showOtherStudents) params.append('other_students', 'true');
+
+            fetch(`/admin/students/search-api?${params.toString()}`)
+                .then(res => res.json())
+                .then(resData => {
+                    setApiSearchResults(Array.isArray(resData) ? resData : []);
+                })
+                .catch(() => setApiSearchResults([]))
+                .finally(() => setIsSearchingStudents(false));
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [studentSearch, data.group_id, showOtherStudents, showForm]);
 
     transform((formData) => {
         let dateForBackend = '';
@@ -205,6 +231,9 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
             end_time: '',
             status: driving.status,
         });
+        if (driving.student) {
+            setSelectedStudentsBasket([driving.student]);
+        }
         setShowForm(true);
     };
 
@@ -271,8 +300,29 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
         setShowForm(false);
         setTimeout(() => {
             setEditing(null);
+            setSelectedStudentsBasket([]);
+            setStudentSearch('');
+            setApiSearchResults([]);
+            setShowOtherStudents(false);
             reset();
         }, 300);
+    };
+
+    const handleStudentSelect = (std: Student) => {
+        const idStr = String(std.id);
+        if (data.student_ids.includes(idStr)) {
+            setData('student_ids', data.student_ids.filter(id => id !== idStr));
+            setSelectedStudentsBasket(prev => prev.filter(s => s.id !== std.id));
+        } else {
+            setData('student_ids', [...data.student_ids, idStr]);
+            setSelectedStudentsBasket(prev => [...prev.filter(s => s.id !== std.id), std]);
+        }
+    };
+
+    const handleRemoveFromBasket = (stdId: number) => {
+        const idStr = String(stdId);
+        setData('student_ids', data.student_ids.filter(id => id !== idStr));
+        setSelectedStudentsBasket(prev => prev.filter(s => s.id !== stdId));
     };
 
     const applyFilters = (newSearch: string, newStatus: string, newInst: string, newFrom: string, newTo: string, newPerPage: string) => {
@@ -724,31 +774,34 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                 )}
 
                                 <div className="space-y-3">
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div>
                                             <Label htmlFor="group_id">{t('drivings.group_optional', 'Guruh (Ixtiyoriy)')}</Label>
                                             <select 
                                                 id="group_id" 
                                                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
                                                 value={data.group_id} 
-                                                onChange={e => {
-                                                    const selectedGroupId = e.target.value;
-                                                    setData(prev => ({
-                                                        ...prev,
-                                                        group_id: selectedGroupId,
-                                                        student_ids: [],
-                                                        student_id: ''
-                                                    }));
-                                                }} 
+                                                onChange={e => setData('group_id', e.target.value)}
                                             >
-                                                <option value="">{t('students.all_groups', 'Barcha guruhlar')}</option>
+                                                <option value="">{t('common.select', '-- Tanlang --')}</option>
                                                 {groups.map(g => (
                                                     <option key={g.id} value={g.id}>{g.name}</option>
                                                 ))}
                                             </select>
                                         </div>
                                         <div>
-                                            <Label htmlFor="student_search">{t('common.search', 'Qidirish')}</Label>
+                                            <div className="flex justify-between items-center mb-1">
+                                                <Label htmlFor="student_search">{t('common.search', 'Qidirish')}</Label>
+                                                <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none text-muted-foreground hover:text-foreground">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={showOtherStudents}
+                                                        onChange={e => setShowOtherStudents(e.target.checked)}
+                                                        className="rounded border-muted-foreground/40 text-primary focus:ring-primary h-3.5 w-3.5"
+                                                    />
+                                                    <span>{t('drivings.select_other_students', 'Boshqa va guruhsiz o\'quvchilar')}</span>
+                                                </label>
+                                            </div>
                                             <div className="relative">
                                                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                                 <Input
@@ -758,61 +811,115 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                     onChange={e => setStudentSearch(e.target.value)}
                                                     className="pl-8 text-xs sm:text-sm"
                                                 />
+                                                {isSearchingStudents && (
+                                                    <Loader2 className="absolute right-2.5 top-2.5 h-4 w-4 text-primary animate-spin" />
+                                                )}
                                             </div>
                                         </div>
                                     </div>
 
+                                    {/* API Search Results List */}
                                     <div>
-                                        <div className="flex justify-between items-center mb-1.5">
-                                            <Label className="text-sm font-semibold">
-                                                {t('students.title', 'O\'quvchilar')}
-                                            </Label>
+                                        <div className="text-xs font-semibold text-muted-foreground mb-1 flex justify-between items-center">
+                                            <span>{t('drivings.search_results', 'Qidiruv natijalari')}</span>
+                                            {apiSearchResults.length > 0 && (
+                                                <span className="text-[11px] font-normal">{apiSearchResults.length} ta topildi</span>
+                                            )}
                                         </div>
-
-                                        <div className="border rounded-xl p-3 bg-muted/20 max-h-48 overflow-y-auto space-y-1.5">
-                                            {filteredStudents.length === 0 ? (
+                                        <div className="border rounded-xl p-2 bg-muted/20 max-h-36 overflow-y-auto space-y-1">
+                                            {isSearchingStudents ? (
+                                                <div className="flex items-center justify-center py-4 text-xs text-muted-foreground gap-2">
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                    <span>{t('common.searching', 'Qidirilmoqda...')}</span>
+                                                </div>
+                                            ) : apiSearchResults.length === 0 ? (
                                                 <div className="text-center py-4 text-xs text-muted-foreground">
                                                     {t('drivings.no_students', 'O\'quvchilar topilmadi')}
                                                 </div>
                                             ) : (
-                                                filteredStudents.map(s => {
+                                                apiSearchResults.map(s => {
                                                     const isSelected = data.student_ids.includes(String(s.id));
                                                     return (
                                                         <div 
                                                             key={s.id} 
-                                                            onClick={() => handleStudentToggle(s.id)}
-                                                            className={`flex items-center justify-between p-2.5 rounded-lg border text-sm cursor-pointer transition-colors ${
+                                                            onClick={() => handleStudentSelect(s)}
+                                                            className={`flex items-center justify-between p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
                                                                 isSelected 
                                                                     ? 'bg-primary/10 border-primary text-primary font-medium' 
                                                                     : 'bg-card hover:bg-muted/50 border-border'
                                                             }`}
                                                         >
                                                             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                                                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
+                                                                <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
                                                                     isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground/40'
                                                                 }`}>
-                                                                    {isSelected && <span className="text-[10px] leading-none">✓</span>}
+                                                                    {isSelected && <span className="text-[9px] leading-none">✓</span>}
                                                                 </div>
                                                                 <span className="font-medium">{s.full_name}</span>
-                                                                {s.group && (
+                                                                {s.group ? (
                                                                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-normal border border-border">
                                                                         {s.group.name}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-normal border border-amber-500/20">
+                                                                        {t('common.no_group', 'Guruhsiz')}
                                                                     </span>
                                                                 )}
                                                             </div>
                                                             {s.phone && (
-                                                                <span className="text-xs text-muted-foreground font-mono">{s.phone}</span>
+                                                                <span className="text-[11px] text-muted-foreground font-mono">{s.phone}</span>
                                                             )}
                                                         </div>
                                                     );
                                                 })
                                             )}
                                         </div>
+                                    </div>
+
+                                    {/* Selected Students Basket (Korzinka) */}
+                                    <div className="border-t pt-3 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-xs font-semibold flex items-center gap-1.5">
+                                                <ShoppingCart className="w-3.5 h-3.5 text-primary" />
+                                                <span>{t('drivings.selected_students_basket', 'Tanlangan o\'quvchilar')}</span>
+                                            </Label>
+                                            <span className="text-xs font-bold text-primary">
+                                                ({selectedStudentsBasket.length} ta)
+                                            </span>
+                                        </div>
+
+                                        {selectedStudentsBasket.length === 0 ? (
+                                            <div className="text-center py-3 text-xs text-muted-foreground border border-dashed rounded-lg bg-muted/10">
+                                                {t('drivings.basket_empty', 'Hali hech qanday o\'quvchi tanlanmadi')}
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
+                                                {selectedStudentsBasket.map(s => (
+                                                    <div 
+                                                        key={s.id} 
+                                                        className="flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary text-xs px-2.5 py-1.5 rounded-lg shadow-2xs font-medium"
+                                                    >
+                                                        <span>{s.full_name}</span>
+                                                        {s.group ? (
+                                                            <span className="text-[10px] opacity-80 font-normal">({s.group.name})</span>
+                                                        ) : (
+                                                            <span className="text-[10px] opacity-80 font-normal">({t('common.no_group', 'Guruhsiz')})</span>
+                                                        )}
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => handleRemoveFromBasket(s.id)}
+                                                            className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                                                            title={t('common.remove', 'O\'chirish')}
+                                                        >
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                         {errors.student_id && <div className="text-destructive text-sm mt-1">{errors.student_id}</div>}
                                     </div>
-                                </div>
 
-                                <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <Label htmlFor="autodrome_id">{t('drivings.autodrome', 'Avtodrom')}</Label>
                                         <select
