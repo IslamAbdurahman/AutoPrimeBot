@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, FolderGit2, LayoutGrid, MapPin, ShieldCheck } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -5,6 +6,7 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { useTranslation } from 'react-i18next';
+import { isTelegramWebApp } from '@/hooks/use-telegram';
 import {
     Sidebar,
     SidebarContent,
@@ -13,6 +15,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { NavItem, SharedData } from '@/types';
@@ -21,6 +24,20 @@ export function AppSidebar() {
     const { t } = useTranslation();
     const { auth } = usePage<SharedData>().props;
     const isInstructor = auth.user.role === 'instructor';
+    const { setOpenMobile, isMobile } = useSidebar();
+    const [isTg, setIsTg] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && isMobile) {
+            setIsTg(isTelegramWebApp() || !!(window as any).Telegram?.WebApp?.initData || !!(window as any).Telegram?.WebApp?.platform);
+        }
+    }, [isMobile]);
+
+    const handleLogoClick = () => {
+        if (isMobile) {
+            setOpenMobile(false);
+        }
+    };
 
     const mainNavItems: NavItem[] = [
         {
@@ -70,11 +87,17 @@ export function AppSidebar() {
 
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
+            <SidebarHeader
+                style={{
+                    paddingTop: isTg
+                        ? 'calc(max(var(--tg-content-safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px), env(safe-area-inset-top, 44px)) + 0.75rem)'
+                        : undefined,
+                }}
+            >
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/admin/dashboard" prefetch>
+                            <Link href="/admin/dashboard" onClick={handleLogoClick} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

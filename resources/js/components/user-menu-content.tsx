@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
+import { useSidebar } from '@/components/ui/sidebar';
 import { logout } from '@/routes';
 import type { User } from '@/types';
 import { useTranslation } from 'react-i18next';
@@ -19,10 +20,21 @@ type Props = {
 export function UserMenuContent({ user }: Props) {
     const cleanup = useMobileNavigation();
     const { t } = useTranslation();
+    const { setOpenMobile, isMobile } = useSidebar();
 
     const handleLogout = () => {
         cleanup();
+        if (isMobile) {
+            setOpenMobile(false);
+        }
         router.flushAll();
+    };
+
+    const handleProfileClick = () => {
+        cleanup();
+        if (isMobile) {
+            setOpenMobile(false);
+        }
     };
 
     return (
@@ -35,7 +47,7 @@ export function UserMenuContent({ user }: Props) {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
-                    <Link className="block w-full cursor-pointer flex items-center" href="/profile">
+                    <Link className="block w-full cursor-pointer flex items-center" href="/profile" onClick={handleProfileClick}>
                         <UserIcon className="mr-2 w-4 h-4" />
                         {t('user_menu.profile', 'Profil')}
                     </Link>
