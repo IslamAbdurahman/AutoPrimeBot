@@ -8,6 +8,7 @@ use App\Models\Driving;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -60,20 +61,16 @@ class InstructorController extends Controller
             }
         };
 
-        $perPage = $request->get('per_page', 15);
-        if ($perPage === 'all') {
-            $perPage = max($query->count(), 1);
-        }
+        $perPage = $request->get('per_page', '15');
 
-        $instructors = $query->withCount('groups')
+        $items = $query->withCount('groups')
             ->with([
                 'groups' => fn ($gQuery) => $gQuery->withCount('students'),
                 'drivings' => $drivingsQuery,
             ])
-            ->paginate($perPage)
-            ->withQueryString();
+            ->get();
 
-        $instructors->getCollection()->transform(function ($instructor) {
+        $transformed = $items->map(function ($instructor) {
             $studentsCount = $instructor->groups->sum('students_count');
             $totalDrivings = $instructor->drivings->count();
             $completedDrivings = $instructor->drivings->where('status', 'completed')->count();
@@ -116,7 +113,20 @@ class InstructorController extends Controller
                 'is_low_rating' => $isLowRating,
                 'needs_attention' => $needsAttention,
             ];
-        });
+        })->sortByDesc('kpi_percentage')->values();
+
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $perPageInt = $perPage === 'all' ? max($transformed->count(), 1) : (int) $perPage;
+
+        $paginatedItems = $transformed->slice(($page - 1) * $perPageInt, $perPageInt)->values();
+
+        $instructors = new LengthAwarePaginator(
+            $paginatedItems,
+            $transformed->count(),
+            $perPageInt,
+            $page,
+            ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
+        );
 
         return Inertia::render('Admin/Instructors/Index', [
             'instructors' => $instructors,

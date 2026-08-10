@@ -55,12 +55,21 @@ class InstructorsExport implements FromCollection, ShouldAutoSize, WithHeadings,
             }
         };
 
-        return $query->withCount('groups')
+        $items = $query->withCount('groups')
             ->with([
                 'groups' => fn ($gQuery) => $gQuery->withCount('students'),
                 'drivings' => $drivingsQuery,
             ])
             ->get();
+
+        return $items->sortByDesc(function ($instructor) {
+            $reviews = $instructor->drivings->pluck('review')->filter();
+            $totalReviews = $reviews->count();
+            $totalScore = (int) $reviews->sum('rating');
+            $maxScore = $totalReviews * 5;
+
+            return $maxScore > 0 ? ($totalScore / $maxScore) * 100 : 0;
+        })->values();
     }
 
     public function headings(): array
