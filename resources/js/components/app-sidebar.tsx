@@ -90,7 +90,7 @@ export function AppSidebar() {
             <SidebarHeader
                 style={{
                     paddingTop: isTg
-                        ? 'calc(max(var(--tg-content-safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px), env(safe-area-inset-top, 44px)) + 0.75rem)'
+                        ? 'calc(max(var(--tg-content-safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px), env(safe-area-inset-top, 44px)) + 3.25rem)'
                         : undefined,
                 }}
             >
