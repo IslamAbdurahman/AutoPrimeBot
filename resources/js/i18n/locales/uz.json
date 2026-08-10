@@ -140,7 +140,22 @@
     "scheduled_drivings": "dars belgilangan",
     "completed_drivings": "ta yakunlangan",
     "ball_label": "ball",
-    "drivings_proportion": "Darslar proporsiyasi"
+    "drivings_proportion": "Darslar proporsiyasi",
+    "car_name": "Biriktirilgan mashina",
+    "upload_photo": "Rasm yuklash",
+    "infographics": "Infografika va statistika",
+    "kpi_score": "KPI Ko'rsatgichi",
+    "reviews_count": "baho",
+    "total_drivings": "Jami darslar",
+    "completed": "Yakunlangan",
+    "scheduled": "Rejalashtirilgan",
+    "cancelled": "Bekor qilingan",
+    "rating_distribution": "Baholar taqsimoti",
+    "criteria_breakdown": "Baholash mezonlari (Taglar)",
+    "no_tags": "Hozircha baholash mezonlari bildirilmagan",
+    "conducted_drivings": "O'tkazgan mashg'ulotlari ro'yxati",
+    "drivings_subtitle": "Instruktor tomonidan o'tkazilgan barcha amaliy darslar",
+    "groups": "guruh"
   },
   "drivings": {
     "title": "Mashg'ulotlar Tarixi",

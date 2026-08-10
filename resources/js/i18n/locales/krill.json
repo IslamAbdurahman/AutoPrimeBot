@@ -140,7 +140,22 @@
     "scheduled_drivings": "дарс белгиланган",
     "completed_drivings": "та якунланган",
     "ball_label": "балл",
-    "drivings_proportion": "Дарслар пропорцияси"
+    "drivings_proportion": "Дарслар пропорцияси",
+    "car_name": "Бириктирилган машина",
+    "upload_photo": "Расм юклаш",
+    "infographics": "Инфографика ва статистика",
+    "kpi_score": "KPI Кўрсаткичи",
+    "reviews_count": "баҳо",
+    "total_drivings": "Жами дарслар",
+    "completed": "Якунланган",
+    "scheduled": "Режалаштирилган",
+    "cancelled": "Бекор қилинган",
+    "rating_distribution": "Баҳолар тақсимоти",
+    "criteria_breakdown": "Баҳолаш мезонлари (Таглар)",
+    "no_tags": "Ҳозирча баҳолаш мезонлари билдирилмаган",
+    "conducted_drivings": "Ўтказган машғулотлари рўйхати",
+    "drivings_subtitle": "Инструктор томонидан ўтказилган барча амалий дарслар",
+    "groups": "гуруҳ"
   },
   "drivings": {
     "title": "Машғулотлар Тарихи",

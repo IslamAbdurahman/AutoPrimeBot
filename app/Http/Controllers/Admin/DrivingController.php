@@ -90,7 +90,7 @@ class DrivingController extends Controller
             })
             ->get();
 
-        $studentsQuery = Student::orderBy('full_name');
+        $studentsQuery = Student::with('group')->orderBy('full_name');
         $groupsQuery = Group::orderBy('name');
 
         if ($request->user()->role === 'instructor') {
@@ -197,6 +197,10 @@ class DrivingController extends Controller
         }
 
         $oldStatus = $driving->status;
+        $oldStartTime = $driving->start_time;
+        $oldEndTime = $driving->end_time;
+        $oldAutodromeId = $driving->autodrome_id;
+
         $driving->update($validated);
 
         if ($oldStatus !== $driving->status) {
@@ -205,6 +209,12 @@ class DrivingController extends Controller
             } elseif ($driving->status === 'cancelled') {
                 app(TelegramService::class)->sendDrivingCancelledNotification($driving);
             }
+        } elseif ($driving->status === 'scheduled' && (
+            $oldStartTime !== $driving->start_time ||
+            $oldEndTime !== $driving->end_time ||
+            $oldAutodromeId !== $driving->autodrome_id
+        )) {
+            app(TelegramService::class)->sendDrivingUpdatedNotification($driving);
         }
 
         return redirect()->back();
@@ -236,6 +246,7 @@ class DrivingController extends Controller
             ]);
         }
 
+        app(TelegramService::class)->sendDrivingCancelledNotification($driving);
         $driving->delete();
 
         return redirect()->back();

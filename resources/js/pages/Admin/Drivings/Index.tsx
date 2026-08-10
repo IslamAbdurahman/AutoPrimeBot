@@ -39,6 +39,7 @@ interface Student {
     full_name: string;
     phone?: string;
     group_id?: number;
+    group?: Group;
 }
 
 interface Driving {
@@ -292,7 +293,11 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
 
     const baseFilteredStudents = data.group_id ? students.filter(s => s.group_id === Number(data.group_id)) : students;
     const filteredStudents = studentSearch
-        ? baseFilteredStudents.filter(s => s.full_name.toLowerCase().includes(studentSearch.toLowerCase()))
+        ? baseFilteredStudents.filter(s => 
+            s.full_name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+            (s.phone && s.phone.includes(studentSearch)) ||
+            (s.group && s.group.name.toLowerCase().includes(studentSearch.toLowerCase()))
+          )
         : baseFilteredStudents;
 
     const handleStudentToggle = (stdId: number) => {
@@ -782,13 +787,18 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                                                                     : 'bg-card hover:bg-muted/50 border-border'
                                                             }`}
                                                         >
-                                                            <div className="flex items-center gap-2">
-                                                                <div className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                                            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                                                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
                                                                     isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground/40'
                                                                 }`}>
                                                                     {isSelected && <span className="text-[10px] leading-none">✓</span>}
                                                                 </div>
-                                                                <span>{s.full_name}</span>
+                                                                <span className="font-medium">{s.full_name}</span>
+                                                                {s.group && (
+                                                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-normal border border-border">
+                                                                        {s.group.name}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             {s.phone && (
                                                                 <span className="text-xs text-muted-foreground font-mono">{s.phone}</span>

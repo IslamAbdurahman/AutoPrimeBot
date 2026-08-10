@@ -28,15 +28,28 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property string $phone
  * @property string|null $telegram_id
+ * @property string|null $car_name
+ * @property string|null $photo_path
  * @property string $role
  * @property string $status
  */
-#[Fillable(['name', 'phone', 'telegram_id', 'role', 'status', 'email', 'password'])]
+#[Fillable(['name', 'phone', 'telegram_id', 'car_name', 'photo_path', 'role', 'status', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    protected $appends = ['photo_url'];
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (! $this->photo_path) {
+            return null;
+        }
+
+        return asset('storage/'.$this->photo_path);
+    }
 
     /**
      * Get the attributes that should be cast.

@@ -140,7 +140,22 @@
     "scheduled_drivings": "зан. запланировано",
     "completed_drivings": "завершено",
     "ball_label": "балл",
-    "drivings_proportion": "Пропорция занятий"
+    "drivings_proportion": "Пропорция занятий",
+    "car_name": "Закрепленный автомобиль",
+    "upload_photo": "Загрузить фото",
+    "infographics": "Инфографика и статистика",
+    "kpi_score": "Показатель KPI",
+    "reviews_count": "оценок",
+    "total_drivings": "Всего занятий",
+    "completed": "Завершено",
+    "scheduled": "Запланировано",
+    "cancelled": "Отменено",
+    "rating_distribution": "Распределение оценок",
+    "criteria_breakdown": "Критерии оценок (Теги)",
+    "no_tags": "Критерии пока не указаны",
+    "conducted_drivings": "Список проведенных занятий",
+    "drivings_subtitle": "Все практические занятия, проведенные инструктором",
+    "groups": "групп"
   },
   "drivings": {
     "title": "История занятий",

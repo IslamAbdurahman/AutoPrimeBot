@@ -140,7 +140,22 @@
     "scheduled_drivings": "drivings scheduled",
     "completed_drivings": "completed",
     "ball_label": "score",
-    "drivings_proportion": "Drivings proportion"
+    "drivings_proportion": "Drivings proportion",
+    "car_name": "Assigned Car",
+    "upload_photo": "Upload Photo",
+    "infographics": "Infographics & Statistics",
+    "kpi_score": "KPI Indicator",
+    "reviews_count": "ratings",
+    "total_drivings": "Total Drivings",
+    "completed": "Completed",
+    "scheduled": "Scheduled",
+    "cancelled": "Cancelled",
+    "rating_distribution": "Rating Distribution",
+    "criteria_breakdown": "Evaluation Criteria (Tags)",
+    "no_tags": "No evaluation criteria provided yet",
+    "conducted_drivings": "Conducted Drivings List",
+    "drivings_subtitle": "All practical lessons conducted by instructor",
+    "groups": "groups"
   },
   "drivings": {
     "title": "Driving History",

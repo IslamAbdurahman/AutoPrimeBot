@@ -2,17 +2,26 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\InstructorsExport;
 use App\Http\Controllers\Controller;
+use App\Models\Driving;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InstructorController extends Controller
 {
+    public function export(Request $request)
+    {
+        return Excel::download(new InstructorsExport($request->all()), 'instruktorlar.xlsx');
+    }
+
     public function index(Request $request): Response
     {
         $query = User::where('role', 'instructor')->orderBy('id', 'desc');
@@ -21,7 +30,8 @@ class InstructorController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('car_name', 'like', "%{$search}%");
             });
         }
 
@@ -91,6 +101,8 @@ class InstructorController extends Controller
                 'name' => $instructor->name,
                 'phone' => $instructor->phone,
                 'telegram_id' => $instructor->telegram_id,
+                'car_name' => $instructor->car_name,
+                'photo_url' => $instructor->photo_url,
                 'groups_count' => $instructor->groups_count,
                 'students_count' => $studentsCount,
                 'total_drivings' => $totalDrivings,
@@ -98,9 +110,7 @@ class InstructorController extends Controller
                 'scheduled_drivings' => $scheduledDrivings,
                 'reviewed_drivings' => $totalReviews,
                 'total_score' => $totalScore,
-                'max_score' => $maxScore,
-                'score_formatted' => "{$totalScore}/{$maxScore}",
-                'average_rating' => round($averageRating, 2),
+                'average_rating' => $averageRating > 0 ? round($averageRating, 2) : 0,
                 'kpi_percentage' => round($kpiPercentage, 1),
                 'negative_tags_count' => $negativeTagsCount,
                 'is_low_rating' => $isLowRating,
@@ -119,6 +129,66 @@ class InstructorController extends Controller
         ]);
     }
 
+    public function show(Request $request, User $instructor): Response
+    {
+        $instructor->loadCount('groups');
+
+        $drivings = Driving::with(['student.group', 'autodrome', 'review'])
+            ->where('instructor_id', $instructor->id)
+            ->orderBy('start_time', 'desc')
+            ->get();
+
+        $reviews = $drivings->pluck('review')->filter();
+        $totalReviews = $reviews->count();
+        $totalScore = (int) $reviews->sum('rating');
+        $maxScore = $totalReviews * 5;
+        $averageRating = $totalReviews > 0 ? round($reviews->avg('rating'), 2) : 0;
+        $kpiPercentage = $maxScore > 0 ? round(($totalScore / $maxScore) * 100, 1) : 0;
+
+        $allTags = $reviews->pluck('reason_tags')->flatten()->filter()->values();
+        $tagCounts = $allTags->countBy()->map(function ($count, $tag) use ($totalReviews) {
+            return [
+                'tag' => $tag,
+                'count' => $count,
+                'percentage' => $totalReviews > 0 ? round(($count / $totalReviews) * 100, 1) : 0,
+            ];
+        })->values()->sortByDesc('count')->values();
+
+        $ratingDistribution = [];
+        for ($star = 5; $star >= 1; $star--) {
+            $count = $reviews->where('rating', $star)->count();
+            $ratingDistribution[] = [
+                'stars' => $star,
+                'count' => $count,
+                'percentage' => $totalReviews > 0 ? round(($count / $totalReviews) * 100, 1) : 0,
+            ];
+        }
+
+        return Inertia::render('Admin/Instructors/Show', [
+            'instructor' => [
+                'id' => $instructor->id,
+                'name' => $instructor->name,
+                'phone' => $instructor->phone,
+                'telegram_id' => $instructor->telegram_id,
+                'car_name' => $instructor->car_name,
+                'photo_url' => $instructor->photo_url,
+                'groups_count' => $instructor->groups_count,
+            ],
+            'stats' => [
+                'total_drivings' => $drivings->count(),
+                'completed_drivings' => $drivings->where('status', 'completed')->count(),
+                'scheduled_drivings' => $drivings->where('status', 'scheduled')->count(),
+                'cancelled_drivings' => $drivings->where('status', 'cancelled')->count(),
+                'total_reviews' => $totalReviews,
+                'average_rating' => $averageRating,
+                'kpi_percentage' => $kpiPercentage,
+                'tag_counts' => $tagCounts,
+                'rating_distribution' => $ratingDistribution,
+            ],
+            'drivings' => $drivings,
+        ]);
+    }
+
     public function store(Request $request)
     {
         if ($request->user()->role === 'instructor') {
@@ -129,13 +199,22 @@ class InstructorController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:users',
             'telegram_id' => 'nullable|string|unique:users',
+            'car_name' => 'nullable|string|max:255',
+            'photo' => 'nullable|image|max:5120',
             'password' => 'nullable|string|min:6',
         ]);
+
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('instructors', 'public');
+        }
 
         User::create([
             'name' => $validated['name'],
             'phone' => $validated['phone'],
-            'telegram_id' => $validated['telegram_id'],
+            'telegram_id' => $validated['telegram_id'] ?? null,
+            'car_name' => $validated['car_name'] ?? null,
+            'photo_path' => $photoPath,
             'password' => ! empty($validated['password']) ? Hash::make($validated['password']) : Hash::make(Str::random(16)),
             'role' => 'instructor',
         ]);
@@ -153,8 +232,17 @@ class InstructorController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:users,phone,'.$instructor->id,
             'telegram_id' => 'nullable|string|unique:users,telegram_id,'.$instructor->id,
+            'car_name' => 'nullable|string|max:255',
+            'photo' => 'nullable|image|max:5120',
             'password' => 'nullable|string|min:6',
         ]);
+
+        if ($request->hasFile('photo')) {
+            if ($instructor->photo_path) {
+                Storage::disk('public')->delete($instructor->photo_path);
+            }
+            $validated['photo_path'] = $request->file('photo')->store('instructors', 'public');
+        }
 
         if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
@@ -171,6 +259,10 @@ class InstructorController extends Controller
     {
         if ($request->user()->role === 'instructor') {
             abort(403, 'Instruktorlar faqat mashg\'ulotlar (drivings) bo\'limida amaliyot bajara oladi.');
+        }
+
+        if ($instructor->photo_path) {
+            Storage::disk('public')->delete($instructor->photo_path);
         }
 
         $instructor->delete();
