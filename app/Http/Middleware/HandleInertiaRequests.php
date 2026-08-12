@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Branch;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -35,12 +37,29 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $branches = [];
+        if ($user = $request->user()) {
+            if ($user->relationLoaded('branch') === false && $user->branch_id) {
+                $user->load('branch');
+            }
+            if (Schema::hasTable('branches')) {
+                $branches = Branch::where('status', 'active')
+                    ->select(['id', 'name', 'code'])
+                    ->orderBy('name')
+                    ->get();
+            }
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
+            'branches' => $branches,
+            'filters' => array_merge([
+                'branch_id' => $request->input('branch_id'),
+            ], $request->only(['search', 'from', 'to'])),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
