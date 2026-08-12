@@ -280,21 +280,8 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
             });
         };
 
-        const hasAutodrome = !!(statusModalDriving?.autodrome_id || statusModalDriving?.autodrome);
-        if (targetStatus === 'completed' && hasAutodrome) {
-            if (!navigator.geolocation) {
-                toast.error(t('drivings.geolocation_not_supported', 'Brauzeringiz geolokatsiyani qo\'llab-quvvatlamaydi.'));
-                return;
-            }
-            navigator.geolocation.getCurrentPosition(
-                (pos) => performUpdate(pos.coords.latitude, pos.coords.longitude),
-                () => {
-                    toast.error(t('drivings.geolocation_denied', 'Joylashuvni aniqlab bo\'lmadi.'));
-                }
-            );
-        } else {
-            performUpdate();
-        }
+        // Admin uchun locatsiya so'ralmaydi — to'g'ridan-to'g'ri yakunlash
+        performUpdate();
     };
 
     const closeForm = () => {
