@@ -86,18 +86,12 @@ export function TelegramThemeProvider({ children }: { children: React.ReactNode 
         updateSafeArea();
 
         tg.ready();
-        tg.expand();
-
-        if (typeof tg.requestFullscreen === 'function') {
+        if (typeof tg.exitFullscreen === 'function') {
             try {
-                tg.requestFullscreen();
+                tg.exitFullscreen();
             } catch (e) {
-                console.log('requestFullscreen error', e);
+                // Ignore exitFullscreen errors
             }
-        }
-
-        if (tg.isVersionAtLeast?.('7.7') && typeof tg.disableVerticalSwipes === 'function') {
-            tg.disableVerticalSwipes();
         }
 
         return () => {
