@@ -62,5 +62,29 @@ export function initTelegramWebApp() {
     if (!tg) return;
 
     tg.ready();
-    tg.expand();
+
+    const isMobile =
+        typeof window !== 'undefined' &&
+        (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+         window.innerWidth < 768 ||
+         ['android', 'ios'].includes(tg.platform));
+
+    if (isMobile) {
+        tg.expand();
+        if (typeof tg.requestFullscreen === 'function') {
+            try {
+                tg.requestFullscreen();
+            } catch (e) {
+                // Ignore fullscreen errors
+            }
+        }
+    } else {
+        if (typeof tg.exitFullscreen === 'function') {
+            try {
+                tg.exitFullscreen();
+            } catch (e) {
+                // Ignore exitFullscreen errors
+            }
+        }
+    }
 }
