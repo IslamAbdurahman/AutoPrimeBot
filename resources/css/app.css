@@ -232,3 +232,11 @@ span.flatpickr-weekday {
 .dark .flatpickr-day.nextMonthDay {
     color: #64748b !important;
 }
+
+/* Fix Telegram WebApp input focus and text typing freeze on iOS/Android */
+input, textarea, select, [contenteditable="true"] {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
+    pointer-events: auto !important;
+}
