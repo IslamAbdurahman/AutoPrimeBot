@@ -94,7 +94,7 @@
     "instructor_label": "Instruktor",
     "students_count_label": "Talabalar soni",
     "import_excel": "Excel orqali yuklash",
-    "excel_columns_hint": "Ustunlar: full_name, phone, gender (majburiy emas) bo'lishi kerak.",
+    "excel_columns_hint": "Ustunlar: full_name, phone bo'lishi kerak.",
     "download_template": "Shablonni yuklab olish",
     "students_title": "Guruh Talabalari",
     "no_students_in_group": "Guruhda hozircha talabalar yo'q. Excel orqali yuklang."

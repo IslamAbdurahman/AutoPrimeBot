@@ -91,7 +91,7 @@
     "instructor_label": "Instructor",
     "students_count_label": "Number of students",
     "import_excel": "Import via Excel",
-    "excel_columns_hint": "Columns must be: full_name, phone, gender (optional).",
+    "excel_columns_hint": "Columns must be: full_name, phone.",
     "download_template": "Download template",
     "students_title": "Group Students",
     "no_students_in_group": "No students in this group yet. Upload via Excel."

@@ -137,9 +137,9 @@ class GroupController extends Controller
             public function array(): array
             {
                 return [
-                    ['full_name', 'phone', 'gender'],
-                    ['Eshmatov Toshmat', '+998901234567', 'Erkak'],
-                    ['Toshmatova Eshmatxon', '+998901234568', 'Ayol'],
+                    ['full_name', 'phone'],
+                    ['Eshmatov Toshmat', '+998901234567'],
+                    ['Toshmatova Eshmatxon', '+998901234568'],
                 ];
             }
         };

@@ -18,7 +18,6 @@ interface Student {
     id: number;
     full_name: string;
     phone: string;
-    gender: 'male' | 'female';
     completed_drivings_count?: number;
 }
 
@@ -98,7 +97,7 @@ export default function GroupShow({ group, students }: PageProps) {
                                     {t('groups.import_excel', 'Excel orqali yuklash')}
                                 </h2>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                                    {t('groups.excel_columns_hint', "Ustunlar: full_name, phone, gender (majburiy emas) bo'lishi kerak.")}
+                                    {t('groups.excel_columns_hint', "Ustunlar: full_name, phone bo'lishi kerak.")}
                                 </p>
                                 
                                 <div className="mb-6">
@@ -146,13 +145,12 @@ export default function GroupShow({ group, students }: PageProps) {
                                             <th className="px-6 py-4 font-medium">{t('students.full_name', 'F.I.SH')}</th>
                                             <th className="px-6 py-4 font-medium">{t('students.phone', 'Telefon')}</th>
                                             <th className="px-6 py-4 font-medium text-center">{t('students.completed_drivings', 'Tugagan darslar')}</th>
-                                            <th className="px-6 py-4 font-medium">{t('students.gender', 'Jins')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
                                         {students.length === 0 ? (
                                             <tr>
-                                                <td colSpan={5} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                                <td colSpan={4} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                                                     {t('groups.no_students_in_group', "Guruhda hozircha talabalar yo'q. Excel orqali yuklang.")}
                                                 </td>
                                             </tr>
@@ -168,9 +166,6 @@ export default function GroupShow({ group, students }: PageProps) {
                                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
                                                             {student.completed_drivings_count || 0}
                                                         </span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {student.gender === 'female' ? t('students.gender_female', 'Ayol') : t('students.gender_male', 'Erkak')}
                                                     </td>
                                                 </tr>
                                             ))
@@ -193,9 +188,6 @@ export default function GroupShow({ group, students }: PageProps) {
                                                         <div className="text-sm text-muted-foreground">{student.phone || '-'}</div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded inline-block mb-1">
-                                                            {student.gender === 'female' ? t('students.gender_female', 'Ayol') : t('students.gender_male', 'Erkak')}
-                                                        </span>
                                                         <div>
                                                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
                                                                 {student.completed_drivings_count || 0} {t('drivings.lessons_suffix', 'dars')}

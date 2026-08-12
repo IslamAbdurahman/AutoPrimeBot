@@ -91,7 +91,7 @@
     "instructor_label": "Инструктор",
     "students_count_label": "Талабалар сони",
     "import_excel": "Excel орқали юклаш",
-    "excel_columns_hint": "Устунлар: full_name, phone, gender (мажбурий эмас) бўлиши керак.",
+    "excel_columns_hint": "Устунлар: full_name, phone бўлиши керак.",
     "download_template": "Шаблонни юклаб олиш",
     "students_title": "Гуруҳ Талабалари",
     "no_students_in_group": "Гуруҳда ҳозирча талабалар йўқ. Excel орқали юкланг."

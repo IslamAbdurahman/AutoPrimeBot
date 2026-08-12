@@ -24,16 +24,20 @@ class StudentsImport implements ToCollection, WithHeadingRow
             // Maatwebsite/Excel uses snake_case keys for headers by default
             $fullName = $row['full_name'] ?? $row['ism'] ?? $row['f_i_sh'] ?? $row['name'] ?? null;
             $phone = $row['phone'] ?? $row['telefon'] ?? $row['tel'] ?? null;
-            $gender = $row['gender'] ?? $row['jins'] ?? null;
 
             if (! $fullName) {
                 continue;
             }
 
             if ($phone) {
-                $phone = preg_replace('/[^\d+]/', '', $phone);
-                if (! str_starts_with($phone, '+') && strlen($phone) >= 9) {
-                    $phone = '+'.ltrim($phone, ' +');
+                $digits = preg_replace('/\D/', '', (string) $phone);
+                if (strlen($digits) === 9) {
+                    $digits = '998'.$digits;
+                }
+                if ($digits !== '') {
+                    $phone = '+'.$digits;
+                } else {
+                    $phone = null;
                 }
             }
 
@@ -50,7 +54,6 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 Student::create([
                     'full_name' => $fullName,
                     'phone' => $phone,
-                    'gender' => in_array(strtolower((string) $gender), ['ayol', 'female', 'f']) ? 'female' : 'male',
                     'group_id' => $this->groupId,
                 ]);
             }
