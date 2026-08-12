@@ -37,12 +37,6 @@ export default function GroupShow({ group, students }: PageProps) {
         file: null as File | null,
     });
 
-    const handleDeleteGroup = () => {
-        if (confirm(t('groups.confirm_delete', 'Haqiqatdan ham ushbu guruhni o\'chirmoqchimisiz?'))) {
-            router.delete(`/admin/groups/${group.id}`);
-        }
-    };
-
     const handleDeleteStudent = (studentId: number) => {
         if (confirm(t('common.confirm_delete', 'Haqiqatdan ham o\'chirmoqchimisiz?'))) {
             router.delete(`/admin/students/${studentId}`, {
@@ -98,12 +92,6 @@ export default function GroupShow({ group, students }: PageProps) {
                             <Download className="w-4 h-4 mr-2" />
                             {t('common.export_excel', 'Excel yuklab olish')}
                         </Button>
-                        {!isInstructor && (
-                            <Button variant="destructive" onClick={handleDeleteGroup}>
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                {t('common.delete', 'O\'chirish')}
-                            </Button>
-                        )}
                     </div>
                 </div>
 
