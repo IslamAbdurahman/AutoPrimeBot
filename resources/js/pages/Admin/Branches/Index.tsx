@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { Building2, Edit2, Plus, Search, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -97,11 +96,10 @@ export default function Index({ branches, filters }: Props) {
     };
 
     return (
-        <AppLayout>
+        <div className="p-4 md:p-6 space-y-6">
             <Head title={t('branches.title', 'Filiallar')} />
 
-            <div className="p-4 md:p-6 space-y-6">
-                {/* Header & Primary Action Inline */}
+            {/* Header & Primary Action Inline */}
                 <div className="flex flex-row items-center justify-between gap-4">
                     <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
                         <Building2 className="w-6 h-6 text-primary" />
@@ -317,7 +315,6 @@ export default function Index({ branches, filters }: Props) {
                         </form>
                     </DialogContent>
                 </Dialog>
-            </div>
-        </AppLayout>
+        </div>
     );
 }
