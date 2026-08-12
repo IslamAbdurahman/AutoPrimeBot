@@ -10,14 +10,20 @@ interface Props {
 
 export function BranchSelector({ branches }: Props) {
     const { t } = useTranslation();
-    const { auth, filters } = usePage<SharedData & { branches?: Branch[]; filters?: any }>().props;
-    const user = auth.user;
+    const { auth, filters } = usePage<SharedData & { branches?: any; filters?: any }>().props;
+    const user = auth?.user;
+    if (!user) return null;
+
     const isSuperAdmin = user.role === 'superadmin' || user.id === 1;
 
-    const availableBranches = branches || (usePage().props.branches as Branch[] | undefined);
+    const rawBranches = branches || (usePage().props.branches as any);
+    const availableBranches: Branch[] = Array.isArray(rawBranches)
+        ? rawBranches
+        : (Array.isArray(rawBranches?.data) ? rawBranches.data : []);
+
     const currentBranchId = filters?.branch_id || '';
 
-    if (!availableBranches || availableBranches.length === 0) {
+    if (!Array.isArray(availableBranches) || availableBranches.length === 0) {
         if (user.branch) {
             return (
                 <Badge variant="outline" className="gap-1.5 py-1 px-2.5 font-normal text-xs bg-muted/50 border-border">

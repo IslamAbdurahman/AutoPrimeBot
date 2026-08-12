@@ -316,7 +316,7 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                                     onChange={e => setData('branch_id', e.target.value)}
                                 >
                                     <option value="">{t('branches.branch_optional', 'Filial (Ixtiyoriy)')}</option>
-                                    {(usePage().props.branches as Branch[] || []).map(b => (
+                                    {(branches || []).map(b => (
                                         <option key={b.id} value={b.id}>{b.name}</option>
                                     ))}
                                 </select>
