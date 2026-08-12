@@ -1,0 +1,71 @@
+import { router, usePage } from '@inertiajs/react';
+import { Building2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Badge } from '@/components/ui/badge';
+import type { Branch, SharedData } from '@/types/auth';
+
+interface Props {
+    branches?: Branch[];
+}
+
+export function BranchSelector({ branches }: Props) {
+    const { t } = useTranslation();
+    const { auth, filters } = usePage<SharedData & { branches?: Branch[]; filters?: any }>().props;
+    const user = auth.user;
+    const isSuperAdmin = user.role === 'superadmin' || user.id === 1;
+
+    const availableBranches = branches || (usePage().props.branches as Branch[] | undefined);
+    const currentBranchId = filters?.branch_id || '';
+
+    if (!availableBranches || availableBranches.length === 0) {
+        if (user.branch) {
+            return (
+                <Badge variant="outline" className="gap-1.5 py-1 px-2.5 font-normal text-xs bg-muted/50 border-border">
+                    <Building2 className="w-3.5 h-3.5 text-primary" />
+                    <span>{user.branch.name}</span>
+                </Badge>
+            );
+        }
+        return null;
+    }
+
+    if (!isSuperAdmin) {
+        const userBranch = user.branch || availableBranches.find((b) => b.id === user.branch_id);
+        if (!userBranch) return null;
+        return (
+            <Badge variant="outline" className="gap-1.5 py-1 px-2.5 font-normal text-xs bg-muted/50 border-border">
+                <Building2 className="w-3.5 h-3.5 text-primary" />
+                <span>{userBranch.name}</span>
+            </Badge>
+        );
+    }
+
+    const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        const currentUrl = new URL(window.location.href);
+        if (value) {
+            currentUrl.searchParams.set('branch_id', value);
+        } else {
+            currentUrl.searchParams.delete('branch_id');
+        }
+        router.get(currentUrl.pathname + currentUrl.search, {}, { preserveState: true, replace: true });
+    };
+
+    return (
+        <div className="flex items-center gap-1.5 bg-card border border-border rounded-lg px-2 py-1 text-xs shadow-sm">
+            <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
+            <select
+                value={currentBranchId}
+                onChange={handleBranchChange}
+                className="bg-transparent border-none text-xs font-medium focus:ring-0 focus:outline-none text-foreground cursor-pointer pr-1"
+            >
+                <option value="">{t('branches.all_branches', 'Barcha filiallar')}</option>
+                {availableBranches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                        {b.name}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
+}

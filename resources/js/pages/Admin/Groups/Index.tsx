@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Pagination from '@/components/pagination';
-import { SharedData } from '@/types/auth';
+import { Branch, SharedData } from '@/types/auth';
 import {
     Dialog,
     DialogContent,
@@ -36,6 +36,8 @@ interface Group {
     name: string;
     instructor_id?: number;
     instructor?: Instructor;
+    branch_id?: number | null;
+    branch?: Branch | null;
 }
 
 interface PageProps {
@@ -45,6 +47,7 @@ interface PageProps {
         from?: number;
     };
     instructors: Instructor[];
+    branches?: Branch[];
     filters?: {
         search?: string;
         instructor_id?: string;
@@ -52,10 +55,11 @@ interface PageProps {
     };
 }
 
-export default function GroupsIndex({ groups, instructors, filters = {} }: PageProps) {
+export default function GroupsIndex({ groups, instructors, branches = [], filters = {} }: PageProps) {
     const { t } = useTranslation();
     const { auth } = usePage<SharedData>().props;
     const isInstructor = auth?.user?.role === 'instructor';
+    const isSuperAdmin = auth?.user?.role === 'superadmin' || auth?.user?.id === 1;
 
     const [editing, setEditing] = useState<Group | null>(null);
     const [showForm, setShowForm] = useState(false);
@@ -77,6 +81,7 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
         name: '',
         instructor_id: '',
+        branch_id: '' as string | number,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -110,6 +115,7 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
         setData({
             name: group.name,
             instructor_id: group.instructor_id ? String(group.instructor_id) : '',
+            branch_id: group.branch_id ? String(group.branch_id) : '',
         });
         setShowForm(true);
     };
@@ -258,6 +264,22 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                             <Input id="name" value={data.name} onChange={e => setData('name', e.target.value)} required />
                             {errors.name && <div className="text-destructive text-sm mt-1">{errors.name}</div>}
                         </div>
+                        {isSuperAdmin && (
+                            <div>
+                                <Label htmlFor="branch_id">{t('branches.branch', 'Filial')}</Label>
+                                <select 
+                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    value={data.branch_id} 
+                                    onChange={e => setData('branch_id', e.target.value)}
+                                >
+                                    <option value="">{t('branches.branch_optional', 'Filial (Ixtiyoriy)')}</option>
+                                    {branches.map(b => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                    ))}
+                                </select>
+                                {errors.branch_id && <div className="text-destructive text-sm mt-1">{errors.branch_id}</div>}
+                            </div>
+                        )}
                         <div>
                             <Label htmlFor="instructor_id">{t('drivings.instructor', 'Instruktor')}</Label>
                             <select 
@@ -286,7 +308,8 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                     <thead className="bg-muted/50 text-muted-foreground border-b">
                         <tr>
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
-                            <th className="px-4 py-3 font-medium">{t('groups.name', 'Nomi')}</th>
+                            <th className="px-4 py-3 font-medium">{t('groups.name', 'Guruh nomi')}</th>
+                            <th className="px-4 py-3 font-medium">{t('branches.branch', 'Filial')}</th>
                             <th className="px-4 py-3 font-medium">{t('drivings.instructor', 'Instruktor')}</th>
                             {!isInstructor && <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>}
                         </tr>
@@ -300,6 +323,7 @@ export default function GroupsIndex({ groups, instructors, filters = {} }: PageP
                                         {item.name}
                                     </Link>
                                 </td>
+                                <td className="px-4 py-3 text-xs">{item.branch?.name || '-'}</td>
                                 <td className="px-4 py-3 text-muted-foreground">{item.instructor?.name || t('common.not_assigned', 'Biriktirilmagan')}</td>
                                 {!isInstructor && (
                                     <td className="px-4 py-3 text-right">

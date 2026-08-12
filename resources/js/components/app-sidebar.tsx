@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, MapPin, ShieldCheck } from 'lucide-react';
+import { BookOpen, Building2, FolderGit2, LayoutGrid, MapPin, ShieldCheck } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -24,6 +24,7 @@ export function AppSidebar() {
     const { t } = useTranslation();
     const { auth } = usePage<SharedData>().props;
     const isInstructor = auth.user.role === 'instructor';
+    const isSuperAdmin = auth.user.role === 'superadmin' || auth.user.id === 1;
     const { setOpenMobile, isMobile } = useSidebar();
     const [isTg, setIsTg] = useState(false);
 
@@ -44,6 +45,11 @@ export function AppSidebar() {
             title: t('sidebar.dashboard', 'Bosh sahifa'),
             href: '/admin/dashboard',
             icon: LayoutGrid,
+        },
+        {
+            title: t('branches.title', 'Filiallar'),
+            href: '/admin/branches',
+            icon: Building2,
         },
         {
             title: t('sidebar.admins', 'Adminlar'),
@@ -76,8 +82,8 @@ export function AppSidebar() {
             icon: FolderGit2,
         },
     ].filter(item => {
-        if (item.href === '/admin/admins') {
-            return auth.user.id === 1;
+        if (item.href === '/admin/branches' || item.href === '/admin/admins') {
+            return isSuperAdmin;
         }
         if (isInstructor) {
             return ['/admin/dashboard', '/admin/groups', '/admin/students', '/admin/drivings'].includes(item.href);

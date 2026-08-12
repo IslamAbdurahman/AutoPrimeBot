@@ -30,6 +30,10 @@ class InstructorsExport implements FromCollection, ShouldAutoSize, WithHeadings,
             });
         }
 
+        if (! empty($this->filters['branch_id'])) {
+            $query->where('branch_id', $this->filters['branch_id']);
+        }
+
         $from = $this->filters['from'] ?? null;
         $to = $this->filters['to'] ?? null;
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { BranchSelector } from '@/components/branch-selector';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -37,6 +38,7 @@ export function AppSidebarHeader({
             </div>
             
             <div className="flex items-center gap-2">
+                <BranchSelector />
                 <LanguageSwitcher />
                 <ThemeSwitcher />
             </div>

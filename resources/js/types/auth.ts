@@ -1,9 +1,24 @@
+export type Branch = {
+    id: number;
+    name: string;
+    code: string;
+    phone?: string | null;
+    address?: string | null;
+    status: 'active' | 'inactive';
+    users_count?: number;
+    groups_count?: number;
+    students_count?: number;
+    drivings_count?: number;
+};
+
 export type User = {
     id: number;
     name: string;
     email: string;
     phone?: string;
     role?: string;
+    branch_id?: number | null;
+    branch?: Branch | null;
     telegram_id?: string;
     avatar?: string;
     email_verified_at: string | null;

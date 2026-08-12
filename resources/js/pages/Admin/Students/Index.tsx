@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Pagination from '@/components/pagination';
-import { SharedData } from '@/types/auth';
+import { Branch, SharedData } from '@/types/auth';
 import {
     Dialog,
     DialogContent,
@@ -37,6 +37,8 @@ interface Student {
     telegram_id?: string;
     group_id?: number;
     group?: Group;
+    branch_id?: number | null;
+    branch?: Branch | null;
     completed_drivings_count?: number;
 }
 
@@ -47,6 +49,7 @@ interface PageProps {
         from?: number;
     };
     groups: Group[];
+    branches?: Branch[];
     filters?: {
         search?: string;
         group_id?: string;
@@ -54,10 +57,11 @@ interface PageProps {
     };
 }
 
-export default function StudentsIndex({ students, groups, filters = {} }: PageProps) {
+export default function StudentsIndex({ students, groups, branches = [], filters = {} }: PageProps) {
     const { t } = useTranslation();
     const { auth } = usePage<SharedData>().props;
     const isInstructor = auth?.user?.role === 'instructor';
+    const isSuperAdmin = auth?.user?.role === 'superadmin' || auth?.user?.id === 1;
 
     const [editing, setEditing] = useState<Student | null>(null);
     const [showForm, setShowForm] = useState(false);
@@ -81,6 +85,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
         phone: '',
         telegram_id: '',
         group_id: '',
+        branch_id: '' as string | number,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -116,6 +121,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
             phone: student.phone,
             telegram_id: student.telegram_id || '',
             group_id: student.group_id ? String(student.group_id) : '',
+            branch_id: student.branch_id ? String(student.branch_id) : '',
         });
         setShowForm(true);
     };
@@ -301,6 +307,22 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                             </select>
                             {errors.group_id && <div className="text-destructive text-sm mt-1">{errors.group_id}</div>}
                         </div>
+                        {isSuperAdmin && (
+                            <div>
+                                <Label htmlFor="branch_id">{t('branches.branch', 'Filial')}</Label>
+                                <select 
+                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    value={data.branch_id} 
+                                    onChange={e => setData('branch_id', e.target.value)}
+                                >
+                                    <option value="">{t('branches.branch_optional', 'Filial (Ixtiyoriy)')}</option>
+                                    {branches.map(b => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                    ))}
+                                </select>
+                                {errors.branch_id && <div className="text-destructive text-sm mt-1">{errors.branch_id}</div>}
+                            </div>
+                        )}
                         <div className="flex gap-2 pt-2 justify-end">
                             <Button type="button" variant="outline" onClick={closeForm}>{t('common.cancel', 'Bekor qilish')}</Button>
                             <Button type="submit" disabled={processing}>{processing ? t('common.saving', 'Saqlanmoqda...') : t('common.save', 'Saqlash')}</Button>
@@ -316,6 +338,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                         <tr>
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
                             <th className="px-4 py-3 font-medium">{t('students.full_name', 'F.I.SH')}</th>
+                            <th className="px-4 py-3 font-medium">{t('branches.branch', 'Filial')}</th>
                             <th className="px-4 py-3 font-medium">{t('students.phone', 'Telefon')}</th>
                             <th className="px-4 py-3 font-medium">{t('students.group', 'Guruh')}</th>
                             <th className="px-4 py-3 font-medium">{t('common.telegram_id', 'Telegram ID')}</th>
@@ -332,6 +355,7 @@ export default function StudentsIndex({ students, groups, filters = {} }: PagePr
                                         {item.full_name}
                                     </Link>
                                 </td>
+                                <td className="px-4 py-3 text-xs">{item.branch?.name || '-'}</td>
                                 <td className="px-4 py-3">{item.phone}</td>
                                 <td className="px-4 py-3 text-muted-foreground">{item.group?.name || t('students.no_group', 'Biriktirilmagan')}</td>
                                 <td className="px-4 py-3 text-muted-foreground">{item.telegram_id || '-'}</td>

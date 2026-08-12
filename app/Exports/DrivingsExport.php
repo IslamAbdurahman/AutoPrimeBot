@@ -60,6 +60,10 @@ class DrivingsExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMap
             $query->where('instructor_id', $this->filters['instructor_id']);
         }
 
+        if (! empty($this->filters['branch_id'])) {
+            $query->where('branch_id', $this->filters['branch_id']);
+        }
+
         return $query->orderBy('start_time', 'desc');
     }
 

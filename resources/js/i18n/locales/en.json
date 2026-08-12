@@ -46,6 +46,26 @@
     "uploading": "Uploading...",
     "error": "An error occurred"
   },
+  "branches": {
+    "title": "Branches",
+    "description": "Manage driving school branches",
+    "new": "New Branch",
+    "edit": "Edit Branch",
+    "name": "Branch Name",
+    "code": "Branch Code",
+    "phone": "Phone",
+    "address": "Address",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "all_branches": "All Branches",
+    "branch": "Branch",
+    "branch_optional": "Branch (Optional)",
+    "users_count": "Staff",
+    "groups_count": "Groups",
+    "students_count": "Students",
+    "drivings_count": "Drivings"
+  },
   "status": {
     "scheduled": "Scheduled",
     "in_progress": "In Progress",

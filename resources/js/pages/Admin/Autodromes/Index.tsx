@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { SharedData } from '@/types/auth';
+import { Branch, SharedData } from '@/types/auth';
 import {
     Dialog,
     DialogContent,
@@ -32,11 +32,14 @@ interface Autodrome {
     latitude: number;
     longitude: number;
     radius_meters: number;
+    branch_id?: number | null;
+    branch?: Branch | null;
     completed_drivings_count?: number;
 }
 
 interface PageProps {
     autodromes: Autodrome[];
+    branches?: Branch[];
 }
 
 function LocationMarker({ position, setPosition, radius }: { position: L.LatLng | null; setPosition: (pos: L.LatLng) => void; radius: number }) {
@@ -84,11 +87,14 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
     const defaultCenter = useMemo(() => new L.LatLng(41.2995, 69.2401), []);
     const [position, setPosition] = useState<L.LatLng | null>(null);
 
+    const isSuperAdmin = auth?.user?.role === 'superadmin' || auth?.user?.id === 1;
+
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
         name: '',
         latitude: '',
         longitude: '',
         radius_meters: '100',
+        branch_id: '' as string | number,
     });
 
     const getPhoneLocation = (onSuccess: (lat: number, lng: number) => void, onError?: (err: any) => void) => {
@@ -198,6 +204,7 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
             latitude: String(autodrome.latitude),
             longitude: String(autodrome.longitude),
             radius_meters: String(autodrome.radius_meters),
+            branch_id: autodrome.branch_id ? String(autodrome.branch_id) : '',
         });
         setPosition(new L.LatLng(autodrome.latitude, autodrome.longitude));
         setShowForm(true);
@@ -300,6 +307,23 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                             <div className="text-destructive text-sm">{t('autodromes.location_required', 'Xaritadan manzilni belgilash majburiy.')}</div>
                         )}
 
+                        {isSuperAdmin && (
+                            <div>
+                                <Label htmlFor="branch_id">{t('branches.branch', 'Filial')}</Label>
+                                <select 
+                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    value={data.branch_id} 
+                                    onChange={e => setData('branch_id', e.target.value)}
+                                >
+                                    <option value="">{t('branches.branch_optional', 'Filial (Ixtiyoriy)')}</option>
+                                    {(usePage().props.branches as Branch[] || []).map(b => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                    ))}
+                                </select>
+                                {errors.branch_id && <div className="text-destructive text-sm mt-1">{errors.branch_id}</div>}
+                            </div>
+                        )}
+
                         <div className="flex justify-end gap-2 pt-4 border-t">
                             <Button type="button" variant="outline" onClick={closeForm}>{t('common.cancel', 'Bekor qilish')}</Button>
                             <Button type="submit" disabled={processing || !position}>{t('common.save', 'Saqlash')}</Button>
@@ -315,6 +339,7 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                         <tr>
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
                             <th className="px-4 py-3 font-medium">{t('autodromes.name', 'Nomi')}</th>
+                            <th className="px-4 py-3 font-medium">{t('branches.branch', 'Filial')}</th>
                             <th className="px-4 py-3 font-medium">{t('autodromes.coordinates', 'Kordinatalar')}</th>
                             <th className="px-4 py-3 font-medium">{t('autodromes.radius', 'Radius (metr)')}</th>
                             <th className="px-4 py-3 font-medium text-center">{t('autodromes.completed_drivings', 'Tugagan darslar')}</th>
@@ -324,13 +349,14 @@ export default function AutodromesIndex({ autodromes }: PageProps) {
                     <tbody className="divide-y">
                         {autodromes.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">{t('common.no_data', "Ma'lumot topilmadi")}</td>
+                                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">{t('common.no_data', "Ma'lumot topilmadi")}</td>
                             </tr>
                         ) : (
                             autodromes.map((item, index) => (
                                 <tr key={item.id} className="hover:bg-muted/30">
                                     <td className="px-4 py-3">{index + 1}</td>
                                     <td className="px-4 py-3 font-medium">{item.name}</td>
+                                    <td className="px-4 py-3 text-xs">{item.branch?.name || '-'}</td>
                                     <td className="px-4 py-3 text-muted-foreground">
                                         {item.latitude}, {item.longitude}
                                     </td>

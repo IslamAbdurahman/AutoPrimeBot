@@ -26,11 +26,19 @@ use Illuminate\Support\Carbon;
  * @property-read Review|null $review
  * @property-read Autodrome|null $autodrome
  */
-#[Fillable(['instructor_id', 'group_id', 'student_id', 'autodrome_id', 'start_time', 'end_time', 'status'])]
+#[Fillable(['branch_id', 'instructor_id', 'group_id', 'student_id', 'autodrome_id', 'start_time', 'end_time', 'status'])]
 class Driving extends Model
 {
     /** @use HasFactory<DrivingFactory> */
     use HasFactory;
+
+    /**
+     * @return BelongsTo<Branch, $this>
+     */
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     protected function casts(): array
     {

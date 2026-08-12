@@ -46,6 +46,26 @@
     "uploading": "Юкланмоқда...",
     "error": "Хатолик юз берди"
   },
+  "branches": {
+    "title": "Филиаллар",
+    "description": "Автомактаб филиалларини бошқариш",
+    "new": "Янги филиал",
+    "edit": "Филиални таҳрирлаш",
+    "name": "Филиал номи",
+    "code": "Филиал коди",
+    "phone": "Телефон",
+    "address": "Манзил",
+    "status": "Ҳолати",
+    "active": "Фаол",
+    "inactive": "Нофаол",
+    "all_branches": "Барча филиаллар",
+    "branch": "Филиал",
+    "branch_optional": "Филиал (Ихтиёрий)",
+    "users_count": "Ходимлар",
+    "groups_count": "Гуруҳлар",
+    "students_count": "Ўқувчилар",
+    "drivings_count": "Машғулотлар"
+  },
   "status": {
     "scheduled": "Режада",
     "in_progress": "Жараёнда",

@@ -32,6 +32,10 @@ class StudentsExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMap
             $query->where('group_id', $this->filters['group_id']);
         }
 
+        if (! empty($this->filters['branch_id'])) {
+            $query->where('branch_id', $this->filters['branch_id']);
+        }
+
         return $query->latest('id');
     }
 

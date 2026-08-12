@@ -21,11 +21,19 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Group|null $group
  */
-#[Fillable(['group_id', 'full_name', 'phone', 'telegram_id', 'status'])]
+#[Fillable(['branch_id', 'group_id', 'full_name', 'phone', 'telegram_id', 'status'])]
 class Student extends Model
 {
     /** @use HasFactory<StudentFactory> */
     use HasFactory;
+
+    /**
+     * @return BelongsTo<Branch, $this>
+     */
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     /**
      * @return BelongsTo<Group, $this>

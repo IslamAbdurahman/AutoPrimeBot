@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -13,7 +14,7 @@ class AdminController extends Controller
 {
     private function authorizeSuperAdmin(Request $request): void
     {
-        if ($request->user()->id !== 1) {
+        if ($request->user()->id !== 1 && $request->user()->role !== 'superadmin') {
             abort(403, 'Ushbu sahifaga faqat Asosiy Admin kirishi mumkin.');
         }
     }
@@ -22,7 +23,7 @@ class AdminController extends Controller
     {
         $this->authorizeSuperAdmin($request);
 
-        $query = User::where('role', 'admin')->orderBy('id', 'desc');
+        $query = User::with('branch')->where('role', 'admin')->orderBy('id', 'desc');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -32,17 +33,24 @@ class AdminController extends Controller
             });
         }
 
+        if ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
         $perPage = $request->get('per_page', 10);
         if ($perPage === 'all') {
             $perPage = max($query->count(), 1);
         }
 
         $admins = $query->paginate($perPage)->withQueryString();
+        $branches = Branch::where('status', 'active')->get();
 
         return Inertia::render('Admin/Admins/Index', [
             'admins' => $admins,
+            'branches' => $branches,
             'filters' => [
                 'search' => $request->search,
+                'branch_id' => $request->branch_id,
                 'per_page' => $request->per_page,
             ],
         ]);
@@ -56,6 +64,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:users',
             'telegram_id' => 'nullable|string|unique:users',
+            'branch_id' => 'nullable|exists:branches,id',
             'password' => 'required|string|min:6',
         ]);
 
@@ -75,6 +84,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:users,phone,'.$admin->id,
             'telegram_id' => 'nullable|string|unique:users,telegram_id,'.$admin->id,
+            'branch_id' => 'nullable|exists:branches,id',
             'password' => 'nullable|string|min:6',
         ]);
 

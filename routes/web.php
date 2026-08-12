@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AutodromeController;
+use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DrivingController;
 use App\Http\Controllers\Admin\GroupController;
@@ -152,4 +153,5 @@ Route::middleware(['auth.telegram'])->group(function () {
     Route::resource('admin/drivings', DrivingController::class)->except(['create', 'show', 'edit']);
     Route::resource('admin/autodromes', AutodromeController::class)->except(['create', 'show', 'edit']);
     Route::resource('admin/admins', AdminController::class)->except(['create', 'show', 'edit']);
+    Route::resource('admin/branches', BranchController::class)->except(['create', 'show', 'edit']);
 });

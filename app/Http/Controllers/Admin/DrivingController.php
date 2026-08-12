@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\DrivingsExport;
 use App\Http\Controllers\Controller;
 use App\Models\Autodrome;
+use App\Models\Branch;
 use App\Models\Driving;
 use App\Models\Group;
 use App\Models\Student;
@@ -21,8 +22,11 @@ class DrivingController extends Controller
     public function export(Request $request)
     {
         $filters = $request->all();
-        if ($request->user()->role === 'instructor') {
-            $filters['instructor_id'] = $request->user()->id;
+        $user = $request->user();
+        if ($user->role === 'instructor') {
+            $filters['instructor_id'] = $user->id;
+        } elseif ($user->role === 'admin' && $user->branch_id) {
+            $filters['branch_id'] = $user->branch_id;
         }
 
         return Excel::download(new DrivingsExport($filters), 'mashgulotlar.xlsx');
@@ -33,8 +37,14 @@ class DrivingController extends Controller
         $user = $request->user();
         $isInstructor = $user->role === 'instructor';
 
-        $query = Driving::with(['instructor', 'student', 'group', 'review', 'autodrome'])
+        $query = Driving::with(['instructor', 'student', 'group', 'review', 'autodrome', 'branch'])
             ->orderBy('start_time', 'desc');
+
+        if ($user->role === 'admin' && $user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
 
         if ($isInstructor) {
             $query->where('instructor_id', $user->id);
@@ -84,7 +94,14 @@ class DrivingController extends Controller
         }
 
         $drivings = $query->paginate($perPage)->withQueryString();
+
         $instructors = User::where('role', 'instructor')
+            ->when($user->role === 'admin' && $user->branch_id, function ($q) use ($user) {
+                $q->where('branch_id', $user->branch_id);
+            })
+            ->when($request->filled('branch_id'), function ($q) use ($request) {
+                $q->where('branch_id', $request->branch_id);
+            })
             ->when($isInstructor, function ($q) use ($user) {
                 $q->where('id', $user->id);
             })
@@ -92,17 +109,31 @@ class DrivingController extends Controller
 
         $studentsQuery = Student::with('group')->orderBy('full_name');
         $groupsQuery = Group::orderBy('name');
+        $autodromesQuery = Autodrome::orderBy('name');
 
-        if ($request->user()->role === 'instructor') {
-            $groupsQuery->where('instructor_id', $request->user()->id);
-            $studentsQuery->whereHas('group', function ($q) use ($request) {
-                $q->where('instructor_id', $request->user()->id);
+        if ($user->role === 'admin' && $user->branch_id) {
+            $studentsQuery->where('branch_id', $user->branch_id);
+            $groupsQuery->where('branch_id', $user->branch_id);
+            $autodromesQuery->where(function ($q) use ($user) {
+                $q->where('branch_id', $user->branch_id)->orWhereNull('branch_id');
+            });
+        } elseif ($request->filled('branch_id')) {
+            $studentsQuery->where('branch_id', $request->branch_id);
+            $groupsQuery->where('branch_id', $request->branch_id);
+            $autodromesQuery->where('branch_id', $request->branch_id);
+        }
+
+        if ($isInstructor) {
+            $groupsQuery->where('instructor_id', $user->id);
+            $studentsQuery->whereHas('group', function ($q) use ($user) {
+                $q->where('instructor_id', $user->id);
             });
         }
 
         $students = $studentsQuery->get();
         $groups = $groupsQuery->get();
-        $autodromes = Autodrome::orderBy('name')->get();
+        $autodromes = $autodromesQuery->get();
+        $branches = Branch::where('status', 'active')->get();
 
         return Inertia::render('Admin/Drivings/Index', [
             'drivings' => $drivings,
@@ -110,10 +141,12 @@ class DrivingController extends Controller
             'students' => $students,
             'groups' => $groups,
             'autodromes' => $autodromes,
+            'branches' => $branches,
             'filters' => [
                 'search' => $request->search,
                 'status' => $request->status,
                 'instructor_id' => $request->instructor_id,
+                'branch_id' => $request->branch_id,
                 'from' => $from,
                 'to' => $to,
                 'per_page' => $request->per_page,
@@ -136,8 +169,10 @@ class DrivingController extends Controller
         foreach ($validated['student_ids'] as $studentId) {
             $student = Student::find($studentId);
             $groupId = $student?->group_id ?? ($validated['group_id'] ?? null);
+            $branchId = $student?->branch_id ?? $request->user()->branch_id;
 
             $driving = Driving::create([
+                'branch_id' => $branchId,
                 'instructor_id' => $validated['instructor_id'],
                 'student_id' => $studentId,
                 'group_id' => $groupId,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\StudentsExport;
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Group;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -15,7 +16,13 @@ class StudentController extends Controller
 {
     public function export(Request $request)
     {
-        return Excel::download(new StudentsExport($request->all()), 'oquvchilar.xlsx');
+        $filters = $request->all();
+        $user = $request->user();
+        if ($user->role === 'admin' && $user->branch_id) {
+            $filters['branch_id'] = $user->branch_id;
+        }
+
+        return Excel::download(new StudentsExport($filters), 'oquvchilar.xlsx');
     }
 
     public function searchApi(Request $request)
@@ -23,7 +30,13 @@ class StudentController extends Controller
         $user = $request->user();
         $isInstructor = $user->role === 'instructor';
 
-        $query = Student::with('group')->orderBy('full_name', 'asc');
+        $query = Student::with(['group', 'branch'])->orderBy('full_name', 'asc');
+
+        if ($user->role === 'admin' && $user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
 
         $search = $request->get('q');
         if (! empty($search)) {
@@ -67,11 +80,17 @@ class StudentController extends Controller
         $user = $request->user();
         $isInstructor = $user->role === 'instructor';
 
-        $query = Student::with('group')
+        $query = Student::with(['group', 'branch'])
             ->withCount(['drivings as completed_drivings_count' => function ($q) {
                 $q->where('status', 'completed');
             }])
             ->orderBy('id', 'desc');
+
+        if ($user->role === 'admin' && $user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
 
         if ($isInstructor) {
             $query->whereHas('group', function ($q) use ($user) {
@@ -97,16 +116,27 @@ class StudentController extends Controller
         }
 
         $students = $query->paginate($perPage)->withQueryString();
-        $groups = Group::when($isInstructor, function ($q) use ($user) {
-            $q->where('instructor_id', $user->id);
-        })->get();
+
+        $groups = Group::when($user->role === 'admin' && $user->branch_id, function ($q) use ($user) {
+            $q->where('branch_id', $user->branch_id);
+        })
+            ->when($request->filled('branch_id'), function ($q) use ($request) {
+                $q->where('branch_id', $request->branch_id);
+            })
+            ->when($isInstructor, function ($q) use ($user) {
+                $q->where('instructor_id', $user->id);
+            })->get();
+
+        $branches = Branch::where('status', 'active')->get();
 
         return Inertia::render('Admin/Students/Index', [
             'students' => $students,
             'groups' => $groups,
+            'branches' => $branches,
             'filters' => [
                 'search' => $request->search,
                 'group_id' => $request->group_id,
+                'branch_id' => $request->branch_id,
                 'per_page' => $request->per_page,
             ],
         ]);
@@ -123,7 +153,15 @@ class StudentController extends Controller
             'phone' => 'required|string|max:20|unique:students',
             'telegram_id' => 'nullable|string|unique:students',
             'group_id' => 'nullable|exists:groups,id',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
+
+        $user = $request->user();
+        if ($user->role === 'admin' && $user->branch_id) {
+            $validated['branch_id'] = $user->branch_id;
+        } elseif (empty($validated['branch_id'])) {
+            $validated['branch_id'] = $user->branch_id;
+        }
 
         Student::create($validated);
 
@@ -141,6 +179,7 @@ class StudentController extends Controller
             'phone' => 'required|string|max:20|unique:students,phone,'.$student->id,
             'telegram_id' => 'nullable|string|unique:students,telegram_id,'.$student->id,
             'group_id' => 'nullable|exists:groups,id',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $student->update($validated);

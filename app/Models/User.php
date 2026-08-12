@@ -33,7 +33,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $role
  * @property string $status
  */
-#[Fillable(['name', 'phone', 'telegram_id', 'car_name', 'photo_path', 'role', 'status', 'email', 'password'])]
+#[Fillable(['branch_id', 'name', 'phone', 'telegram_id', 'car_name', 'photo_path', 'role', 'status', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -41,6 +41,11 @@ class User extends Authenticatable implements PasskeyUser
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     protected $appends = ['photo_url'];
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     public function getPhotoUrlAttribute(): ?string
     {

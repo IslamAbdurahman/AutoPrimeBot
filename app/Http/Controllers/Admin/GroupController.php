@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\GroupStudentsExport;
 use App\Http\Controllers\Controller;
 use App\Imports\StudentsImport;
+use App\Models\Branch;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -27,7 +28,13 @@ class GroupController extends Controller
         $user = $request->user();
         $isInstructor = $user->role === 'instructor';
 
-        $query = Group::with('instructor')->orderBy('id', 'desc');
+        $query = Group::with(['instructor', 'branch'])->orderBy('id', 'desc');
+
+        if ($user->role === 'admin' && $user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
 
         if ($isInstructor) {
             $query->where('instructor_id', $user->id);
@@ -49,17 +56,27 @@ class GroupController extends Controller
         $groups = $query->paginate($perPage)->withQueryString();
 
         $instructors = User::where('role', 'instructor')
+            ->when($user->role === 'admin' && $user->branch_id, function ($q) use ($user) {
+                $q->where('branch_id', $user->branch_id);
+            })
+            ->when($request->filled('branch_id'), function ($q) use ($request) {
+                $q->where('branch_id', $request->branch_id);
+            })
             ->when($isInstructor, function ($q) use ($user) {
                 $q->where('id', $user->id);
             })
             ->get();
 
+        $branches = Branch::where('status', 'active')->get();
+
         return Inertia::render('Admin/Groups/Index', [
             'groups' => $groups,
             'instructors' => $instructors,
+            'branches' => $branches,
             'filters' => [
                 'search' => $request->search,
                 'instructor_id' => $request->instructor_id,
+                'branch_id' => $request->branch_id,
                 'per_page' => $request->per_page,
             ],
         ]);
@@ -74,7 +91,15 @@ class GroupController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'instructor_id' => 'nullable|exists:users,id',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
+
+        $user = $request->user();
+        if ($user->role === 'admin' && $user->branch_id) {
+            $validated['branch_id'] = $user->branch_id;
+        } elseif (empty($validated['branch_id'])) {
+            $validated['branch_id'] = $user->branch_id;
+        }
 
         Group::create($validated);
 
@@ -90,6 +115,7 @@ class GroupController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'instructor_id' => 'nullable|exists:users,id',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $group->update($validated);

@@ -49,6 +49,26 @@
     "uploading": "Загрузка...",
     "error": "Произошла ошибка"
   },
+  "branches": {
+    "title": "Филиалы",
+    "description": "Управление филиалами автошколы",
+    "new": "Новый филиал",
+    "edit": "Редактировать филиал",
+    "name": "Название филиала",
+    "code": "Код филиала",
+    "phone": "Телефон",
+    "address": "Адрес",
+    "status": "Статус",
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "all_branches": "Все филиалы",
+    "branch": "Филиал",
+    "branch_optional": "Филиал (Необязательно)",
+    "users_count": "Сотрудники",
+    "groups_count": "Группы",
+    "students_count": "Ученики",
+    "drivings_count": "Занятия"
+  },
   "status": {
     "scheduled": "Запланировано",
     "in_progress": "В процессе",

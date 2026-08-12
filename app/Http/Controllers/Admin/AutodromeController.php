@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Autodrome;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -12,12 +13,28 @@ class AutodromeController extends Controller
 {
     public function index(Request $request): Response
     {
-        $autodromes = Autodrome::withCount(['drivings as completed_drivings_count' => function ($q) {
+        $user = $request->user();
+        $query = Autodrome::with('branch')->withCount(['drivings as completed_drivings_count' => function ($q) {
             $q->where('status', 'completed');
-        }])->orderBy('name')->get();
+        }]);
+
+        if ($user->role === 'admin' && $user->branch_id) {
+            $query->where(function ($q) use ($user) {
+                $q->where('branch_id', $user->branch_id)->orWhereNull('branch_id');
+            });
+        } elseif ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        $autodromes = $query->orderBy('name')->get();
+        $branches = Branch::where('status', 'active')->get();
 
         return Inertia::render('Admin/Autodromes/Index', [
             'autodromes' => $autodromes,
+            'branches' => $branches,
+            'filters' => [
+                'branch_id' => $request->branch_id,
+            ],
         ]);
     }
 
@@ -32,7 +49,13 @@ class AutodromeController extends Controller
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'radius_meters' => 'required|integer|min:10',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
+
+        $user = $request->user();
+        if ($user->role === 'admin' && $user->branch_id) {
+            $validated['branch_id'] = $user->branch_id;
+        }
 
         Autodrome::create($validated);
 
@@ -50,6 +73,7 @@ class AutodromeController extends Controller
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'radius_meters' => 'required|integer|min:10',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $autodrome->update($validated);

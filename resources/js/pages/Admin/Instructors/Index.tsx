@@ -32,6 +32,8 @@ interface Instructor {
     telegram_id?: string;
     car_name?: string;
     photo_url?: string;
+    branch_id?: number | null;
+    branch?: Branch | null;
     kpi_percentage: number;
     groups_count: number;
     students_count: number;
@@ -52,6 +54,7 @@ interface PageProps {
         links: any[];
         from?: number;
     };
+    branches?: Branch[];
     filters?: {
         search?: string;
         from?: string;
@@ -60,10 +63,11 @@ interface PageProps {
     };
 }
 
-export default function InstructorsIndex({ instructors, filters = {} }: PageProps) {
+export default function InstructorsIndex({ instructors, branches = [], filters = {} }: PageProps) {
     const { t } = useTranslation();
     const { auth } = usePage<SharedData>().props;
     const isInstructor = auth?.user?.role === 'instructor';
+    const isSuperAdmin = auth?.user?.role === 'superadmin' || auth?.user?.id === 1;
 
     const [editing, setEditing] = useState<Instructor | null>(null);
     const [showForm, setShowForm] = useState(false);
@@ -79,6 +83,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
         phone: '',
         telegram_id: '',
         car_name: '',
+        branch_id: '' as string | number,
         photo: null as File | null,
         password: '',
     });
@@ -104,6 +109,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
             phone: instructor.phone,
             telegram_id: instructor.telegram_id || '',
             car_name: instructor.car_name || '',
+            branch_id: instructor.branch_id || '',
             photo: null,
             password: '',
         });
@@ -341,6 +347,23 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                             <Input id="car_name" value={data.car_name} onChange={e => setData('car_name', e.target.value)} placeholder="Gentra 01 A 777 AA" />
                             {errors.car_name && <div className="text-destructive text-sm mt-1">{errors.car_name}</div>}
                         </div>
+                        {isSuperAdmin && (
+                            <div>
+                                <Label htmlFor="branch_id">{t('branches.branch', 'Filial')}</Label>
+                                <select
+                                    id="branch_id"
+                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    value={data.branch_id}
+                                    onChange={e => setData('branch_id', e.target.value)}
+                                >
+                                    <option value="">{t('branches.branch_optional', 'Filial (Ixtiyoriy)')}</option>
+                                    {branches.map((b) => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                    ))}
+                                </select>
+                                {errors.branch_id && <div className="text-destructive text-sm mt-1">{errors.branch_id}</div>}
+                            </div>
+                        )}
                         <div>
                             <Label htmlFor="telegram_id">{t('common.telegram_id', 'Telegram ID')}</Label>
                             <Input id="telegram_id" value={data.telegram_id} onChange={e => setData('telegram_id', e.target.value)} placeholder="12345678" />
@@ -366,6 +389,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                         <tr>
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.name', 'Instruktor')}</th>
+                            <th className="px-4 py-3 font-medium">{t('branches.branch', 'Filial')}</th>
                             <th className="px-4 py-3 font-medium">{t('instructors.car', 'Mashina')}</th>
                             <th className="px-4 py-3 font-medium text-center">{t('instructors.groups_count', 'Guruhlar')}</th>
                             <th className="px-4 py-3 font-medium text-center">{t('instructors.students_count', 'O\'quvchilar')}</th>
@@ -399,6 +423,7 @@ export default function InstructorsIndex({ instructors, filters = {} }: PageProp
                                         </div>
                                     </Link>
                                 </td>
+                                <td className="px-4 py-3 text-xs">{item.branch?.name || '-'}</td>
                                 <td className="px-4 py-3">
                                     {item.car_name ? (
                                         <div className="flex items-center gap-1.5 text-xs font-medium bg-muted/50 px-2.5 py-1 rounded-md border w-fit">

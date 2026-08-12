@@ -49,6 +49,26 @@
     "uploading": "Yuklanmoqda...",
     "error": "Xatolik yuz berdi"
   },
+  "branches": {
+    "title": "Filiallar",
+    "description": "Avtomaktab filiallarini boshqarish",
+    "new": "Yangi filial",
+    "edit": "Filialni tahrirlash",
+    "name": "Filial nomi",
+    "code": "Filial kodi",
+    "phone": "Telefon",
+    "address": "Manzil",
+    "status": "Holati",
+    "active": "Faol",
+    "inactive": "Nofaol",
+    "all_branches": "Barcha filiallar",
+    "branch": "Filial",
+    "branch_optional": "Filial (Ixtiyoriy)",
+    "users_count": "Xodimlar",
+    "groups_count": "Guruhlar",
+    "students_count": "O'quvchilar",
+    "drivings_count": "Amaliyotlar"
+  },
   "status": {
     "scheduled": "Rejada",
     "in_progress": "Jarayonda",

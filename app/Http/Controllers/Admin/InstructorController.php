@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\InstructorsExport;
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Driving;
 use App\Models\User;
 use Carbon\Carbon;
@@ -20,12 +21,25 @@ class InstructorController extends Controller
 {
     public function export(Request $request)
     {
-        return Excel::download(new InstructorsExport($request->all()), 'instruktorlar.xlsx');
+        $filters = $request->all();
+        $user = $request->user();
+        if ($user->role === 'admin' && $user->branch_id) {
+            $filters['branch_id'] = $user->branch_id;
+        }
+
+        return Excel::download(new InstructorsExport($filters), 'instruktorlar.xlsx');
     }
 
     public function index(Request $request): Response
     {
-        $query = User::where('role', 'instructor')->orderBy('id', 'desc');
+        $user = $request->user();
+        $query = User::with('branch')->where('role', 'instructor')->orderBy('id', 'desc');
+
+        if ($user->role === 'admin' && $user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -100,6 +114,8 @@ class InstructorController extends Controller
                 'telegram_id' => $instructor->telegram_id,
                 'car_name' => $instructor->car_name,
                 'photo_url' => $instructor->photo_url,
+                'branch_id' => $instructor->branch_id,
+                'branch' => $instructor->branch ? ['id' => $instructor->branch->id, 'name' => $instructor->branch->name] : null,
                 'groups_count' => $instructor->groups_count,
                 'students_count' => $studentsCount,
                 'total_drivings' => $totalDrivings,
@@ -128,10 +144,14 @@ class InstructorController extends Controller
             ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
         );
 
+        $branches = Branch::where('status', 'active')->get();
+
         return Inertia::render('Admin/Instructors/Index', [
             'instructors' => $instructors,
+            'branches' => $branches,
             'filters' => [
                 'search' => $request->search,
+                'branch_id' => $request->branch_id,
                 'from' => $from,
                 'to' => $to,
                 'per_page' => $request->per_page,
@@ -210,9 +230,13 @@ class InstructorController extends Controller
             'phone' => 'required|string|max:20|unique:users',
             'telegram_id' => 'nullable|string|unique:users',
             'car_name' => 'nullable|string|max:255',
+            'branch_id' => 'nullable|exists:branches,id',
             'photo' => 'nullable|image|max:5120',
             'password' => 'nullable|string|min:6',
         ]);
+
+        $user = $request->user();
+        $branchId = ($user->role === 'admin' && $user->branch_id) ? $user->branch_id : ($validated['branch_id'] ?? $user->branch_id);
 
         $photoPath = null;
         if ($request->hasFile('photo')) {
@@ -220,6 +244,7 @@ class InstructorController extends Controller
         }
 
         User::create([
+            'branch_id' => $branchId,
             'name' => $validated['name'],
             'phone' => $validated['phone'],
             'telegram_id' => $validated['telegram_id'] ?? null,
@@ -243,6 +268,7 @@ class InstructorController extends Controller
             'phone' => 'required|string|max:20|unique:users,phone,'.$instructor->id,
             'telegram_id' => 'nullable|string|unique:users,telegram_id,'.$instructor->id,
             'car_name' => 'nullable|string|max:255',
+            'branch_id' => 'nullable|exists:branches,id',
             'photo' => 'nullable|image|max:5120',
             'password' => 'nullable|string|min:6',
         ]);

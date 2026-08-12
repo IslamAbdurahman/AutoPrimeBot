@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Driving;
 use App\Models\Review;
 use App\Models\Student;
@@ -41,17 +42,30 @@ class DashboardController extends Controller
         $user = $request->user();
         $isInstructor = $user->role === 'instructor';
 
-        $totalStudents = Student::when($isInstructor, function ($query) use ($user) {
-            $query->whereHas('group', function ($q) use ($user) {
-                $q->where('instructor_id', $user->id);
-            });
-        })->count();
+        $branchId = null;
+        if ($user->role === 'admin' && $user->branch_id) {
+            $branchId = $user->branch_id;
+        } elseif ($request->filled('branch_id')) {
+            $branchId = $request->branch_id;
+        }
 
-        // Ensure reviews only belong to drivings taught by this instructor
-        $periodAvgRating = Review::whereBetween('created_at', [$fromDate, $toDate])
+        $totalStudents = Student::when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($isInstructor, function ($query) use ($user) {
-                $query->whereHas('driving', function ($q) use ($user) {
+                $query->whereHas('group', function ($q) use ($user) {
                     $q->where('instructor_id', $user->id);
+                });
+            })->count();
+
+        // Ensure reviews only belong to drivings
+        $periodAvgRating = Review::whereBetween('created_at', [$fromDate, $toDate])
+            ->when($branchId || $isInstructor, function ($query) use ($branchId, $isInstructor, $user) {
+                $query->whereHas('driving', function ($q) use ($branchId, $isInstructor, $user) {
+                    if ($branchId) {
+                        $q->where('branch_id', $branchId);
+                    }
+                    if ($isInstructor) {
+                        $q->where('instructor_id', $user->id);
+                    }
                 });
             })
             ->avg('rating') ?? 0;
@@ -59,6 +73,9 @@ class DashboardController extends Controller
         $periodKpi = round(($periodAvgRating / 5) * 100, 1);
 
         $drivingsQuery = Driving::whereBetween('start_time', [$fromDate, $toDate])
+            ->when($branchId, function ($query) use ($branchId) {
+                $query->where('branch_id', $branchId);
+            })
             ->when($isInstructor, function ($query) use ($user) {
                 $query->where('instructor_id', $user->id);
             });
@@ -100,6 +117,8 @@ class DashboardController extends Controller
             $daysAdded++;
         }
 
+        $branches = Branch::where('status', 'active')->get();
+
         return Inertia::render('Admin/Dashboard/Index', [
             'metrics' => [
                 'totalStudents' => $totalStudents,
@@ -108,9 +127,11 @@ class DashboardController extends Controller
                 'completionRate' => $completionRate,
             ],
             'chartData' => $chartData,
+            'branches' => $branches,
             'filters' => [
                 'from' => $from,
                 'to' => $to,
+                'branch_id' => $request->branch_id,
             ],
         ]);
     }

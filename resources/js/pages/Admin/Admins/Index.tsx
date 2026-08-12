@@ -23,13 +23,15 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { Filter } from 'lucide-react';
-import type { SharedData } from '@/types';
+import type { Branch, SharedData } from '@/types/auth';
 
 interface AdminUser {
     id: number;
     name: string;
     phone: string;
     telegram_id?: string;
+    branch_id?: number | null;
+    branch?: Branch | null;
     created_at: string;
 }
 
@@ -39,13 +41,15 @@ interface PageProps {
         links?: any[];
         from?: number;
     };
+    branches?: Branch[];
     filters?: {
         search?: string;
+        branch_id?: string;
         per_page?: string;
     };
 }
 
-export default function AdminsIndex({ admins, filters = {} }: PageProps) {
+export default function AdminsIndex({ admins, branches = [], filters = {} }: PageProps) {
     const { t } = useTranslation();
     const { auth } = usePage<SharedData>().props;
     const [search, setSearch] = useState(filters.search || '');
@@ -58,6 +62,7 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
         name: '',
         phone: '',
         telegram_id: '',
+        branch_id: '' as string | number,
         password: '',
     });
 
@@ -90,6 +95,7 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
             name: admin.name,
             phone: admin.phone,
             telegram_id: admin.telegram_id || '',
+            branch_id: admin.branch_id || '',
             password: '',
         });
         clearErrors();
@@ -276,6 +282,22 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                         </div>
 
                         <div className="space-y-2">
+                            <Label htmlFor="branch_id">{t('branches.branch', 'Filial')}</Label>
+                            <select
+                                id="branch_id"
+                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                value={data.branch_id}
+                                onChange={e => setData('branch_id', e.target.value)}
+                            >
+                                <option value="">{t('branches.branch_optional', 'Filial (Ixtiyoriy)')}</option>
+                                {branches.map((b) => (
+                                    <option key={b.id} value={b.id}>{b.name}</option>
+                                ))}
+                            </select>
+                            {errors.branch_id && <p className="text-sm text-destructive">{errors.branch_id}</p>}
+                        </div>
+
+                        <div className="space-y-2">
                             <Label htmlFor="password">
                                 {editingAdmin ? t('admins.password_edit', 'Parol (o\'zgartirish uchun)') : t('admins.password', 'Parol')}
                             </Label>
@@ -310,6 +332,7 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                         <tr>
                             <th className="px-4 py-3 font-medium">{t('common.number', '№')}</th>
                             <th className="px-4 py-3 font-medium">{t('admins.name', 'F.I.SH')}</th>
+                            <th className="px-4 py-3 font-medium">{t('branches.branch', 'Filial')}</th>
                             <th className="px-4 py-3 font-medium">{t('admins.phone', 'Telefon raqam')}</th>
                             <th className="px-4 py-3 font-medium">{t('admins.telegram_id', 'Telegram ID')}</th>
                             <th className="px-4 py-3 font-medium text-right">{t('common.actions', 'Amallar')}</th>
@@ -337,6 +360,7 @@ export default function AdminsIndex({ admins, filters = {} }: PageProps) {
                                             )}
                                         </div>
                                     </td>
+                                    <td className="px-4 py-3">{admin.branch?.name || '-'}</td>
                                     <td className="px-4 py-3">{admin.phone}</td>
                                     <td className="px-4 py-3 font-mono text-muted-foreground">{admin.telegram_id || '-'}</td>
                                     <td className="px-4 py-3 text-right">
