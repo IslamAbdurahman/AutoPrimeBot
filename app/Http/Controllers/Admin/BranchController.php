@@ -28,11 +28,19 @@ class BranchController extends Controller
             });
         }
 
-        $branches = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+        $perPage = $request->get('per_page', 25);
+        if ($perPage === 'all') {
+            $perPage = max($query->count(), 1);
+        }
+
+        $branches = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
 
         return Inertia::render('Admin/Branches/Index', [
             'branches' => $branches,
-            'filters' => $request->only(['search']),
+            'filters' => [
+                'search' => $request->search,
+                'per_page' => $request->per_page,
+            ],
         ]);
     }
 

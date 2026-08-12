@@ -74,7 +74,7 @@ export default function InstructorsIndex({ instructors, branches = [], filters =
     const [search, setSearch] = useState(filters.search || '');
     const [from, setFrom] = useState(filters.from || '');
     const [to, setTo] = useState(filters.to || '');
-    const [perPage, setPerPage] = useState(filters.per_page || '15');
+    const [perPage, setPerPage] = useState(filters.per_page || '25');
     const [isDeleting, setIsDeleting] = useState<number | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -210,9 +210,9 @@ export default function InstructorsIndex({ instructors, branches = [], filters =
                         }}
                         title={t('common.per_page', 'Sahifada ko\'rsatish')}
                     >
-                        <option value="10">10</option>
-                        <option value="30">30</option>
+                        <option value="25">25</option>
                         <option value="50">50</option>
+                        <option value="75">75</option>
                         <option value="all">{t('common.all', 'Barchasi')}</option>
                     </select>
                     <DatePicker
@@ -261,9 +261,9 @@ export default function InstructorsIndex({ instructors, branches = [], filters =
                                         value={perPage}
                                         onChange={(e) => setPerPage(e.target.value)}
                                     >
-                                        <option value="10">10</option>
-                                        <option value="30">30</option>
+                                        <option value="25">25</option>
                                         <option value="50">50</option>
+                                        <option value="75">75</option>
                                         <option value="all">{t('common.all', 'Barchasi')}</option>
                                     </select>
                                 </div>

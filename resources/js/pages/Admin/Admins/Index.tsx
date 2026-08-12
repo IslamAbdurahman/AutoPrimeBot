@@ -53,7 +53,7 @@ export default function AdminsIndex({ admins, branches = [], filters = {} }: Pag
     const { t } = useTranslation();
     const { auth } = usePage<SharedData>().props;
     const [search, setSearch] = useState(filters.search || '');
-    const [perPage, setPerPage] = useState(filters.per_page || '10');
+    const [perPage, setPerPage] = useState(filters.per_page || '25');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null);
     const [isDeleting, setIsDeleting] = useState<number | null>(null);
@@ -180,9 +180,9 @@ export default function AdminsIndex({ admins, branches = [], filters = {} }: Pag
                         onChange={handlePerPageChange}
                         title={t('common.per_page', 'Sahifada ko\'rsatish')}
                     >
-                        <option value="10">10</option>
-                        <option value="30">30</option>
+                        <option value="25">25</option>
                         <option value="50">50</option>
+                        <option value="75">75</option>
                         <option value="all">{t('common.all', 'Barchasi')}</option>
                     </select>
                 </div>

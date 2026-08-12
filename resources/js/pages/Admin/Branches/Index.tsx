@@ -24,12 +24,14 @@ interface Props {
     };
     filters: {
         search?: string;
+        per_page?: string;
     };
 }
 
 export default function Index({ branches, filters }: Props) {
     const { t } = useTranslation();
     const [search, setSearch] = useState(filters.search || '');
+    const [perPage, setPerPage] = useState(filters.per_page || '25');
     const [isOpen, setIsOpen] = useState(false);
     const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
 
@@ -41,9 +43,13 @@ export default function Index({ branches, filters }: Props) {
         status: 'active' as 'active' | 'inactive',
     });
 
+    const applyFilters = (newSearch: string, newPerPage: string) => {
+        router.get('/admin/branches', { search: newSearch, per_page: newPerPage }, { preserveState: true });
+    };
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        router.get('/admin/branches', { search }, { preserveState: true });
+        applyFilters(search, perPage);
     };
 
     const openCreateModal = () => {
@@ -111,8 +117,22 @@ export default function Index({ branches, filters }: Props) {
                     </Button>
                 </div>
 
-                {/* Search Bar */}
+                {/* Search & Filter Bar */}
                 <div className="flex items-center gap-3">
+                    <select
+                        className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={perPage}
+                        onChange={(e) => {
+                            setPerPage(e.target.value);
+                            applyFilters(search, e.target.value);
+                        }}
+                        title={t('common.per_page', 'Sahifada ko\'rsatish')}
+                    >
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="75">75</option>
+                        <option value="all">{t('common.all', 'Barchasi')}</option>
+                    </select>
                     <form onSubmit={handleSearch} className="flex-1 max-w-md relative">
                         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         <Input

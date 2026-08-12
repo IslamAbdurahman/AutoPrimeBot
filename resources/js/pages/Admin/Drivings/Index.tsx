@@ -107,7 +107,7 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
     const [instructorId, setInstructorId] = useState(filters.instructor_id || '');
     const [fromDate, setFromDate] = useState(filters.from || '');
     const [toDate, setToDate] = useState(filters.to || '');
-    const [perPage, setPerPage] = useState(filters.per_page || '10');
+    const [perPage, setPerPage] = useState(filters.per_page || '25');
     const [studentSearch, setStudentSearch] = useState('');
     const [showOtherStudents, setShowOtherStudents] = useState(false);
     const [apiSearchResults, setApiSearchResults] = useState<Student[]>([]);
@@ -613,9 +613,9 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
                             }}
                             title={t('common.per_page', 'Sahifada ko\'rsatish')}
                         >
-                            <option value="10">10</option>
-                            <option value="30">30</option>
+                            <option value="25">25</option>
                             <option value="50">50</option>
+                            <option value="75">75</option>
                             <option value="all">{t('common.all', 'Barchasi')}</option>
                         </select>
                     </div>

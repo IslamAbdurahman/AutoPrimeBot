@@ -88,7 +88,7 @@ class DrivingController extends Controller
             }
         }
 
-        $perPage = $request->get('per_page', 10);
+        $perPage = $request->get('per_page', 25);
         if ($perPage === 'all') {
             $perPage = max($query->count(), 1); // Avoid 0 per page
         }

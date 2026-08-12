@@ -78,7 +78,7 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
     const { auth } = usePage<SharedData>().props;
     const isInstructor = auth.user.role === 'instructor';
     const [status, setStatus] = useState(filters.status || '');
-    const [perPage, setPerPage] = useState(filters.per_page || '10');
+    const [perPage, setPerPage] = useState(filters.per_page || '25');
 
     const applyFilters = (newStatus: string, newPerPage: string) => {
         router.get(`/admin/students/${student.id}`, { status: newStatus, per_page: newPerPage }, { preserveState: true, replace: true });
@@ -224,9 +224,9 @@ export default function StudentShow({ student, drivings, stats, filters = {} }: 
                                 applyFilters(status, e.target.value);
                             }}
                         >
-                            <option value="10">10</option>
-                            <option value="30">30</option>
+                            <option value="25">25</option>
                             <option value="50">50</option>
+                            <option value="75">75</option>
                             <option value="all">{t('common.all', 'Barchasi')}</option>
                         </select>
                     </div>

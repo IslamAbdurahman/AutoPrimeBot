@@ -67,7 +67,7 @@ export default function GroupsIndex({ groups, instructors, branches = [], filter
     
     const [search, setSearch] = useState(filters.search || '');
     const [instructorId, setInstructorId] = useState(filters.instructor_id || '');
-    const [perPage, setPerPage] = useState(filters.per_page || '10');
+    const [perPage, setPerPage] = useState(filters.per_page || '25');
 
     const applyFilters = (newSearch: string, newInst: string, newPerPage: string) => {
         router.get('/admin/groups', { search: newSearch, instructor_id: newInst, per_page: newPerPage }, { preserveState: true, replace: true });
@@ -166,9 +166,9 @@ export default function GroupsIndex({ groups, instructors, branches = [], filter
                         }}
                         title={t('common.per_page', 'Sahifada ko\'rsatish')}
                     >
-                        <option value="10">10</option>
-                        <option value="30">30</option>
+                        <option value="25">25</option>
                         <option value="50">50</option>
+                        <option value="75">75</option>
                         <option value="all">{t('common.all', 'Barchasi')}</option>
                     </select>
                     <select
