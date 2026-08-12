@@ -131,7 +131,7 @@ class GroupController extends Controller
 
         $group->delete();
 
-        return redirect()->back();
+        return redirect()->route('groups.index');
     }
 
     public function show(Request $request, Group $group): Response

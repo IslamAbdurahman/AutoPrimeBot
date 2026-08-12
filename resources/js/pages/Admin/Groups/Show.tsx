@@ -1,6 +1,6 @@
 import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { Users, Upload, ArrowLeft, Download } from 'lucide-react';
+import { Users, Upload, ArrowLeft, Download, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useRef, useState } from 'react';
@@ -36,6 +36,20 @@ export default function GroupShow({ group, students }: PageProps) {
     const { data, setData, post, errors, reset } = useForm({
         file: null as File | null,
     });
+
+    const handleDeleteGroup = () => {
+        if (confirm(t('groups.confirm_delete', 'Haqiqatdan ham ushbu guruhni o\'chirmoqchimisiz?'))) {
+            router.delete(`/admin/groups/${group.id}`);
+        }
+    };
+
+    const handleDeleteStudent = (studentId: number) => {
+        if (confirm(t('common.confirm_delete', 'Haqiqatdan ham o\'chirmoqchimisiz?'))) {
+            router.delete(`/admin/students/${studentId}`, {
+                preserveScroll: true,
+            });
+        }
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -84,6 +98,12 @@ export default function GroupShow({ group, students }: PageProps) {
                             <Download className="w-4 h-4 mr-2" />
                             {t('common.export_excel', 'Excel yuklab olish')}
                         </Button>
+                        {!isInstructor && (
+                            <Button variant="destructive" onClick={handleDeleteGroup}>
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                {t('common.delete', 'O\'chirish')}
+                            </Button>
+                        )}
                     </div>
                 </div>
 
@@ -145,12 +165,13 @@ export default function GroupShow({ group, students }: PageProps) {
                                             <th className="px-6 py-4 font-medium">{t('students.full_name', 'F.I.SH')}</th>
                                             <th className="px-6 py-4 font-medium">{t('students.phone', 'Telefon')}</th>
                                             <th className="px-6 py-4 font-medium text-center">{t('students.completed_drivings', 'Tugagan darslar')}</th>
+                                            {!isInstructor && <th className="px-6 py-4 font-medium text-right">{t('common.actions', 'Amallar')}</th>}
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
                                         {students.length === 0 ? (
                                             <tr>
-                                                <td colSpan={4} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                                <td colSpan={isInstructor ? 4 : 5} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                                                     {t('groups.no_students_in_group', "Guruhda hozircha talabalar yo'q. Excel orqali yuklang.")}
                                                 </td>
                                             </tr>
@@ -167,6 +188,13 @@ export default function GroupShow({ group, students }: PageProps) {
                                                             {student.completed_drivings_count || 0}
                                                         </span>
                                                     </td>
+                                                    {!isInstructor && (
+                                                        <td className="px-6 py-4 text-right">
+                                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteStudent(student.id)} className="h-8 w-8 text-destructive hover:text-destructive/90">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </td>
+                                                    )}
                                                 </tr>
                                             ))
                                         )}
@@ -195,6 +223,14 @@ export default function GroupShow({ group, students }: PageProps) {
                                                         </div>
                                                     </div>
                                                 </div>
+                                                {!isInstructor && (
+                                                    <div className="flex justify-end pt-2 border-t">
+                                                        <Button variant="outline" size="sm" onClick={() => handleDeleteStudent(student.id)} className="h-8 gap-1 text-xs text-destructive border-destructive/30">
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                            {t('common.delete', 'O\'chirish')}
+                                                        </Button>
+                                                    </div>
+                                                )}
                                             </div>
                                         ))
                                     )}
