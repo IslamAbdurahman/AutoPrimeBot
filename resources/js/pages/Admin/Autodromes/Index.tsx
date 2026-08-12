@@ -73,7 +73,7 @@ function MapController({ center }: { center: L.LatLng | null }) {
     return null;
 }
 
-export default function AutodromesIndex({ autodromes }: PageProps) {
+export default function AutodromesIndex({ autodromes, branches = [] }: PageProps) {
     const { t } = useTranslation();
     const { auth } = usePage<SharedData>().props;
     const isInstructor = auth?.user?.role === 'instructor';
