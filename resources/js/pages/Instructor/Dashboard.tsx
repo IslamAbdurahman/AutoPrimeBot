@@ -51,7 +51,7 @@ export default function InstructorDashboard({ groups = [], upcomingDrivings = []
         setFinishingId(driving.id);
         setLocationError('');
 
-        if (driving.autodrome) {
+        if (driving.autodrome || driving.autodrome_id) {
             if (!navigator.geolocation) {
                 setLocationError(t('instructor_panel.geolocation_not_supported', "Qurilmangizda geolokatsiya qo'llab-quvvatlanmaydi."));
                 setFinishingId(null);

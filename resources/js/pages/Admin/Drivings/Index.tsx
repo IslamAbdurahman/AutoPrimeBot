@@ -280,7 +280,8 @@ export default function DrivingsIndex({ drivings, instructors, students, groups,
             });
         };
 
-        if (targetStatus === 'completed') {
+        const hasAutodrome = !!(statusModalDriving?.autodrome_id || statusModalDriving?.autodrome);
+        if (targetStatus === 'completed' && hasAutodrome) {
             if (!navigator.geolocation) {
                 toast.error(t('drivings.geolocation_not_supported', 'Brauzeringiz geolokatsiyani qo\'llab-quvvatlamaydi.'));
                 return;
