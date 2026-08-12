@@ -18,15 +18,6 @@
                         document.documentElement.classList.add('dark');
                     }
                 }
-
-                // Prevent Telegram WebApp input focus freeze
-                document.addEventListener('focusin', function(e) {
-                    if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
-                        setTimeout(function() {
-                            e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                        }, 150);
-                    }
-                });
             })();
         </script>
 

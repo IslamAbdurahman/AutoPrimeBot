@@ -55,36 +55,25 @@ export function useTelegramHaptic() {
 }
 
 /**
- * Initializes the Telegram Mini App by expanding it and notifying Telegram SDK.
+ * Initializes the Telegram Mini App by expanding it and disabling vertical swipes (prevents pull-to-close on scroll).
  */
 export function initTelegramWebApp() {
     const tg = (window as any).Telegram?.WebApp;
     if (!tg) return;
 
     tg.ready();
+    tg.expand();
 
-    const isMobile =
-        typeof window !== 'undefined' &&
-        (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-         window.innerWidth < 768 ||
-         ['android', 'ios'].includes(tg.platform));
+    if (typeof tg.requestFullscreen === 'function') {
+        try {
+            tg.requestFullscreen();
+        } catch (e) {
+            console.log('requestFullscreen error', e);
+        }
+    }
 
-    if (isMobile) {
-        tg.expand();
-        if (typeof tg.requestFullscreen === 'function') {
-            try {
-                tg.requestFullscreen();
-            } catch (e) {
-                // Ignore fullscreen errors
-            }
-        }
-    } else {
-        if (typeof tg.exitFullscreen === 'function') {
-            try {
-                tg.exitFullscreen();
-            } catch (e) {
-                // Ignore exitFullscreen errors
-            }
-        }
+    // disableVerticalSwipes is available in SDK 7.7+
+    if (tg.isVersionAtLeast?.('7.7') && typeof tg.disableVerticalSwipes === 'function') {
+        tg.disableVerticalSwipes();
     }
 }

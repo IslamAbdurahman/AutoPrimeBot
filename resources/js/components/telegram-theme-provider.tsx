@@ -25,6 +25,18 @@ export function TelegramThemeProvider({ children }: { children: React.ReactNode 
             }
         };
 
+        // Universal Touch-to-Focus fix for Telegram Mini App webview gesture bug
+        const handleTouchStart = (e: TouchEvent) => {
+            const target = e.target as HTMLElement;
+            if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+                if ((target as HTMLInputElement).disabled || (target as HTMLInputElement).readOnly) return;
+                if (document.activeElement !== target) {
+                    target.focus();
+                }
+            }
+        };
+
+        document.addEventListener('touchstart', handleTouchStart, { passive: true });
         document.addEventListener('focusin', handleFocusIn);
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', handleViewportResize);
@@ -32,6 +44,7 @@ export function TelegramThemeProvider({ children }: { children: React.ReactNode 
 
         if (!tg || tg.platform === 'unknown') {
             return () => {
+                document.removeEventListener('touchstart', handleTouchStart);
                 document.removeEventListener('focusin', handleFocusIn);
                 if (window.visualViewport) {
                     window.visualViewport.removeEventListener('resize', handleViewportResize);
@@ -86,33 +99,22 @@ export function TelegramThemeProvider({ children }: { children: React.ReactNode 
         updateSafeArea();
 
         tg.ready();
+        tg.expand();
 
-        const isMobile =
-            typeof window !== 'undefined' &&
-            (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-             window.innerWidth < 768 ||
-             ['android', 'ios'].includes(tg.platform));
-
-        if (isMobile) {
-            tg.expand();
-            if (typeof tg.requestFullscreen === 'function') {
-                try {
-                    tg.requestFullscreen();
-                } catch (e) {
-                    // Ignore fullscreen errors
-                }
-            }
-        } else {
-            if (typeof tg.exitFullscreen === 'function') {
-                try {
-                    tg.exitFullscreen();
-                } catch (e) {
-                    // Ignore exitFullscreen errors
-                }
+        if (typeof tg.requestFullscreen === 'function') {
+            try {
+                tg.requestFullscreen();
+            } catch (e) {
+                console.log('requestFullscreen error', e);
             }
         }
 
+        if (tg.isVersionAtLeast?.('7.7') && typeof tg.disableVerticalSwipes === 'function') {
+            tg.disableVerticalSwipes();
+        }
+
         return () => {
+            document.removeEventListener('touchstart', handleTouchStart);
             document.removeEventListener('focusin', handleFocusIn);
             if (window.visualViewport) {
                 window.visualViewport.removeEventListener('resize', handleViewportResize);
