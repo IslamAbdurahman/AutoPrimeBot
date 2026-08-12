@@ -20,10 +20,10 @@ export default function Pagination({ links }: PaginationProps) {
         <div className="flex flex-wrap items-center justify-center gap-1 mt-6">
             {links.map((link, key) => {
                 let label = link.label;
-                if (label.includes('Previous')) {
-                    label = label.replace('Previous', t('pagination.previous', 'Oldingisi'));
-                } else if (label.includes('Next')) {
-                    label = label.replace('Next', t('pagination.next', 'Keyingisi'));
+                if (label.includes('Previous') || label.includes('pagination.previous')) {
+                    label = label.replace(/Previous|pagination\.previous/g, t('pagination.previous', 'Oldingisi'));
+                } else if (label.includes('Next') || label.includes('pagination.next')) {
+                    label = label.replace(/Next|pagination\.next/g, t('pagination.next', 'Keyingisi'));
                 }
 
                 if (link.url === null) {

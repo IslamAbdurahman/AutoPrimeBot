@@ -86,10 +86,14 @@ class StudentController extends Controller
             }])
             ->orderBy('id', 'desc');
 
-        if ($user->role === 'admin' && $user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
+        $targetBranchId = ($user->role === 'admin' && $user->branch_id) ? $user->branch_id : $request->input('branch_id');
+        if ($targetBranchId) {
+            $query->where(function ($q) use ($targetBranchId) {
+                $q->where('branch_id', $targetBranchId)
+                    ->orWhereHas('group', function ($gQ) use ($targetBranchId) {
+                        $gQ->where('branch_id', $targetBranchId);
+                    });
+            });
         }
 
         if ($isInstructor) {

@@ -183,9 +183,8 @@ class GroupController extends Controller
             'file' => 'required|file|mimes:xlsx,csv,xls',
         ]);
 
-        $file = $request->file('file');
-
-        $import = new StudentsImport($group->id);
+        $branchId = $group->branch_id ?? $request->user()->branch_id;
+        $import = new StudentsImport($group->id, $branchId);
         Excel::import($import, $file);
 
         return redirect()->back()->with('success', "{$import->importedCount} ta o'quvchi muvaffaqiyatli yuklandi");
