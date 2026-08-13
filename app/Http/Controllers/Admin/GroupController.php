@@ -185,7 +185,7 @@ class GroupController extends Controller
 
         $branchId = $group->branch_id ?? $request->user()->branch_id;
         $import = new StudentsImport($group->id, $branchId);
-        Excel::import($import, $file);
+        Excel::import($import, $request->file('file'));
 
         return redirect()->back()->with('success', "{$import->importedCount} ta o'quvchi muvaffaqiyatli yuklandi");
     }
