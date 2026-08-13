@@ -141,6 +141,8 @@
     "name": "Full Name",
     "phone": "Phone",
     "password": "Password",
+    "password_edit": "Password (to change)",
+    "password_placeholder": "Enter password",
     "new_password": "New Password (optional)",
     "car": "Car",
     "active": "Active",

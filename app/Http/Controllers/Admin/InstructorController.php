@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
@@ -232,7 +231,7 @@ class InstructorController extends Controller
             'car_name' => 'nullable|string|max:255',
             'branch_id' => 'nullable|exists:branches,id',
             'photo' => 'nullable|image|max:5120',
-            'password' => 'nullable|string|min:6',
+            'password' => 'required|string|min:6',
         ]);
 
         $user = $request->user();
@@ -250,7 +249,7 @@ class InstructorController extends Controller
             'telegram_id' => $validated['telegram_id'] ?? null,
             'car_name' => $validated['car_name'] ?? null,
             'photo_path' => $photoPath,
-            'password' => ! empty($validated['password']) ? Hash::make($validated['password']) : Hash::make(Str::random(16)),
+            'password' => Hash::make($validated['password']),
             'role' => 'instructor',
         ]);
 

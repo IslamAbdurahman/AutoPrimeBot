@@ -144,6 +144,8 @@
     "name": "F.I.Sh",
     "phone": "Telefon",
     "password": "Parol",
+    "password_edit": "Parol (o'zgartirish uchun)",
+    "password_placeholder": "Parolni kiriting",
     "new_password": "Yangi Parol (ixtiyoriy)",
     "car": "Mashina",
     "active": "Faol",

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Trash2, Edit2, Plus, Search, AlertTriangle, Star, Filter, Download, Eye, User as UserIcon, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import PasswordInput from '@/components/password-input';
 import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
 import Pagination from '@/components/pagination';
@@ -369,10 +370,18 @@ export default function InstructorsIndex({ instructors, branches = [], filters =
                             <Input id="telegram_id" value={data.telegram_id} onChange={e => setData('telegram_id', e.target.value)} placeholder="12345678" />
                             {errors.telegram_id && <div className="text-destructive text-sm mt-1">{errors.telegram_id}</div>}
                         </div>
-                        <div>
-                            <Label htmlFor="password">{editing ? t('instructors.new_password', 'Yangi Parol (ixtiyoriy)') : t('instructors.password', 'Parol')}</Label>
-                            <Input id="password" type="password" value={data.password} onChange={e => setData('password', e.target.value)} placeholder="******" />
-                            {errors.password && <div className="text-destructive text-sm mt-1">{errors.password}</div>}
+                        <div className="space-y-2">
+                            <Label htmlFor="password">
+                                {editing ? t('instructors.password_edit', 'Parol (o\'zgartirish uchun)') : t('instructors.password', 'Parol')}
+                            </Label>
+                            <PasswordInput
+                                id="password"
+                                value={data.password}
+                                onChange={e => setData('password', e.target.value)}
+                                placeholder={editing ? "••••••••" : t('instructors.password_placeholder', 'Parolni kiriting')}
+                                required={!editing}
+                            />
+                            {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                         </div>
                         <div className="flex gap-2 justify-end pt-4">
                             <Button type="button" variant="outline" onClick={closeForm}>{t('common.cancel', 'Bekor qilish')}</Button>
