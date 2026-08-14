@@ -39,7 +39,7 @@ test('main admin (id=1 or superadmin) can switch branches via POST /admin/select
     // 3. Admin switches to "Barcha filiallar" (empty branch_id)
     $clearResponse = $this->actingAs($admin)->post('/admin/select-branch', ['branch_id' => '']);
     $clearResponse->assertRedirect();
-    $clearResponse->assertSessionMissing('selected_branch_id');
+    $clearResponse->assertSessionHas('selected_branch_id', 'all');
 
     // 4. Visiting groups shows all groups
     $groupsResponse = $this->actingAs($admin)->get('/admin/groups');

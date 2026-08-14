@@ -41,14 +41,12 @@ export default function DashboardIndex({ metrics, chartData, branches = [], filt
 
     const [from, setFrom] = useState(filters.from || '');
     const [to, setTo] = useState(filters.to || '');
-    const [branchId, setBranchId] = useState(filters.branch_id || '');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         const query: any = {};
         if (from) query.from = from;
         if (to) query.to = to;
-        if (branchId) query.branch_id = branchId;
 
         router.get('/admin/dashboard', query, { preserveState: true, replace: true });
     };
@@ -61,18 +59,6 @@ export default function DashboardIndex({ metrics, chartData, branches = [], filt
                 <h1 className="text-2xl font-bold">{t('dashboard.title', 'Bosh sahifa')}</h1>
                 <div className="w-full md:w-auto">
                     <form onSubmit={handleSearch} className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                        {isSuperAdmin && branches.length > 0 && (
-                            <select
-                                value={branchId}
-                                onChange={(e) => setBranchId(e.target.value)}
-                                className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-xs font-medium focus:ring-0 focus:outline-none"
-                            >
-                                <option value="">{t('branches.all_branches', 'Barcha filiallar')}</option>
-                                {branches.map((b) => (
-                                    <option key={b.id} value={b.id}>{b.name}</option>
-                                ))}
-                            </select>
-                        )}
                         <DatePicker
                             placeholder={t('common.from', 'Dan') + ' DD-MM-YYYY'}
                             value={from}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Services\BranchSessionService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -22,14 +23,7 @@ class BranchController extends Controller
             abort(403, 'Filialni faqat Asosiy Admin almashtira oladi.');
         }
 
-        $branchId = $request->input('branch_id');
-        if ($branchId !== null && $branchId !== '' && $branchId !== 'all') {
-            session(['selected_branch_id' => (string) $branchId]);
-        } else {
-            session()->forget('selected_branch_id');
-        }
-
-        session()->save();
+        BranchSessionService::setActiveBranchId($user, $request->input('branch_id'));
 
         return redirect()->back(fallback: route('admin.dashboard'));
     }
