@@ -10,20 +10,22 @@ class BranchSessionService
      * Get the active branch ID for the current request,
      * maintaining session persistence for superadmins across navigation.
      */
-    public static function getActiveBranchId(Request $request): ?string
+    public static function getActiveBranchId(?Request $request = null): ?string
     {
-        $user = $request->user();
+        $user = $request ? $request->user() : auth()->user();
         if (! $user) {
             return null;
         }
 
-        // Branch admins and instructors are restricted to their assigned branch
-        if ($user->branch_id && in_array($user->role, ['admin', 'instructor'])) {
+        $isSuperAdmin = $user->role === 'superadmin' || $user->id === 1;
+
+        // Subordinate branch admins and instructors are restricted to their assigned branch
+        if (! $isSuperAdmin && $user->branch_id && in_array($user->role, ['admin', 'instructor'])) {
             return (string) $user->branch_id;
         }
 
-        // Superadmins (or users without fixed branch_id) can select/switch branches
-        if ($request->has('branch_id')) {
+        // Superadmins (or users with global rights) can select/switch branches
+        if ($request && $request->has('branch_id')) {
             $branchId = $request->input('branch_id');
             if ($branchId !== null && $branchId !== '' && $branchId !== 'all') {
                 session(['selected_branch_id' => (string) $branchId]);

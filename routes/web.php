@@ -146,6 +146,7 @@ Route::middleware(['auth.telegram'])->group(function () {
     Route::get('admin/groups/{group}/export-students', [GroupController::class, 'exportStudents'])->name('groups.export-students');
 
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::post('admin/select-branch', [BranchController::class, 'selectBranch'])->name('admin.select-branch');
     Route::resource('admin/instructors', AdminInstructorController::class)->except(['create', 'edit']);
     Route::post('admin/groups/{group}/import-students', [GroupController::class, 'importStudents'])->name('groups.import-students');
     Route::resource('admin/groups', GroupController::class)->except(['create', 'edit']);

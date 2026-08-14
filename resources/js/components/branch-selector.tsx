@@ -21,7 +21,7 @@ export function BranchSelector({ branches }: Props) {
         ? rawBranches
         : (Array.isArray(rawBranches?.data) ? rawBranches.data : []);
 
-    const currentBranchId = filters?.branch_id || '';
+    const currentBranchId = filters?.branch_id !== undefined && filters?.branch_id !== null ? String(filters.branch_id) : '';
 
     if (!Array.isArray(availableBranches) || availableBranches.length === 0) {
         if (user.branch) {
@@ -48,13 +48,10 @@ export function BranchSelector({ branches }: Props) {
 
     const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
-        const currentUrl = new URL(window.location.href);
-        if (value) {
-            currentUrl.searchParams.set('branch_id', value);
-        } else {
-            currentUrl.searchParams.set('branch_id', '');
-        }
-        router.get(currentUrl.pathname + currentUrl.search, {}, { preserveState: true, replace: true });
+        router.post('/admin/select-branch', { branch_id: value }, {
+            preserveScroll: true,
+            preserveState: false,
+        });
     };
 
     return (

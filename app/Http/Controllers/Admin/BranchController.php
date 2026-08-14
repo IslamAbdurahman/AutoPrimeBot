@@ -9,6 +9,27 @@ use Inertia\Inertia;
 
 class BranchController extends Controller
 {
+    public function selectBranch(Request $request)
+    {
+        $user = $request->user();
+        $isSuperAdmin = $user->role === 'superadmin' || $user->id === 1;
+
+        if (! $isSuperAdmin) {
+            abort(403, 'Filialni faqat Asosiy Admin almashtira oladi.');
+        }
+
+        $branchId = $request->input('branch_id');
+        if ($branchId && $branchId !== 'all') {
+            session(['selected_branch_id' => (string) $branchId]);
+        } else {
+            session()->forget('selected_branch_id');
+        }
+
+        session()->save();
+
+        return redirect()->back();
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
