@@ -103,7 +103,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/admin/dashboard" onClick={handleLogoClick} prefetch>
+                            <Link href="/admin/dashboard" onClick={handleLogoClick}>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

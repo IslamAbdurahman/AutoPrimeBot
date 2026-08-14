@@ -155,7 +155,6 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
 
                     <Link
                         href={(auth as any)?.user?.role === 'instructor' ? '/instructor/dashboard' : '/admin/dashboard'}
-                        prefetch
                         className="flex items-center space-x-2"
                     >
                         <AppLogo />
