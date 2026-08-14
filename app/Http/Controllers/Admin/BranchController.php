@@ -12,6 +12,10 @@ class BranchController extends Controller
     public function selectBranch(Request $request)
     {
         $user = $request->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
         $isSuperAdmin = $user->role === 'superadmin' || $user->id === 1;
 
         if (! $isSuperAdmin) {
@@ -19,7 +23,7 @@ class BranchController extends Controller
         }
 
         $branchId = $request->input('branch_id');
-        if ($branchId && $branchId !== 'all') {
+        if ($branchId !== null && $branchId !== '' && $branchId !== 'all') {
             session(['selected_branch_id' => (string) $branchId]);
         } else {
             session()->forget('selected_branch_id');
@@ -27,7 +31,7 @@ class BranchController extends Controller
 
         session()->save();
 
-        return redirect()->back();
+        return redirect()->back(fallback: route('admin.dashboard'));
     }
 
     public function index(Request $request)
