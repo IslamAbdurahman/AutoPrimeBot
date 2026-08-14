@@ -10,6 +10,7 @@ use App\Models\Driving;
 use App\Models\Group;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\BranchSessionService;
 use App\Services\TelegramService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -25,8 +26,11 @@ class DrivingController extends Controller
         $user = $request->user();
         if ($user->role === 'instructor') {
             $filters['instructor_id'] = $user->id;
-        } elseif ($user->role === 'admin' && $user->branch_id) {
-            $filters['branch_id'] = $user->branch_id;
+        } else {
+            $targetBranchId = BranchSessionService::getActiveBranchId($request);
+            if ($targetBranchId) {
+                $filters['branch_id'] = $targetBranchId;
+            }
         }
 
         return Excel::download(new DrivingsExport($filters), 'mashgulotlar.xlsx');
@@ -40,10 +44,9 @@ class DrivingController extends Controller
         $query = Driving::with(['instructor', 'student', 'group', 'review', 'autodrome', 'branch'])
             ->orderBy('start_time', 'desc');
 
-        if ($user->role === 'admin' && $user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
+        $targetBranchId = BranchSessionService::getActiveBranchId($request);
+        if ($targetBranchId) {
+            $query->where('branch_id', $targetBranchId);
         }
 
         if ($isInstructor) {
@@ -96,11 +99,8 @@ class DrivingController extends Controller
         $drivings = $query->paginate($perPage)->withQueryString();
 
         $instructors = User::where('role', 'instructor')
-            ->when($user->role === 'admin' && $user->branch_id, function ($q) use ($user) {
-                $q->where('branch_id', $user->branch_id);
-            })
-            ->when($request->filled('branch_id'), function ($q) use ($request) {
-                $q->where('branch_id', $request->branch_id);
+            ->when($targetBranchId, function ($q) use ($targetBranchId) {
+                $q->where('branch_id', $targetBranchId);
             })
             ->when($isInstructor, function ($q) use ($user) {
                 $q->where('id', $user->id);
@@ -111,16 +111,12 @@ class DrivingController extends Controller
         $groupsQuery = Group::orderBy('name');
         $autodromesQuery = Autodrome::orderBy('name');
 
-        if ($user->role === 'admin' && $user->branch_id) {
-            $studentsQuery->where('branch_id', $user->branch_id);
-            $groupsQuery->where('branch_id', $user->branch_id);
-            $autodromesQuery->where(function ($q) use ($user) {
-                $q->where('branch_id', $user->branch_id)->orWhereNull('branch_id');
+        if ($targetBranchId) {
+            $studentsQuery->where('branch_id', $targetBranchId);
+            $groupsQuery->where('branch_id', $targetBranchId);
+            $autodromesQuery->where(function ($q) use ($targetBranchId) {
+                $q->where('branch_id', $targetBranchId)->orWhereNull('branch_id');
             });
-        } elseif ($request->filled('branch_id')) {
-            $studentsQuery->where('branch_id', $request->branch_id);
-            $groupsQuery->where('branch_id', $request->branch_id);
-            $autodromesQuery->where('branch_id', $request->branch_id);
         }
 
         if ($isInstructor) {
@@ -146,7 +142,7 @@ class DrivingController extends Controller
                 'search' => $request->search,
                 'status' => $request->status,
                 'instructor_id' => $request->instructor_id,
-                'branch_id' => $request->branch_id,
+                'branch_id' => $targetBranchId,
                 'from' => $from,
                 'to' => $to,
                 'per_page' => $request->per_page,

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Driving;
 use App\Models\User;
+use App\Services\BranchSessionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -21,9 +22,9 @@ class InstructorController extends Controller
     public function export(Request $request)
     {
         $filters = $request->all();
-        $user = $request->user();
-        if ($user->role === 'admin' && $user->branch_id) {
-            $filters['branch_id'] = $user->branch_id;
+        $targetBranchId = BranchSessionService::getActiveBranchId($request);
+        if ($targetBranchId) {
+            $filters['branch_id'] = $targetBranchId;
         }
 
         return Excel::download(new InstructorsExport($filters), 'instruktorlar.xlsx');
@@ -34,10 +35,9 @@ class InstructorController extends Controller
         $user = $request->user();
         $query = User::with('branch')->where('role', 'instructor')->orderBy('id', 'desc');
 
-        if ($user->role === 'admin' && $user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
+        $targetBranchId = BranchSessionService::getActiveBranchId($request);
+        if ($targetBranchId) {
+            $query->where('branch_id', $targetBranchId);
         }
 
         if ($request->filled('search')) {
@@ -150,7 +150,7 @@ class InstructorController extends Controller
             'branches' => $branches,
             'filters' => [
                 'search' => $request->search,
-                'branch_id' => $request->branch_id,
+                'branch_id' => $targetBranchId,
                 'from' => $from,
                 'to' => $to,
                 'per_page' => $request->per_page,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Autodrome;
 use App\Models\Branch;
+use App\Services\BranchSessionService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,12 +19,11 @@ class AutodromeController extends Controller
             $q->where('status', 'completed');
         }]);
 
-        if ($user->role === 'admin' && $user->branch_id) {
-            $query->where(function ($q) use ($user) {
-                $q->where('branch_id', $user->branch_id)->orWhereNull('branch_id');
+        $targetBranchId = BranchSessionService::getActiveBranchId($request);
+        if ($targetBranchId) {
+            $query->where(function ($q) use ($targetBranchId) {
+                $q->where('branch_id', $targetBranchId)->orWhereNull('branch_id');
             });
-        } elseif ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
         }
 
         $autodromes = $query->orderBy('name')->get();
@@ -33,7 +33,7 @@ class AutodromeController extends Controller
             'autodromes' => $autodromes,
             'branches' => $branches,
             'filters' => [
-                'branch_id' => $request->branch_id,
+                'branch_id' => $targetBranchId,
             ],
         ]);
     }

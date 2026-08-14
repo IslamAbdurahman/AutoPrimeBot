@@ -8,6 +8,7 @@ use App\Models\Driving;
 use App\Models\Review;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\BranchSessionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -42,12 +43,7 @@ class DashboardController extends Controller
         $user = $request->user();
         $isInstructor = $user->role === 'instructor';
 
-        $branchId = null;
-        if ($user->role === 'admin' && $user->branch_id) {
-            $branchId = $user->branch_id;
-        } elseif ($request->filled('branch_id')) {
-            $branchId = $request->branch_id;
-        }
+        $branchId = BranchSessionService::getActiveBranchId($request);
 
         $totalStudents = Student::when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($isInstructor, function ($query) use ($user) {
@@ -131,7 +127,7 @@ class DashboardController extends Controller
             'filters' => [
                 'from' => $from,
                 'to' => $to,
-                'branch_id' => $request->branch_id,
+                'branch_id' => $branchId,
             ],
         ]);
     }

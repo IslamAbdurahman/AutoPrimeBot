@@ -8,6 +8,7 @@ use App\Imports\StudentsImport;
 use App\Models\Branch;
 use App\Models\Group;
 use App\Models\User;
+use App\Services\BranchSessionService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -30,10 +31,9 @@ class GroupController extends Controller
 
         $query = Group::with(['instructor', 'branch'])->orderBy('id', 'desc');
 
-        if ($user->role === 'admin' && $user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
+        $targetBranchId = BranchSessionService::getActiveBranchId($request);
+        if ($targetBranchId) {
+            $query->where('branch_id', $targetBranchId);
         }
 
         if ($isInstructor) {
@@ -56,11 +56,8 @@ class GroupController extends Controller
         $groups = $query->paginate($perPage)->withQueryString();
 
         $instructors = User::where('role', 'instructor')
-            ->when($user->role === 'admin' && $user->branch_id, function ($q) use ($user) {
-                $q->where('branch_id', $user->branch_id);
-            })
-            ->when($request->filled('branch_id'), function ($q) use ($request) {
-                $q->where('branch_id', $request->branch_id);
+            ->when($targetBranchId, function ($q) use ($targetBranchId) {
+                $q->where('branch_id', $targetBranchId);
             })
             ->when($isInstructor, function ($q) use ($user) {
                 $q->where('id', $user->id);
@@ -76,7 +73,7 @@ class GroupController extends Controller
             'filters' => [
                 'search' => $request->search,
                 'instructor_id' => $request->instructor_id,
-                'branch_id' => $request->branch_id,
+                'branch_id' => $targetBranchId,
                 'per_page' => $request->per_page,
             ],
         ]);

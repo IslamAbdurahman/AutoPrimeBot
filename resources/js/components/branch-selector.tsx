@@ -52,7 +52,7 @@ export function BranchSelector({ branches }: Props) {
         if (value) {
             currentUrl.searchParams.set('branch_id', value);
         } else {
-            currentUrl.searchParams.delete('branch_id');
+            currentUrl.searchParams.set('branch_id', '');
         }
         router.get(currentUrl.pathname + currentUrl.search, {}, { preserveState: true, replace: true });
     };

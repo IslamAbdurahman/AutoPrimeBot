@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\User;
+use App\Services\BranchSessionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
@@ -14,8 +15,9 @@ class AdminController extends Controller
 {
     private function authorizeSuperAdmin(Request $request): void
     {
-        if ($request->user()->id !== 1 && $request->user()->role !== 'superadmin') {
-            abort(403, 'Ushbu sahifaga faqat Asosiy Admin kirishi mumkin.');
+        $user = $request->user();
+        if ($user->role !== 'superadmin' && $user->id !== 1) {
+            abort(403, 'Ushbu bo\'lim faqat Super Admin uchun ajratilgan.');
         }
     }
 
@@ -33,8 +35,9 @@ class AdminController extends Controller
             });
         }
 
-        if ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
+        $targetBranchId = BranchSessionService::getActiveBranchId($request);
+        if ($targetBranchId) {
+            $query->where('branch_id', $targetBranchId);
         }
 
         $perPage = $request->get('per_page', 25);
@@ -50,7 +53,7 @@ class AdminController extends Controller
             'branches' => $branches,
             'filters' => [
                 'search' => $request->search,
-                'branch_id' => $request->branch_id,
+                'branch_id' => $targetBranchId,
                 'per_page' => $request->per_page,
             ],
         ]);

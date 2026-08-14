@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Group;
 use App\Models\Student;
+use App\Services\BranchSessionService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,9 +18,9 @@ class StudentController extends Controller
     public function export(Request $request)
     {
         $filters = $request->all();
-        $user = $request->user();
-        if ($user->role === 'admin' && $user->branch_id) {
-            $filters['branch_id'] = $user->branch_id;
+        $targetBranchId = BranchSessionService::getActiveBranchId($request);
+        if ($targetBranchId) {
+            $filters['branch_id'] = $targetBranchId;
         }
 
         return Excel::download(new StudentsExport($filters), 'oquvchilar.xlsx');
@@ -32,10 +33,14 @@ class StudentController extends Controller
 
         $query = Student::with(['group', 'branch'])->orderBy('full_name', 'asc');
 
-        if ($user->role === 'admin' && $user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
+        $targetBranchId = BranchSessionService::getActiveBranchId($request);
+        if ($targetBranchId) {
+            $query->where(function ($q) use ($targetBranchId) {
+                $q->where('branch_id', $targetBranchId)
+                    ->orWhereHas('group', function ($gQ) use ($targetBranchId) {
+                        $gQ->where('branch_id', $targetBranchId);
+                    });
+            });
         }
 
         $search = $request->get('q');
@@ -86,7 +91,7 @@ class StudentController extends Controller
             }])
             ->orderBy('id', 'desc');
 
-        $targetBranchId = ($user->role === 'admin' && $user->branch_id) ? $user->branch_id : $request->input('branch_id');
+        $targetBranchId = BranchSessionService::getActiveBranchId($request);
         if ($targetBranchId) {
             $query->where(function ($q) use ($targetBranchId) {
                 $q->where('branch_id', $targetBranchId)
@@ -121,12 +126,9 @@ class StudentController extends Controller
 
         $students = $query->paginate($perPage)->withQueryString();
 
-        $groups = Group::when($user->role === 'admin' && $user->branch_id, function ($q) use ($user) {
-            $q->where('branch_id', $user->branch_id);
+        $groups = Group::when($targetBranchId, function ($q) use ($targetBranchId) {
+            $q->where('branch_id', $targetBranchId);
         })
-            ->when($request->filled('branch_id'), function ($q) use ($request) {
-                $q->where('branch_id', $request->branch_id);
-            })
             ->when($isInstructor, function ($q) use ($user) {
                 $q->where('instructor_id', $user->id);
             })->get();
@@ -140,7 +142,7 @@ class StudentController extends Controller
             'filters' => [
                 'search' => $request->search,
                 'group_id' => $request->group_id,
-                'branch_id' => $request->branch_id,
+                'branch_id' => $targetBranchId,
                 'per_page' => $request->per_page,
             ],
         ]);

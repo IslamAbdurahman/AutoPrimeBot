@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Branch;
+use App\Services\BranchSessionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
@@ -58,7 +59,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'branches' => $branches,
             'filters' => array_merge([
-                'branch_id' => $request->input('branch_id'),
+                'branch_id' => BranchSessionService::getActiveBranchId($request),
             ], $request->only(['search', 'from', 'to'])),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
