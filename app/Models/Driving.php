@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $start_time
  * @property Carbon $end_time
  * @property string $status
+ * @property Carbon|null $reminded_24h_at
+ * @property Carbon|null $reminded_2h_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $instructor
@@ -26,7 +28,7 @@ use Illuminate\Support\Carbon;
  * @property-read Review|null $review
  * @property-read Autodrome|null $autodrome
  */
-#[Fillable(['branch_id', 'instructor_id', 'group_id', 'student_id', 'autodrome_id', 'start_time', 'end_time', 'status'])]
+#[Fillable(['branch_id', 'instructor_id', 'group_id', 'student_id', 'autodrome_id', 'start_time', 'end_time', 'status', 'reminded_24h_at', 'reminded_2h_at'])]
 class Driving extends Model
 {
     /** @use HasFactory<DrivingFactory> */
@@ -45,6 +47,8 @@ class Driving extends Model
         return [
             'start_time' => 'datetime',
             'end_time' => 'datetime',
+            'reminded_24h_at' => 'datetime',
+            'reminded_2h_at' => 'datetime',
         ];
     }
 

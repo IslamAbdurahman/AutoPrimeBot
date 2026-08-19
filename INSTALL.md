@@ -135,7 +135,29 @@ php artisan nutgram:register-commands
 
 ---
 
-## 🔐 4. Tizimga Kirish Ma'lumotlari (Default Credentials)
+## ⚙️ 4. Supervisor (Queue Worker va Scheduler) ni Sozlash
+
+Dars yaratilganda tezkor xabarnomalar va darsdan 24 soat / 2 soat oldin avtomatik eslatmalar (reminders) yuborilishi uchun fonda **Supervisor** ishlashi kerak:
+
+```bash
+# 1. Supervisor-ni o'rnatish (agar serverda bo'lmasa)
+sudo apt-get install -y supervisor
+
+# 2. Loyihadagi konfiguratsiya faylini Supervisor katalogiga nusxalash
+sudo cp supervisor/autoprime.conf /etc/supervisor/conf.d/autoprime.conf
+
+# 3. Supervisor-ni yangilash va jarayonlarni ishga tushirish
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start all
+
+# 4. Jarayonlar holatini tekshirish
+sudo supervisorctl status
+```
+
+---
+
+## 🔐 5. Tizimga Kirish Ma'lumotlari (Default Credentials)
 
 Bo'sh bazani seed qilganingizdan so'ng, tizimga kirish uchun quyidagi default Admin ma'lumotlaridan foydalanishingiz mumkin:
 
@@ -145,7 +167,7 @@ Bo'sh bazani seed qilganingizdan so'ng, tizimga kirish uchun quyidagi default Ad
 
 ---
 
-## 🔄 5. Yangilanishlarni Yuklash (Deployment Updates)
+## 🔄 6. Yangilanishlarni Yuklash (Deployment Updates)
 
 Kelgusida kodingizni yangilamoqchi bo'lsangiz, serverda ushbu buyruqlarni yurgizish kifoya:
 
@@ -157,4 +179,8 @@ php artisan migrate --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+
+# Supervisor workerlarini yangi kod bilan qayta yuklash
+sudo supervisorctl restart all
 ```
+

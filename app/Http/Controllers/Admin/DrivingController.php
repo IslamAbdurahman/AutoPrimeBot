@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\DrivingsExport;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendDrivingCreatedNotificationJob;
 use App\Models\Autodrome;
 use App\Models\Branch;
 use App\Models\Driving;
@@ -178,7 +179,7 @@ class DrivingController extends Controller
                 'status' => 'scheduled',
             ]);
 
-            app(TelegramService::class)->sendDrivingCreatedNotification($driving);
+            SendDrivingCreatedNotificationJob::dispatch($driving);
         }
 
         return redirect()->back();
@@ -207,6 +208,13 @@ class DrivingController extends Controller
         $oldAutodromeId = $driving->autodrome_id;
 
         $driving->update($validated);
+
+        if ($oldStartTime != $driving->start_time) {
+            $driving->update([
+                'reminded_24h_at' => null,
+                'reminded_2h_at' => null,
+            ]);
+        }
 
         if ($oldStatus !== $driving->status) {
             if ($driving->status === 'completed') {

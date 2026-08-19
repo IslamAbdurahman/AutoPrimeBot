@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendDrivingCreatedNotificationJob;
 use App\Models\Driving;
 use App\Models\Group;
 use App\Models\Student;
@@ -81,7 +82,7 @@ class InstructorController extends Controller
             'status' => 'scheduled',
         ]);
 
-        app(TelegramService::class)->sendDrivingCreatedNotification($driving);
+        SendDrivingCreatedNotificationJob::dispatch($driving);
 
         return redirect()->route('admin.dashboard');
     }

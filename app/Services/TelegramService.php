@@ -294,4 +294,106 @@ class TelegramService
             Log::error("Failed to send Telegram driving cancelled notification to student {$student->id}: ".$e->getMessage());
         }
     }
+
+    /**
+     * Send reminder notification to student 24 hours before a driving lesson.
+     */
+    public function sendDriving24hReminder(Driving $driving): void
+    {
+        $bot = $this->getBot();
+        if (! $bot) {
+            return;
+        }
+
+        $driving->loadMissing(['student', 'instructor', 'autodrome']);
+        $student = $driving->student;
+        $instructor = $driving->instructor;
+        $autodrome = $driving->autodrome;
+
+        if (! $student || ! $student->telegram_id) {
+            return;
+        }
+
+        $dateFormatted = Carbon::parse($driving->start_time)->format('d.m.Y');
+        $startTime = Carbon::parse($driving->start_time)->format('H:i');
+        $endTime = Carbon::parse($driving->end_time)->format('H:i');
+
+        $text = "⏰ <b>Eslatma: Ertaga amaliy mashg'ulotingiz bor!</b>\n\n";
+        $text .= "📅 <b>Sana:</b> {$dateFormatted}\n";
+        $text .= "⏰ <b>Vaqt:</b> {$startTime} - {$endTime}\n";
+        if ($instructor) {
+            $text .= "👨‍🏫 <b>Instruktor:</b> {$instructor->name}\n";
+            if ($instructor->car_name) {
+                $text .= "🚗 <b>Mashina:</b> {$instructor->car_name}\n";
+            }
+            if ($instructor->phone) {
+                $text .= "📞 <b>Tel:</b> {$instructor->phone}\n";
+            }
+        }
+        if ($autodrome) {
+            $text .= "📍 <b>Avtodrom:</b> {$autodrome->name}\n";
+        }
+        $text .= "\n<i>Mashg'ulotga o'z vaqtida yetib kelishingizni so'raymiz!</i>";
+
+        try {
+            $bot->sendMessage(
+                text: $text,
+                chat_id: $student->telegram_id,
+                parse_mode: 'HTML'
+            );
+        } catch (\Throwable $e) {
+            Log::error("Failed to send Telegram 24h driving reminder to student {$student->id}: ".$e->getMessage());
+        }
+    }
+
+    /**
+     * Send reminder notification to student 2 hours before a driving lesson.
+     */
+    public function sendDriving2hReminder(Driving $driving): void
+    {
+        $bot = $this->getBot();
+        if (! $bot) {
+            return;
+        }
+
+        $driving->loadMissing(['student', 'instructor', 'autodrome']);
+        $student = $driving->student;
+        $instructor = $driving->instructor;
+        $autodrome = $driving->autodrome;
+
+        if (! $student || ! $student->telegram_id) {
+            return;
+        }
+
+        $dateFormatted = Carbon::parse($driving->start_time)->format('d.m.Y');
+        $startTime = Carbon::parse($driving->start_time)->format('H:i');
+        $endTime = Carbon::parse($driving->end_time)->format('H:i');
+
+        $text = "⏳ <b>Eslatma: 2 soatdan so'ng amaliy mashg'ulotingiz boshlanadi!</b>\n\n";
+        $text .= "📅 <b>Sana:</b> {$dateFormatted}\n";
+        $text .= "⏰ <b>Vaqt:</b> {$startTime} - {$endTime}\n";
+        if ($instructor) {
+            $text .= "👨‍🏫 <b>Instruktor:</b> {$instructor->name}\n";
+            if ($instructor->car_name) {
+                $text .= "🚗 <b>Mashina:</b> {$instructor->car_name}\n";
+            }
+            if ($instructor->phone) {
+                $text .= "📞 <b>Tel:</b> {$instructor->phone}\n";
+            }
+        }
+        if ($autodrome) {
+            $text .= "📍 <b>Avtodrom:</b> {$autodrome->name}\n";
+        }
+        $text .= "\n<i>Iltimos, kechikmasdan keling. Xavfsiz yo'l tilaymiz!</i>";
+
+        try {
+            $bot->sendMessage(
+                text: $text,
+                chat_id: $student->telegram_id,
+                parse_mode: 'HTML'
+            );
+        } catch (\Throwable $e) {
+            Log::error("Failed to send Telegram 2h driving reminder to student {$student->id}: ".$e->getMessage());
+        }
+    }
 }
